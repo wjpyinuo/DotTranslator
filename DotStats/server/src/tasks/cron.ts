@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import { getPool } from '../db/pool';
 import { cleanExpiredOnline } from '../services/redis';
+import { checkAlerts } from './alerts';
 
 export function startCronJobs(): void {
   // 每 10 分钟清理过期在线状态
@@ -84,6 +85,15 @@ export function startCronJobs(): void {
       console.log('[Cron] Archived old events');
     } catch (err) {
       console.error('[Cron] Archive failed:', err);
+    }
+  });
+
+  // 每 5 分钟检查告警规则
+  cron.schedule('*/5 * * * *', async () => {
+    try {
+      await checkAlerts();
+    } catch (err) {
+      console.error('[Cron] Alert check failed:', err);
     }
   });
 
