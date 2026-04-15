@@ -475,6 +475,11 @@ body{
     clipboardMonitorEnabled = enabled;
   });
 
+  ipcMain.handle('clipboard:readText', () => {
+    const { clipboard } = require('electron');
+    return clipboard.readText();
+  });
+
   // IPC: 翻译
   // 加载并注入 API 密钥到翻译引擎
   async function loadProviderCredentials(): Promise<void> {
