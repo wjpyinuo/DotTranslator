@@ -1,9 +1,27 @@
 import { useAppStore } from '@renderer/stores/appStore';
+import { useState } from 'react';
+
+// API 申请链接
+const API_LINKS = {
+  deepl: 'https://www.deepl.com/pro-api?cta=free-product-page',
+  baidu: 'https://fanyi-api.com/developer/apply',
+};
 
 export function SettingsPanel() {
   const { settings, updateSettings, toggleSettings, showSettings } = useAppStore();
+  const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
 
   if (!showSettings) return null;
+
+  const toggleVisibility = (field: string) => {
+    setShowKeys((prev) => ({ ...prev, [field]: !prev[field] }));
+  };
+
+  const maskKey = (key: string | undefined): string => {
+    if (!key) return '';
+    if (key.length <= 8) return '••••••••';
+    return key.slice(0, 4) + '••••••••' + key.slice(-4);
+  };
 
   return (
     <div className="settings-overlay" onClick={toggleSettings}>
@@ -13,6 +31,7 @@ export function SettingsPanel() {
           <button onClick={toggleSettings} className="close-btn">✕</button>
         </div>
 
+        {/* 主题 */}
         <div className="settings-section">
           <h3>主题</h3>
           <div className="theme-toggle">
@@ -31,6 +50,117 @@ export function SettingsPanel() {
           </div>
         </div>
 
+        {/* API 密钥设置 */}
+        <div className="settings-section">
+          <h3>API 接口设置</h3>
+
+          {/* DeepL */}
+          <div className="api-key-group">
+            <div className="api-key-label">
+              <span>DeepL API Key</span>
+              <a
+                href={API_LINKS.deepl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="api-link"
+              >
+                申请 API Key →
+              </a>
+            </div>
+            <div className="api-key-input-wrapper">
+              <input
+                type={showKeys.deepl ? 'text' : 'password'}
+                className="api-key-input"
+                placeholder="输入 DeepL API Key"
+                value={showKeys.deepl ? (settings.deeplApiKey || '') : maskKey(settings.deeplApiKey)}
+                onChange={(e) => updateSettings({ deeplApiKey: e.target.value })}
+                onFocus={(e) => {
+                  if (!showKeys.deepl) {
+                    setShowKeys((p) => ({ ...p, deepl: true }));
+                    e.target.select();
+                  }
+                }}
+                onBlur={() => setShowKeys((p) => ({ ...p, deepl: false }))}
+              />
+              <button
+                className="toggle-vis-btn"
+                onClick={() => toggleVisibility('deepl')}
+                type="button"
+              >
+                {showKeys.deepl ? '🙈' : '👁️'}
+              </button>
+            </div>
+          </div>
+
+          {/* 百度翻译 */}
+          <div className="api-key-group">
+            <div className="api-key-label">
+              <span>百度翻译 App ID</span>
+              <a
+                href={API_LINKS.baidu}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="api-link"
+              >
+                申请 API →
+              </a>
+            </div>
+            <div className="api-key-input-wrapper">
+              <input
+                type={showKeys.baiduId ? 'text' : 'password'}
+                className="api-key-input"
+                placeholder="输入百度 App ID"
+                value={showKeys.baiduId ? (settings.baiduAppId || '') : maskKey(settings.baiduAppId)}
+                onChange={(e) => updateSettings({ baiduAppId: e.target.value })}
+                onFocus={(e) => {
+                  if (!showKeys.baiduId) {
+                    setShowKeys((p) => ({ ...p, baiduId: true }));
+                    e.target.select();
+                  }
+                }}
+                onBlur={() => setShowKeys((p) => ({ ...p, baiduId: false }))}
+              />
+              <button
+                className="toggle-vis-btn"
+                onClick={() => toggleVisibility('baiduId')}
+                type="button"
+              >
+                {showKeys.baiduId ? '🙈' : '👁️'}
+              </button>
+            </div>
+          </div>
+
+          <div className="api-key-group">
+            <div className="api-key-label">
+              <span>百度翻译密钥</span>
+            </div>
+            <div className="api-key-input-wrapper">
+              <input
+                type={showKeys.baiduKey ? 'text' : 'password'}
+                className="api-key-input"
+                placeholder="输入百度 Secret Key"
+                value={showKeys.baiduKey ? (settings.baiduSecretKey || '') : maskKey(settings.baiduSecretKey)}
+                onChange={(e) => updateSettings({ baiduSecretKey: e.target.value })}
+                onFocus={(e) => {
+                  if (!showKeys.baiduKey) {
+                    setShowKeys((p) => ({ ...p, baiduKey: true }));
+                    e.target.select();
+                  }
+                }}
+                onBlur={() => setShowKeys((p) => ({ ...p, baiduKey: false }))}
+              />
+              <button
+                className="toggle-vis-btn"
+                onClick={() => toggleVisibility('baiduKey')}
+                type="button"
+              >
+                {showKeys.baiduKey ? '🙈' : '👁️'}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* 翻译引擎 */}
         <div className="settings-section">
           <h3>翻译引擎</h3>
           <label className="setting-item">
@@ -74,6 +204,7 @@ export function SettingsPanel() {
           </label>
         </div>
 
+        {/* 隐私 */}
         <div className="settings-section">
           <h3>隐私</h3>
           <label className="setting-item">
@@ -102,6 +233,7 @@ export function SettingsPanel() {
           </label>
         </div>
 
+        {/* 快捷键 */}
         <div className="settings-section">
           <h3>快捷键</h3>
           <div className="setting-item">

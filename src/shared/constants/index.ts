@@ -2,15 +2,15 @@
 export const SUPPORTED_LANGUAGES = [
   { code: 'auto', name: '自动检测' },
   { code: 'zh', name: '中文' },
-  { code: 'en', name: 'English' },
-  { code: 'ja', name: '日本語' },
-  { code: 'ko', name: '한국어' },
-  { code: 'fr', name: 'Français' },
-  { code: 'de', name: 'Deutsch' },
-  { code: 'es', name: 'Español' },
-  { code: 'ru', name: 'Русский' },
-  { code: 'pt', name: 'Português' },
-  { code: 'it', name: 'Italiano' },
+  { code: 'en', name: '英语' },
+  { code: 'ja', name: '日语' },
+  { code: 'ko', name: '韩语' },
+  { code: 'fr', name: '法语' },
+  { code: 'de', name: '德语' },
+  { code: 'es', name: '西班牙语' },
+  { code: 'ru', name: '俄语' },
+  { code: 'pt', name: '葡萄牙语' },
+  { code: 'it', name: '意大利语' },
 ] as const;
 
 // 引擎 ID

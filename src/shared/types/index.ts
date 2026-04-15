@@ -132,6 +132,9 @@ export interface UserSettings {
   hotkey: string;
   serverUrl?: string;
   serverToken?: string;
+  deeplApiKey?: string;
+  baiduAppId?: string;
+  baiduSecretKey?: string;
 }
 
 // ==================== 本地统计 ====================

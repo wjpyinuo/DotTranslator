@@ -3,12 +3,56 @@ import { useAppStore } from '@renderer/stores/appStore';
 import { useCallback, useRef } from 'react';
 import type { TranslateResult } from '@shared/types';
 
+// 检测文本是否包含中文字符
+function containsChinese(text: string): boolean {
+  return /[\u4e00-\u9fa5]/.test(text);
+}
+
 export function InputArea() {
-  const { inputText, sourceLang, targetLang, setInputText, setSourceLang, setTargetLang, swapLanguages, setTranslating, setResults } = useAppStore();
+  const {
+    inputText, sourceLang, targetLang,
+    setInputText, setSourceLang, setTargetLang,
+    swapLanguages, setTranslating, setResults,
+  } = useAppStore();
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const doTranslate = useCallback(async () => {
+    const text = useAppStore.getState().inputText;
+    if (!text.trim()) return;
+
+    setTranslating(true);
+    try {
+      const { sourceLang: src, targetLang: tgt, settings } = useAppStore.getState();
+      const api = window.electronAPI;
+      if (!api) {
+        console.error('electronAPI not available');
+        return;
+      }
+      const results = await api.translation.translate({
+        text,
+        sourceLang: src,
+        targetLang: tgt,
+        enabledProviders: settings.enabledProviders,
+      });
+      setResults(results as TranslateResult[]);
+    } catch (err) {
+      console.error('Translation failed:', err);
+      setResults([]);
+    } finally {
+      setTranslating(false);
+    }
+  }, [setResults, setTranslating]);
 
   const handleInput = useCallback((text: string) => {
     setInputText(text);
+
+    // 自动语言判断：如果输入非中文，目标语言自动设为中文
+    if (text.trim() && !containsChinese(text)) {
+      const curTarget = useAppStore.getState().targetLang;
+      if (curTarget !== 'zh') {
+        setTargetLang('zh');
+      }
+    }
 
     if (timerRef.current) clearTimeout(timerRef.current);
     if (!text.trim()) {
@@ -16,30 +60,18 @@ export function InputArea() {
       return;
     }
 
-    timerRef.current = setTimeout(async () => {
-      setTranslating(true);
-      try {
-        const { sourceLang: src, targetLang: tgt, settings } = useAppStore.getState();
-        const api = window.electronAPI;
-        if (!api) {
-          console.error('electronAPI not available');
-          return;
-        }
-        const results = await api.translation.translate({
-          text,
-          sourceLang: src,
-          targetLang: tgt,
-          enabledProviders: settings.enabledProviders,
-        });
-        setResults(results as TranslateResult[]);
-      } catch (err) {
-        console.error('Translation failed:', err);
-        setResults([]);
-      } finally {
-        setTranslating(false);
-      }
+    timerRef.current = setTimeout(() => {
+      doTranslate();
     }, DEBOUNCE_TRANSLATE_MS);
-  }, [setInputText, setResults, setTranslating]);
+  }, [setInputText, setResults, setTargetLang, doTranslate]);
+
+  // 切换目标语言后自动翻译
+  const handleTargetLangChange = useCallback((lang: string) => {
+    setTargetLang(lang);
+    if (useAppStore.getState().inputText.trim()) {
+      setTimeout(() => doTranslate(), 50);
+    }
+  }, [setTargetLang, doTranslate]);
 
   return (
     <div className="input-area">
@@ -60,7 +92,7 @@ export function InputArea() {
 
         <select
           value={targetLang}
-          onChange={(e) => setTargetLang(e.target.value)}
+          onChange={(e) => handleTargetLangChange(e.target.value)}
           className="lang-select"
         >
           {SUPPORTED_LANGUAGES.filter((l) => l.code !== 'auto').map((lang) => (
@@ -76,6 +108,14 @@ export function InputArea() {
         className="input-textarea"
         autoFocus
       />
+
+      <button
+        className="translate-btn"
+        onClick={doTranslate}
+        disabled={!inputText.trim()}
+      >
+        翻 译
+      </button>
     </div>
   );
 }
