@@ -1,0 +1,3 @@
+packages:
+  - "DotStats"
+  - "DotStats/server"
