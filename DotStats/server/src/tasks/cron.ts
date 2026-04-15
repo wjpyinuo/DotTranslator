@@ -14,6 +14,48 @@ export function startCronJobs(): void {
     }
   });
 
+  // 每天凌晨 3:00 - 周留存计算（每周一执行实际写入）
+  cron.schedule('0 3 * * 1', async () => {
+    try {
+      const pool = getPool();
+      await pool.query(`
+        INSERT INTO retention_weekly (cohort_week, cohort_size, w1_retained, w2_retained, w4_retained, w8_retained, w12_retained)
+        SELECT
+          TO_CHAR(DATE_TRUNC('week', first_seen), 'IYYY-IWW') AS cohort_week,
+          COUNT(DISTINCT i.instance_id) AS cohort_size,
+          COUNT(DISTINCT CASE WHEN e.received_at >= DATE_TRUNC('week', i.first_seen) + INTERVAL '1 week'
+                               AND e.received_at <  DATE_TRUNC('week', i.first_seen) + INTERVAL '2 weeks'
+            THEN e.instance_id END) AS w1_retained,
+          COUNT(DISTINCT CASE WHEN e.received_at >= DATE_TRUNC('week', i.first_seen) + INTERVAL '2 weeks'
+                               AND e.received_at <  DATE_TRUNC('week', i.first_seen) + INTERVAL '3 weeks'
+            THEN e.instance_id END) AS w2_retained,
+          COUNT(DISTINCT CASE WHEN e.received_at >= DATE_TRUNC('week', i.first_seen) + INTERVAL '4 weeks'
+                               AND e.received_at <  DATE_TRUNC('week', i.first_seen) + INTERVAL '5 weeks'
+            THEN e.instance_id END) AS w4_retained,
+          COUNT(DISTINCT CASE WHEN e.received_at >= DATE_TRUNC('week', i.first_seen) + INTERVAL '8 weeks'
+                               AND e.received_at <  DATE_TRUNC('week', i.first_seen) + INTERVAL '9 weeks'
+            THEN e.instance_id END) AS w8_retained,
+          COUNT(DISTINCT CASE WHEN e.received_at >= DATE_TRUNC('week', i.first_seen) + INTERVAL '12 weeks'
+                               AND e.received_at <  DATE_TRUNC('week', i.first_seen) + INTERVAL '13 weeks'
+            THEN e.instance_id END) AS w12_retained
+        FROM instances i
+        LEFT JOIN events e ON e.instance_id = i.instance_id
+        WHERE i.first_seen >= NOW() - INTERVAL '16 weeks'
+        GROUP BY cohort_week
+        ON CONFLICT (cohort_week) DO UPDATE SET
+          cohort_size = EXCLUDED.cohort_size,
+          w1_retained = EXCLUDED.w1_retained,
+          w2_retained = EXCLUDED.w2_retained,
+          w4_retained = EXCLUDED.w4_retained,
+          w8_retained = EXCLUDED.w8_retained,
+          w12_retained = EXCLUDED.w12_retained
+      `);
+      console.log('[Cron] Weekly retention calculation completed');
+    } catch (err) {
+      console.error('[Cron] Weekly retention failed:', err);
+    }
+  });
+
   // 每天凌晨 2:00 - 日聚合
   cron.schedule('0 2 * * *', async () => {
     try {
