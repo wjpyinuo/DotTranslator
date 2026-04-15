@@ -6,6 +6,8 @@ import { telemetry } from '../src/telemetry/reporter';
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let floatingBall: BrowserWindow | null = null;
+let miniCard: BrowserWindow | null = null;
+let pipWindow: BrowserWindow | null = null;
 let isQuitting = false;
 
 const isDev = !app.isPackaged;
@@ -247,6 +249,10 @@ app.whenReady().then(() => {
   ipcMain.on('window:minimize', () => mainWindow?.minimize());
   ipcMain.on('window:close', () => {
     isQuitting = true;
+    // 先销毁辅助窗口，确保关闭主窗口后 window-all-closed 能触发
+    if (floatingBall && !floatingBall.isDestroyed()) floatingBall.destroy();
+    if (pipWindow && !pipWindow.isDestroyed()) pipWindow.destroy();
+    if (miniCard && !miniCard.isDestroyed()) miniCard.destroy();
     mainWindow?.close();
   });
   ipcMain.on('window:toggle-maximize', () => {
@@ -341,7 +347,6 @@ app.whenReady().then(() => {
   let clipboardMonitorEnabled = true;
 
   // 迷你卡片窗口
-  let miniCard: BrowserWindow | null = null;
   let miniCardTimer: ReturnType<typeof setTimeout> | null = null;
 
   function showMiniCard(text: string, sourceLang: string, targetLang: string): void {
@@ -548,7 +553,6 @@ body{
   });
 
   // IPC: 悬浮球 - 创建 PiP 小窗口
-  let pipWindow: BrowserWindow | null = null;
 
   ipcMain.on('pip:show', (_event, data: { text: string; sourceLang: string; targetLang: string }) => {
     if (pipWindow && !pipWindow.isDestroyed()) {
@@ -983,6 +987,11 @@ body{
 app.on('before-quit', () => {
   isQuitting = true;
   telemetry.stop();
+  // 清理所有辅助窗口，确保 window-all-closed 能触发
+  if (floatingBall && !floatingBall.isDestroyed()) floatingBall.destroy();
+  if (pipWindow && !pipWindow.isDestroyed()) pipWindow.destroy();
+  if (miniCard && !miniCard.isDestroyed()) miniCard.destroy();
+  if (tray && !tray.isDestroyed()) tray.destroy();
 });
 
 app.on('will-quit', () => {

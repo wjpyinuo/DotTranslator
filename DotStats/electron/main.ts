@@ -9,6 +9,22 @@ const ALLOWED_ORIGINS = isDev
   ? ['http://localhost:5174', 'http://localhost:3000']
   : ['file://'];
 
+// ========== 单例锁：防止多开 ==========
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.show();
+      mainWindow.focus();
+    }
+  });
+
+  app.whenReady().then(createWindow);
+}
+
 function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -66,7 +82,9 @@ function createWindow(): void {
 
   // IPC: 窗口控制
   ipcMain.on('window:minimize', () => mainWindow?.minimize());
-  ipcMain.on('window:close', () => mainWindow?.close());
+  ipcMain.on('window:close', () => {
+    mainWindow?.close();
+  });
   ipcMain.on('window:toggle-maximize', () => {
     if (mainWindow?.isMaximized()) {
       mainWindow.unmaximize();
@@ -88,8 +106,6 @@ function createWindow(): void {
     mainWindow = null;
   });
 }
-
-app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
