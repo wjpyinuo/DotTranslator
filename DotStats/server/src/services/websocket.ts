@@ -43,7 +43,8 @@ export async function setupWebSocket(app: FastifyInstance): Promise<void> {
     });
   });
 
-  // 每 10 秒广播实时数据
+  // 广播实时数据（默认 30 秒，可通过 WS_BROADCAST_MS 环境变量配置）
+  const broadcastMs = parseInt(process.env.WS_BROADCAST_MS || '30000', 10);
   setInterval(async () => {
     if (clients.size === 0) return;
 

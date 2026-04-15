@@ -33,7 +33,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       FROM daily_metrics
       WHERE date >= $1 AND date <= $2
       ORDER BY date ASC
-    `, [from || '2020-01-01', to || new Date().toISOString().split('T')[0]]);
+    `, [from || new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], to || new Date().toISOString().split('T')[0]]);
 
     if (format === 'csv') {
       const header = 'date,dau,new_instances,heartbeats,feature_calls\n';

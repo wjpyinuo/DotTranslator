@@ -70,7 +70,7 @@ export async function statsRoutes(app: FastifyInstance): Promise<void> {
     `;
 
     const result = await pool.query(query, [
-      from || '2020-01-01',
+      from || new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       to || new Date().toISOString().split('T')[0],
     ]);
 

@@ -21,7 +21,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   translation: {
-    translate: (params: TranslateParams) => ipcRenderer.invoke('translation:translate', params),
+    translate: (params: { text: string; sourceLang: string; targetLang: string; enabledProviders?: string[] }) =>
+      ipcRenderer.invoke('translation:translate', params),
     getProviders: () => ipcRenderer.invoke('translation:getProviders'),
     detectLanguage: (text: string) => ipcRenderer.invoke('translation:detectLanguage', text),
   },
@@ -46,10 +47,3 @@ contextBridge.exposeInMainWorld('electronAPI', {
     get: () => ipcRenderer.invoke('stats:get'),
   },
 });
-
-interface TranslateParams {
-  text: string;
-  sourceLang: string;
-  targetLang: string;
-  provider?: string;
-}
