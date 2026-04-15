@@ -8,7 +8,9 @@ import { healthRoutes } from './routes/health';
 import { initDatabase, getPool } from './db/pool';
 import { initRedis, getRedis } from './services/redis';
 import { setupWebSocket } from './services/websocket';
-import { startCronJobs } from './tasks/cron';
+import { startCronJobs, stopCronJobs } from './tasks/cron';
+
+const SHUTDOWN_TIMEOUT_MS = parseInt(process.env.SHUTDOWN_TIMEOUT_MS || '10000', 10);
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const HOST = process.env.HOST || '0.0.0.0';
@@ -65,18 +67,39 @@ async function start(): Promise<void> {
     process.exit(1);
   }
 
-  // 优雅关闭
+  // 优雅关闭（带超时保护）
+  let isShuttingDown = false;
   const shutdown = async (signal: string) => {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
     console.log(`\n🛑 Received ${signal}, shutting down gracefully...`);
+
+    // 超时强制退出
+    const forceTimer = setTimeout(() => {
+      console.error(`⏰ Shutdown timeout (${SHUTDOWN_TIMEOUT_MS}ms), forcing exit`);
+      process.exit(1);
+    }, SHUTDOWN_TIMEOUT_MS);
+
     try {
+      // 1. 停止定时任务（防止新任务启动）
+      stopCronJobs();
+
+      // 2. 关闭 Fastify（停止接受新请求，关闭 WS 连接）
       await app.close();
+
+      // 3. 关闭数据库连接
       const pool = getPool();
       await pool.end();
+
+      // 4. 关闭 Redis
       const redis = getRedis();
       await redis.quit();
+
+      clearTimeout(forceTimer);
       console.log('✅ Cleanup complete');
       process.exit(0);
     } catch (err) {
+      clearTimeout(forceTimer);
       console.error('❌ Shutdown error:', err);
       process.exit(1);
     }
