@@ -35,10 +35,25 @@ export async function checkAlerts(): Promise<void> {
 
         console.log(`[Alert] 🚨 "${rule.name}" triggered: ${rule.metric}=${value} ${rule.operator} ${rule.threshold}`);
 
-        // TODO: 发送通知 (webhook / email / etc.)
-        // if (rule.notify_channel === 'webhook' && rule.notify_target) {
-        //   await fetch(rule.notify_target, { method: 'POST', body: JSON.stringify({ rule, value }) });
-        // }
+        // 发送通知
+        if (rule.notify_channel === 'webhook' && rule.notify_target) {
+          try {
+            await fetch(rule.notify_target, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                alert: rule.name,
+                metric: rule.metric,
+                value,
+                operator: rule.operator,
+                threshold: rule.threshold,
+                triggeredAt: new Date().toISOString(),
+              }),
+            });
+          } catch (err) {
+            console.error(`[Alert] Webhook delivery failed for "${rule.name}":`, err);
+          }
+        }
       }
     } catch (err) {
       console.error(`[Alert] Check failed for rule "${rule.name}":`, err);
