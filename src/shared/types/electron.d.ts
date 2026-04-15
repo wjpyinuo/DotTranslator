@@ -29,6 +29,12 @@ interface ElectronAPI {
     hide(): void;
     close(): void;
   };
+  floating: {
+    update(text: string): void;
+    hide(): void;
+    show(): void;
+    onRequestLastResult(callback: () => void): void;
+  };
   storage: {
     get(key: string): Promise<unknown>;
     set(key: string, value: unknown): Promise<void>;

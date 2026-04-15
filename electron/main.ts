@@ -4,6 +4,7 @@ import { translationRouter } from '../src/workers/translation/router';
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
+let floatingBall: BrowserWindow | null = null;
 let isQuitting = false;
 
 const isDev = !app.isPackaged;
@@ -153,9 +154,80 @@ function createTray(): void {
   });
 }
 
+// ========== 悬浮球 48×48 常驻圆形 ==========
+function createFloatingBall(): void {
+  const { screen } = require('electron');
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
+
+  floatingBall = new BrowserWindow({
+    width: 48,
+    height: 48,
+    x: screenWidth - 80,
+    y: screenHeight / 2 - 24,
+    frame: false,
+    transparent: true,
+    resizable: false,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    hasShadow: false,
+    roundedCorners: true,
+    backgroundColor: '#00000000',
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+
+  floatingBall.on('closed', () => {
+    floatingBall = null;
+  });
+
+  const ballHtml = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  width:48px;height:48px;overflow:hidden;
+  background:rgba(99,102,241,0.9);
+  border-radius:50%;cursor:grab;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 12px rgba(0,0,0,0.3);
+  transition:all 0.2s;
+  -webkit-app-region:drag;
+  user-select:none;
+}
+body:hover{
+  background:rgba(79,70,229,1);
+  box-shadow:0 4px 20px rgba(99,102,241,0.5);
+  transform:scale(1.1);
+}
+body:active{cursor:grabbing}
+.ball-icon{font-size:20px;-webkit-app-region:no-drag;pointer-events:auto}
+</style></head>
+<body onclick="window.electronAPI?.pip?.close()">
+  <span class="ball-icon" id="icon">✦</span>
+  <script>
+    const { ipcRenderer } = require('electron');
+    let clickTimer = null;
+    document.body.addEventListener('click', (e) => {
+      if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; ipcRenderer.send('floating:double-click'); return; }
+      clickTimer = setTimeout(() => { clickTimer = null; ipcRenderer.send('floating:click'); }, 250);
+    });
+    ipcRenderer.on('floating:update-icon', (_e, text) => {
+      document.getElementById('icon').textContent = text || '✦';
+    });
+  </script>
+</body></html>`;
+
+  floatingBall.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(ballHtml)}`);
+}
+
 app.whenReady().then(() => {
   createMainWindow();
   createTray();
+  createFloatingBall();
 
   // 全局快捷键 Alt+Space
   globalShortcut.register('Alt+Space', () => {
@@ -176,6 +248,34 @@ app.whenReady().then(() => {
     } else {
       mainWindow?.maximize();
     }
+  });
+
+  // IPC: 悬浮球事件
+  ipcMain.on('floating:click', () => {
+    // 单击 → 显示/隐藏主窗口
+    if (mainWindow?.isVisible()) {
+      mainWindow.hide();
+    } else {
+      mainWindow?.show();
+      mainWindow?.focus();
+    }
+  });
+
+  ipcMain.on('floating:double-click', () => {
+    // 双击 → 最近一次翻译结果发送到悬浮球显示
+    mainWindow?.webContents.send('floating:request-last-result');
+  });
+
+  ipcMain.on('floating:update', (_event, text: string) => {
+    floatingBall?.webContents.send('floating:update-icon', text ? text.slice(0, 1) : '✦');
+  });
+
+  ipcMain.on('floating:hide', () => {
+    floatingBall?.hide();
+  });
+
+  ipcMain.on('floating:show', () => {
+    floatingBall?.show();
   });
 
   // IPC: 真正退出应用

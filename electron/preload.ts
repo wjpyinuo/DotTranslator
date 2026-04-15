@@ -17,6 +17,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
     close: () => ipcRenderer.send('pip:close'),
   },
 
+  floating: {
+    update: (text: string) => ipcRenderer.send('floating:update', text),
+    hide: () => ipcRenderer.send('floating:hide'),
+    show: () => ipcRenderer.send('floating:show'),
+    onRequestLastResult: (callback: () => void) => {
+      ipcRenderer.on('floating:request-last-result', () => callback());
+    },
+  },
+
   storage: {
     get: (key: string) => ipcRenderer.invoke('storage:get', key),
     set: (key: string, value: unknown) => ipcRenderer.invoke('storage:set', key, value),
