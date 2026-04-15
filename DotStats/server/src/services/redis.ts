@@ -84,7 +84,17 @@ export async function getFeatureCounts(date?: string): Promise<Record<string, nu
 
 export async function updateVersion(instanceId: string, version: string): Promise<void> {
   const r = getRedis();
+  const prevVersion = await r.hGet('versions:instances', instanceId);
+
+  if (prevVersion === version) return; // 版本未变，跳过
+
+  // 更新实例版本映射
   await r.hSet('versions:instances', instanceId, version);
+
+  // 旧版本计数减 1，新版本计数加 1
+  if (prevVersion) {
+    await r.hIncrBy('versions:counts', prevVersion, -1);
+  }
   await r.hIncrBy('versions:counts', version, 1);
 }
 
@@ -93,7 +103,8 @@ export async function getVersionDistribution(): Promise<Record<string, number>> 
   const data = await r.hGetAll('versions:counts');
   const result: Record<string, number> = {};
   for (const [k, v] of Object.entries(data)) {
-    result[k] = parseInt(v, 10);
+    const count = parseInt(v, 10);
+    if (count > 0) result[k] = count;
   }
   return result;
 }
