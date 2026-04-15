@@ -10,7 +10,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
 
     await pool.query('BEGIN');
     try {
-      await pool.query('DELETE FROM events WHERE instance_id = $1', [id]);
+      // events 表有 ON DELETE CASCADE，只需删除 instance 即可
       await pool.query('DELETE FROM instances WHERE instance_id = $1', [id]);
       await pool.query('COMMIT');
       return { success: true, message: `Instance ${id} deleted` };

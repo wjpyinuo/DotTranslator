@@ -53,7 +53,7 @@ async function initSchema(): Promise<void> {
     -- 事件流水表
     CREATE TABLE IF NOT EXISTS events (
       id            BIGSERIAL PRIMARY KEY,
-      instance_id   TEXT NOT NULL REFERENCES instances(instance_id),
+      instance_id   TEXT NOT NULL REFERENCES instances(instance_id) ON DELETE CASCADE,
       event_type    TEXT NOT NULL,
       feature       TEXT,
       metadata      JSONB DEFAULT '{}',
