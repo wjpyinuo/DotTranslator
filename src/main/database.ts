@@ -249,7 +249,7 @@ export function recordProviderMetric(provider: string, success: boolean, latency
       total_calls = total_calls + 1,
       success = success + ?,
       fail = fail + ?,
-      avg_latency = (avg_latency * (total_calls - 1) + ?) / total_calls
+      avg_latency = (avg_latency * total_calls + ?) / (total_calls + 1)
   `).run(provider, today, success ? 1 : 0, success ? 0 : 1, latencyMs,
     success ? 1 : 0, success ? 0 : 1, latencyMs);
 }

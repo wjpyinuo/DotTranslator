@@ -77,6 +77,13 @@ interface ElectronAPI {
   announcement: {
     fetch(url: string): Promise<string>;
   };
+  localApi: {
+    getToken(): Promise<string>;
+  };
+  _internal?: {
+    send(channel: string, ...args: unknown[]): void;
+    on(channel: string, callback: (...args: unknown[]) => void): void;
+  };
 }
 
 interface StatsData {

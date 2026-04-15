@@ -21,7 +21,7 @@ interface StatsData {
 
 const PROVIDER_NAMES: Record<string, string> = {
   deepl: 'DeepL',
-  google: 'Google',
+  youdao: '有道翻译',
   baidu: '百度翻译',
 };
 

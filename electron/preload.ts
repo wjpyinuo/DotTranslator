@@ -83,4 +83,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
   announcement: {
     fetch: (url: string) => ipcRenderer.invoke('announcement:fetch', url),
   },
+
+  localApi: {
+    getToken: () => ipcRenderer.invoke('local-api:token'),
+  },
+
+  // 内部辅助窗口用（悬浮球/迷你卡片/PiP）
+  _internal: {
+    send: (channel: string, ...args: unknown[]) => ipcRenderer.send(channel, ...args),
+    on: (channel: string, callback: (...args: unknown[]) => void) => {
+      ipcRenderer.on(channel, (_event, ...args) => callback(...args));
+    },
+  },
 });

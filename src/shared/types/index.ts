@@ -133,6 +133,8 @@ export interface UserSettings {
   serverUrl?: string;
   serverToken?: string;
   deeplApiKey?: string;
+  youdaoAppId?: string;
+  youdaoAppSecret?: string;
   baiduAppId?: string;
   baiduSecretKey?: string;
 }

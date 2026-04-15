@@ -15,7 +15,7 @@ export const SUPPORTED_LANGUAGES = [
 
 // 引擎 ID
 export const PROVIDER_DEEPL = 'deepl';
-export const PROVIDER_GOOGLE = 'google';
+export const PROVIDER_YOUDAO = 'youdao';
 export const PROVIDER_BAIDU = 'baidu';
 
 // 字符数分桶
@@ -55,9 +55,10 @@ export const PRIVACY_BLOCKED_KEYS = [
   'apiKey', 'token', 'secret', 'password',
 ] as const;
 
-// 剪贴板安全过滤
-export const CLIPBOARD_BLACKLIST = [
-  /\d{16}/,                        // 信用卡号
-  /1[3-9]\d{9}/,                   // 手机号
-  /(?=.*[a-z])(?=.*\d)[a-z\d]{8,}/i, // 密码模式
+// 剪贴板安全过滤（精确模式，减少误杀）
+export const CLIPBOARD_SENSITIVE_PATTERNS = [
+  /\b(\d{13,19})\b/,              // 可能的银行卡/信用卡号（需 Luhn 校验）
+  /\b1[3-9]\d{9}\b/,              // 中国手机号
+  /\b\d{17}[\dXx]\b/,             // 中国身份证号
+  /\b(?:62|4\d{2}|5[1-5]|3[47])\d{13,16}\b/, // 银行卡 BIN 前缀
 ] as const;

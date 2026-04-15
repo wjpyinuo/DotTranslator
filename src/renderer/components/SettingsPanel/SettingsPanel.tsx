@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 // API 申请链接
 const API_LINKS = {
   deepl: 'https://www.deepl.com/pro-api?cta=free-product-page',
+  youdao: 'https://ai.youdao.com/product-fanyi-text.s',
   baidu: 'https://fanyi-api.com/developer/apply',
 };
 
@@ -19,9 +20,11 @@ export function SettingsPanel() {
     if (!api?.secureStorage) return;
     (async () => {
       const deepl = await api.secureStorage.get('deeplApiKey') || '';
+      const youdaoId = await api.secureStorage.get('youdaoAppId') || '';
+      const youdaoKey = await api.secureStorage.get('youdaoAppSecret') || '';
       const baiduId = await api.secureStorage.get('baiduAppId') || '';
       const baiduKey = await api.secureStorage.get('baiduSecretKey') || '';
-      setApiKeys({ deeplApiKey: deepl, baiduAppId: baiduId, baiduSecretKey: baiduKey });
+      setApiKeys({ deeplApiKey: deepl, youdaoAppId: youdaoId, youdaoAppSecret: youdaoKey, baiduAppId: baiduId, baiduSecretKey: baiduKey });
     })();
   }, [showSettings]);
 
@@ -187,9 +190,74 @@ export function SettingsPanel() {
               </button>
             </div>
           </div>
-        </div>
 
-        {/* 翻译引擎 */}
+          {/* 有道翻译 */}
+          <div className="api-key-group">
+            <div className="api-key-label">
+              <span>有道翻译 App ID</span>
+              <a
+                href={API_LINKS.youdao}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="api-link"
+              >
+                申请 API →
+              </a>
+            </div>
+            <div className="api-key-input-wrapper">
+              <input
+                type={showKeys.youdaoId ? 'text' : 'password'}
+                className="api-key-input"
+                placeholder="输入有道 App ID"
+                value={showKeys.youdaoId ? (apiKeys.youdaoAppId || '') : maskKey(apiKeys.youdaoAppId)}
+                onChange={(e) => saveApiKey('youdaoAppId', e.target.value)}
+                onFocus={(e) => {
+                  if (!showKeys.youdaoId) {
+                    setShowKeys((p) => ({ ...p, youdaoId: true }));
+                    e.target.select();
+                  }
+                }}
+                onBlur={() => setShowKeys((p) => ({ ...p, youdaoId: false }))}
+              />
+              <button
+                className="toggle-vis-btn"
+                onClick={() => toggleVisibility('youdaoId')}
+                type="button"
+              >
+                {showKeys.youdaoId ? '🙈' : '👁️'}
+              </button>
+            </div>
+          </div>
+
+          <div className="api-key-group">
+            <div className="api-key-label">
+              <span>有道翻译密钥</span>
+            </div>
+            <div className="api-key-input-wrapper">
+              <input
+                type={showKeys.youdaoKey ? 'text' : 'password'}
+                className="api-key-input"
+                placeholder="输入有道 App Secret"
+                value={showKeys.youdaoKey ? (apiKeys.youdaoAppSecret || '') : maskKey(apiKeys.youdaoAppSecret)}
+                onChange={(e) => saveApiKey('youdaoAppSecret', e.target.value)}
+                onFocus={(e) => {
+                  if (!showKeys.youdaoKey) {
+                    setShowKeys((p) => ({ ...p, youdaoKey: true }));
+                    e.target.select();
+                  }
+                }}
+                onBlur={() => setShowKeys((p) => ({ ...p, youdaoKey: false }))}
+              />
+              <button
+                className="toggle-vis-btn"
+                onClick={() => toggleVisibility('youdaoKey')}
+                type="button"
+              >
+                {showKeys.youdaoKey ? '🙈' : '👁️'}
+              </button>
+            </div>
+          </div>
+        </div>
         <div className="settings-section">
           <h3>翻译引擎</h3>
           <label className="setting-item">
@@ -208,15 +276,15 @@ export function SettingsPanel() {
           <label className="setting-item">
             <input
               type="checkbox"
-              checked={settings.enabledProviders.includes('google')}
+              checked={settings.enabledProviders.includes('youdao')}
               onChange={(e) => {
                 const providers = e.target.checked
-                  ? [...settings.enabledProviders, 'google']
-                  : settings.enabledProviders.filter((p) => p !== 'google');
+                  ? [...settings.enabledProviders, 'youdao']
+                  : settings.enabledProviders.filter((p) => p !== 'youdao');
                 updateSettings({ enabledProviders: providers });
               }}
             />
-            Google Translate
+            有道翻译
           </label>
           <label className="setting-item">
             <input

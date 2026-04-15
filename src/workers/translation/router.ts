@@ -1,6 +1,6 @@
 import type { TranslationProvider, TranslateParams, TranslateResult } from '@shared/types';
 import { DeepLProvider } from './providers/deepl';
-import { GoogleProvider } from './providers/google';
+import { YoudaoProvider } from './providers/youdao';
 import { BaiduProvider } from './providers/baidu';
 
 export class TranslationRouter {
@@ -9,7 +9,7 @@ export class TranslationRouter {
 
   constructor() {
     this.register(new DeepLProvider());
-    this.register(new GoogleProvider());
+    this.register(new YoudaoProvider());
     this.register(new BaiduProvider());
   }
 

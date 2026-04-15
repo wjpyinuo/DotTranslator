@@ -210,13 +210,13 @@ body:active{cursor:grabbing}
 <body onclick="window.electronAPI?.pip?.close()">
   <span class="ball-icon" id="icon">✦</span>
   <script>
-    const { ipcRenderer } = require('electron');
+    const api = window.electronAPI?._internal;
     let clickTimer = null;
     document.body.addEventListener('click', (e) => {
-      if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; ipcRenderer.send('floating:double-click'); return; }
-      clickTimer = setTimeout(() => { clickTimer = null; ipcRenderer.send('floating:click'); }, 250);
+      if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; api?.send('floating:double-click'); return; }
+      clickTimer = setTimeout(() => { clickTimer = null; api?.send('floating:click'); }, 250);
     });
-    ipcRenderer.on('floating:update-icon', (_e, text) => {
+    api?.on('floating:update-icon', (text) => {
       document.getElementById('icon').textContent = text || '✦';
     });
   </script>
@@ -394,12 +394,12 @@ body{
   <div class="lang" id="lang"></div>
   <div class="text" id="text">等待翻译...</div>
   <script>
-    const { ipcRenderer } = require('electron');
-    ipcRenderer.on('mini-card:update', (_e, data) => {
+    const api = window.electronAPI?._internal;
+    api?.on('mini-card:update', (data) => {
       document.getElementById('lang').textContent = data.sourceLang + ' → ' + data.targetLang;
       document.getElementById('text').textContent = data.text;
     });
-    setTimeout(() => ipcRenderer.send('mini-card:auto-hide'), 5000);
+    setTimeout(() => api?.send('mini-card:auto-hide'), 5000);
   </script>
 </body></html>`;
 
@@ -416,16 +416,38 @@ body{
     miniCardTimer = setTimeout(() => { miniCard?.hide(); }, 5000);
   }
 
-  // 敏感内容黑名单正则
-  const CLIPBOARD_BLACKLIST = [
-    /\d{16}/,                                    // 信用卡号（16位连续数字）
-    /1[3-9]\d{9}/,                               // 中国手机号
-    /(?=.*[a-z])(?=.*\d)[a-z\d]{8,}/i,           // 密码模式（字母+数字混合≥8位）
-    /\d{6}/,                                     // 验证码（6位数字）
+  // 敏感内容过滤（精确模式，减少误杀）
+  const SENSITIVE_PATTERNS = [
+    // 信用卡号：13-19 位连续纯数字，用 Luhn 算法校验
+    {
+      test: (t: string) => {
+        const match = t.match(/\b(\d{13,19})\b/);
+        if (!match) return false;
+        const digits = match[1];
+        // Luhn 校验
+        let sum = 0;
+        let alt = false;
+        for (let i = digits.length - 1; i >= 0; i--) {
+          let n = parseInt(digits[i], 10);
+          if (alt) { n *= 2; if (n > 9) n -= 9; }
+          sum += n;
+          alt = !alt;
+        }
+        return sum % 10 === 0;
+      },
+    },
+    // 中国手机号：1 开头，第二位 3-9，共 11 位纯数字
+    { test: (t: string) => /\b1[3-9]\d{9}\b/.test(t) },
+    // 中国身份证号：18 位（末位可为 X）
+    { test: (t: string) => /\b\d{17}[\dXx]\b/.test(t) },
+    // 中国银行卡号：16-19 位纯数字（前缀为已知银行 BIN）
+    { test: (t: string) => /\b(?:62|4\d{2}|5[1-5]|3[47])\d{13,16}\b/.test(t) },
   ];
 
   function isSensitiveContent(text: string): boolean {
-    return CLIPBOARD_BLACKLIST.some((regex) => regex.test(text));
+    // 仅对 8 字符以上的文本进行检测，避免短文本误杀
+    if (text.trim().length < 8) return false;
+    return SENSITIVE_PATTERNS.some((p) => p.test(text));
   }
 
   function startClipboardMonitor(): void {
@@ -454,8 +476,35 @@ body{
   });
 
   // IPC: 翻译
+  // 加载并注入 API 密钥到翻译引擎
+  async function loadProviderCredentials(): Promise<void> {
+    const { safeStorage } = require('electron');
+    const keyStorePath = path.join(app.getPath('userData'), 'encrypted_keys.dat');
+    const fs = require('fs');
+    try {
+      if (!fs.existsSync(keyStorePath)) return;
+      const encrypted = fs.readFileSync(keyStorePath);
+      const decrypted = safeStorage.decryptString(encrypted);
+      const keys: Record<string, string> = JSON.parse(decrypted);
+
+      const deeplProvider = translationRouter.getProvider('deepl') as any;
+      if (deeplProvider?.setApiKey && keys.deeplApiKey) {
+        deeplProvider.setApiKey(keys.deeplApiKey);
+      }
+      const youdaoProvider = translationRouter.getProvider('youdao') as any;
+      if (youdaoProvider?.setCredentials && keys.youdaoAppId && keys.youdaoAppSecret) {
+        youdaoProvider.setCredentials(keys.youdaoAppId, keys.youdaoAppSecret);
+      }
+      const baiduProvider = translationRouter.getProvider('baidu') as any;
+      if (baiduProvider?.setCredentials && keys.baiduAppId && keys.baiduSecretKey) {
+        baiduProvider.setCredentials(keys.baiduAppId, keys.baiduSecretKey);
+      }
+    } catch { /* 静默 */ }
+  }
+
   ipcMain.handle('translation:translate', async (_event, params) => {
-    const results = await translationRouter.translateCompare(params, params.enabledProviders || ['google']);
+    await loadProviderCredentials();
+    const results = await translationRouter.translateCompare(params, params.enabledProviders || ['deepl']);
     // 记录 provider 性能指标 + 遥测
     try {
       const { recordProviderMetric } = await import('../src/main/database');
@@ -625,11 +674,11 @@ body{
     </div>
   </div>
   <script>
-    const { ipcRenderer } = require('electron');
+    const api = window.electronAPI?._internal;
     let currentText = '';
     let currentLang = 'zh';
 
-    ipcRenderer.on('pip:update', (_e, data) => {
+    api?.on('pip:update', (data) => {
       currentText = data.text || '';
       currentLang = data.targetLang || 'zh';
       document.getElementById('lang').textContent = data.sourceLang + ' → ' + data.targetLang;
@@ -767,7 +816,7 @@ body{
           await new Promise<void>((resolve) => { req.on('end', resolve); });
           const params = JSON.parse(body);
           const results = await translationRouter.translateCompare(
-            params, params.enabledProviders || ['google']
+            params, params.enabledProviders || ['deepl']
           );
           res.writeHead(200);
           res.end(JSON.stringify(results));
@@ -788,7 +837,7 @@ body{
       server.listen(port, '127.0.0.1', () => {
         localApiServer = server;
         console.log(`[LocalAPI] Listening on http://127.0.0.1:${port}`);
-        console.log(`[LocalAPI] Token: ${localApiToken}`);
+        // Token 不再打印到控制台，仅通过 IPC 安全传递给渲染进程
       });
       server.on('error', (err: any) => {
         if (err.code === 'EADDRINUSE' && port < 18100) {
@@ -802,6 +851,11 @@ body{
   }
 
   startLocalApiServer();
+
+  // IPC: 获取本地 API token（仅限渲染进程安全调用）
+  ipcMain.handle('local-api:token', () => {
+    return localApiToken;
+  });
 
   // IPC: 通用存储（settings 表）
   ipcMain.handle('storage:get', async (_event, key: string) => {

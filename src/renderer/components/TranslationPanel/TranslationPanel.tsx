@@ -4,14 +4,14 @@ import { useCallback, useState } from 'react';
 // Provider 名称映射
 const PROVIDER_NAMES: Record<string, string> = {
   deepl: 'DeepL',
-  google: 'Google',
+  youdao: '有道翻译',
   baidu: '百度翻译',
 };
 
 // Provider 颜色
 const PROVIDER_COLORS: Record<string, string> = {
   deepl: '#10b981',
-  google: '#3b82f6',
+  youdao: '#3b82f6',
   baidu: '#f59e0b',
 };
 
