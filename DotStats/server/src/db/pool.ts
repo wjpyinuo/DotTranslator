@@ -8,7 +8,7 @@ export async function initDatabase(): Promise<pg.Pool> {
   if (pool) return pool;
 
   pool = new Pool({
-    connectionString: process.env.DATABASE_URL || 'postgresql://dotstats:dotstats@localhost:5432/dotstats',
+    connectionString: process.env.DATABASE_URL || 'postgresql://dotstats:${DB_PASSWORD:-dotstats}@localhost:5432/dotstats',
     max: 20,
     idleTimeoutMillis: 30000,
   });

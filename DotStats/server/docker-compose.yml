@@ -22,7 +22,7 @@ services:
     environment:
       POSTGRES_DB: dotstats
       POSTGRES_USER: dotstats
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-dotstats123}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - '5432:5432'
     restart: unless-stopped
