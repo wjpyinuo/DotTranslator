@@ -13,15 +13,26 @@ export function StatsPage() {
   const [stats, setStats] = useState<StatsData | null>(null);
 
   useEffect(() => {
-    // TODO: 从 IPC 获取统计数据
-    setStats({
-      totalTranslations: 0,
-      totalChars: 0,
-      avgLatency: 0,
-      providerDistribution: {},
-      topLanguagePairs: [],
-      tmHitRate: 0,
-    });
+    let cancelled = false;
+    async function loadStats() {
+      try {
+        const data = await window.electronAPI.stats.get();
+        if (!cancelled) setStats(data);
+      } catch {
+        if (!cancelled) {
+          setStats({
+            totalTranslations: 0,
+            totalChars: 0,
+            avgLatency: 0,
+            providerDistribution: {},
+            topLanguagePairs: [],
+            tmHitRate: 0,
+          });
+        }
+      }
+    }
+    loadStats();
+    return () => { cancelled = true; };
   }, []);
 
   if (!stats) return <div className="loading">加载中...</div>;
@@ -52,20 +63,23 @@ export function StatsPage() {
       <div className="stats-section">
         <h3>引擎使用分布</h3>
         <div className="provider-bars">
-          {Object.entries(stats.providerDistribution).map(([provider, count]) => (
-            <div key={provider} className="provider-bar">
-              <span className="provider-name">{provider}</span>
-              <div className="bar-track">
-                <div
-                  className="bar-fill"
-                  style={{
-                    width: `${(count / Math.max(...Object.values(stats.providerDistribution))) * 100}%`,
-                  }}
-                />
+          {Object.entries(stats.providerDistribution).map(([provider, count]) => {
+            const maxCount = Math.max(...Object.values(stats.providerDistribution), 1);
+            return (
+              <div key={provider} className="provider-bar">
+                <span className="provider-name">{provider}</span>
+                <div className="bar-track">
+                  <div
+                    className="bar-fill"
+                    style={{
+                      width: `${(count / maxCount) * 100}%`,
+                    }}
+                  />
+                </div>
+                <span className="provider-count">{count}</span>
               </div>
-              <span className="provider-count">{count}</span>
-            </div>
-          ))}
+            );
+          })}
           {Object.keys(stats.providerDistribution).length === 0 && (
             <div className="empty-hint">开始翻译后这里会显示数据</div>
           )}

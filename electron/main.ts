@@ -109,6 +109,48 @@ app.whenReady().then(() => {
     }
     throw new Error('No available provider for language detection');
   });
+
+  // IPC: 本地统计
+  ipcMain.handle('stats:get', async () => {
+    const { getLocalStats, getHistory } = await import('../src/main/database');
+    const stats = getLocalStats(30);
+    const history = getHistory(1000);
+
+    const totalTranslations = stats.length;
+    const totalChars = stats.reduce((sum, s) => sum + (s.charCount || 0), 0);
+    const avgLatency = stats.length > 0
+      ? stats.reduce((sum, s) => sum + (s.latencyMs || 0), 0) / stats.length
+      : 0;
+
+    const providerDistribution: Record<string, number> = {};
+    for (const s of stats) {
+      if (s.provider) {
+        providerDistribution[s.provider] = (providerDistribution[s.provider] || 0) + 1;
+      }
+    }
+
+    const pairCounts: Record<string, number> = {};
+    for (const h of history) {
+      const pair = `${h.sourceLang} → ${h.targetLang}`;
+      pairCounts[pair] = (pairCounts[pair] || 0) + 1;
+    }
+    const topLanguagePairs = Object.entries(pairCounts)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 5)
+      .map(([pair, count]) => ({ pair, count }));
+
+    const tmHits = stats.filter((s) => s.tmHit).length;
+    const tmHitRate = stats.length > 0 ? tmHits / stats.length : 0;
+
+    return {
+      totalTranslations,
+      totalChars,
+      avgLatency,
+      providerDistribution,
+      topLanguagePairs,
+      tmHitRate,
+    };
+  });
 });
 
 app.on('will-quit', () => {
