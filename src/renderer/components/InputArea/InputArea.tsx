@@ -35,7 +35,7 @@ export function InputArea() {
         if (tmResult && typeof tmResult === 'object' && 'targetText' in tmResult) {
           // TM 命中，直接返回
           setResults([{
-            text: (tmResult as any).targetText,
+            text: (tmResult as { targetText: string }).targetText,
             provider: 'tm-cache',
             confidence: 1,
             latencyMs: 1,

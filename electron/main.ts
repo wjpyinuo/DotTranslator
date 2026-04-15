@@ -805,7 +805,7 @@ body{
 
   // IPC: TM 精确匹配
   ipcMain.handle('tm:lookup', async (_event, text: string, sourceLang: string, targetLang: string) => {
-    const { tmLookup, tmInsert } = await import('../src/main/database');
+    const { tmLookup } = await import('../src/main/database');
     const match = tmLookup(sourceLang, targetLang, text);
     return match;
   });
@@ -819,7 +819,6 @@ body{
   const http = require('http');
   const crypto = require('crypto');
   const localApiToken = crypto.randomBytes(16).toString('hex');
-  let localApiServer: any = null;
 
   function startLocalApiServer(): void {
     const server = http.createServer(async (req: any, res: any) => {
@@ -881,7 +880,6 @@ body{
     let port = 18000;
     const tryBind = () => {
       server.listen(port, '127.0.0.1', () => {
-        localApiServer = server;
         console.log(`[LocalAPI] Listening on http://127.0.0.1:${port}`);
         // Token 不再打印到控制台，仅通过 IPC 安全传递给渲染进程
       });
@@ -940,7 +938,7 @@ body{
   });
 
   // IPC: OCR 识别（需要 PaddleOCR native addon，当前返回占位）
-  ipcMain.handle('ocr:recognize', async (_event, _imageBase64: string) => {
+  ipcMain.handle('ocr:recognize', async () => {
     // TODO: Phase 2 集成 PaddleOCR
     return { result: [], error: 'OCR not available - PaddleOCR native addon required' };
   });
