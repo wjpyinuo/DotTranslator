@@ -146,9 +146,29 @@ export function InputArea() {
       <textarea
         value={inputText}
         onChange={(e) => handleInput(e.target.value)}
-        placeholder="输入或粘贴要翻译的文本..."
+        placeholder="输入或粘贴要翻译的文本...（支持拖拽 .txt 文件）"
         className="input-textarea"
         autoFocus
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.currentTarget.classList.add('drag-over');
+        }}
+        onDragLeave={(e) => {
+          e.currentTarget.classList.remove('drag-over');
+        }}
+        onDrop={async (e) => {
+          e.preventDefault();
+          e.currentTarget.classList.remove('drag-over');
+          const file = e.dataTransfer.files[0];
+          if (!file) return;
+          // 仅支持纯文本文件
+          if (file.type.startsWith('text/') || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
+            const text = await file.text();
+            if (text.trim()) {
+              handleInput(text.trim());
+            }
+          }
+        }}
       />
 
       <button

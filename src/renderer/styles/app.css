@@ -349,6 +349,12 @@ html, body, #root {
   color: var(--text-tertiary);
 }
 
+.input-textarea.drag-over {
+  border-color: var(--accent);
+  background: rgba(99, 102, 241, 0.05);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
 /* Translate Button */
 .translate-btn {
   width: 100%;
