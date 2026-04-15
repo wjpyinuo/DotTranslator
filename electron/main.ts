@@ -147,7 +147,7 @@ function createTray(): void {
     },
   ]);
 
-  tray.setToolTip('DotTranslator - 即时翻译');
+  tray.setToolTip('DotTranslator v0.2.0 - 即时翻译');
   tray.setContextMenu(contextMenu);
   tray.on('click', () => {
     mainWindow?.show();
@@ -613,7 +613,7 @@ body{
 </head>
 <body>
   <div class="pip-header">
-    <span class="pip-title">✦ DotTranslator</span>
+    <span class="pip-title">✦ DotTranslator v0.2.0</span>
     <button class="pip-close" onclick="window.electronAPI?.window.close()">✕</button>
   </div>
   <div class="pip-body">
@@ -747,7 +747,7 @@ body{
       try {
         if (pathname === '/api/health' && req.method === 'GET') {
           res.writeHead(200);
-          res.end(JSON.stringify({ status: 'ok', version: '0.1.0', uptime: process.uptime() }));
+          res.end(JSON.stringify({ status: 'ok', version: '0.2.0', uptime: process.uptime() }));
 
         } else if (pathname === '/api/languages' && req.method === 'GET') {
           const { SUPPORTED_LANGUAGES } = await import('../src/shared/constants');
