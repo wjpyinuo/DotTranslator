@@ -235,20 +235,23 @@ export function App() {
         >
           🌐 翻译
         </button>
+        <span className="tab-sep" />
         <button
           className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
           onClick={() => setActiveTab('history')}
         >
           📜 历史
         </button>
+        <span className="tab-sep" />
         <button
           className={`tab-btn ${activeTab === 'about' ? 'active' : ''}`}
           onClick={() => setActiveTab('about')}
         >
           ℹ️ 关于
         </button>
+        <span className="tab-sep" />
         <button className="tab-btn settings-tab" onClick={toggleSettings}>
-          ⚙️
+          ⚙️ 设置
         </button>
       </nav>
 

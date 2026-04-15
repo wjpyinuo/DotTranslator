@@ -212,9 +212,18 @@ html, body, #root {
   color: var(--text-primary);
 }
 
+.tab-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--border-subtle);
+  flex-shrink: 0;
+  align-self: center;
+  opacity: 0.6;
+}
+
 .settings-tab {
   flex: 0;
-  padding: 7px 12px;
+  padding: 7px 14px;
 }
 
 /* ==================== Main Content ==================== */
