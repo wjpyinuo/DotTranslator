@@ -1,0 +1,30 @@
+{
+  "name": "dotstats-server",
+  "version": "0.1.0",
+  "description": "DotStats Analytics Server",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "migrate": "tsx src/db/migrate.ts"
+  },
+  "dependencies": {
+    "fastify": "^5.0.0",
+    "fastify-cors": "^8.0.0",
+    "fastify-websocket": "^11.0.0",
+    "fastify-rate-limit": "^11.0.0",
+    "pg": "^8.13.0",
+    "redis": "^4.7.0",
+    "node-cron": "^3.0.0",
+    "pino": "^9.0.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.11.0",
+    "@types/node-cron": "^3.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}
