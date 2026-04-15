@@ -25,5 +25,15 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'),
     },
   },
-  build: { outDir: 'dist' },
+  build: {
+    outDir: 'dist',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'echarts': ['echarts'],
+          'echarts-react': ['echarts-for-react'],
+        },
+      },
+    },
+  },
 });
