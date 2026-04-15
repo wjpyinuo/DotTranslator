@@ -19,6 +19,17 @@ async function start(): Promise<void> {
   const app = Fastify({
     logger: {
       level: process.env.LOG_LEVEL || 'info',
+      transport: process.env.NODE_ENV !== 'production'
+        ? { target: 'pino-pretty', options: { colorize: true, translateTime: 'SYS:HH:MM:ss' } }
+        : undefined,
+      serializers: {
+        req(request) {
+          return { method: request.method, url: request.url, id: request.id };
+        },
+        res(reply) {
+          return { statusCode: reply.statusCode };
+        },
+      },
     },
   });
 
