@@ -19,13 +19,18 @@ export function InputArea() {
       setTranslating(true);
       try {
         const { sourceLang: src, targetLang: tgt, settings } = useAppStore.getState();
-        const results = await window.electronAPI.translation.translate({
+        const api = window.electronAPI;
+        if (!api) {
+          console.error('electronAPI not available');
+          return;
+        }
+        const results = await api.translation.translate({
           text,
           sourceLang: src,
           targetLang: tgt,
           enabledProviders: settings.enabledProviders,
         });
-        setResults(results);
+        setResults(results as any);
       } catch (err) {
         console.error('Translation failed:', err);
         setResults([]);
@@ -37,7 +42,6 @@ export function InputArea() {
 
   return (
     <div className="input-area">
-      {/* 语言选择栏 */}
       <div className="lang-bar">
         <select
           value={sourceLang}
@@ -64,7 +68,6 @@ export function InputArea() {
         </select>
       </div>
 
-      {/* 输入框 */}
       <textarea
         value={inputText}
         onChange={(e) => handleInput(e.target.value)}
