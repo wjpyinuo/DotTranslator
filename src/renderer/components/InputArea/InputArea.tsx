@@ -1,6 +1,7 @@
 import { SUPPORTED_LANGUAGES, DEBOUNCE_TRANSLATE_MS } from '@shared/constants';
 import { useAppStore } from '@renderer/stores/appStore';
 import { useCallback, useRef } from 'react';
+import type { TranslateResult } from '@shared/types';
 
 export function InputArea() {
   const { inputText, sourceLang, targetLang, setInputText, setSourceLang, setTargetLang, swapLanguages, setTranslating, setResults } = useAppStore();
@@ -30,7 +31,7 @@ export function InputArea() {
           targetLang: tgt,
           enabledProviders: settings.enabledProviders,
         });
-        setResults(results as any);
+        setResults(results as TranslateResult[]);
       } catch (err) {
         console.error('Translation failed:', err);
         setResults([]);

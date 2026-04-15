@@ -1,16 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Fastify from 'fastify';
 
-const mockQuery = vi.fn();
-const mockRedis = {
-  getOnlineCount: vi.fn().mockResolvedValue(42),
-  getDAU: vi.fn().mockResolvedValue(100),
-  getWAU: vi.fn().mockResolvedValue(500),
-  getFeatureCounts: vi.fn().mockResolvedValue({ translate: 80 }),
-  getVersionDistribution: vi.fn().mockResolvedValue({ '0.1.0': 50 }),
-  getOSDistribution: vi.fn().mockResolvedValue({ win32: 30 }),
-  getEventStream: vi.fn().mockResolvedValue([]),
-};
+const { mockQuery, mockRedis } = vi.hoisted(() => ({
+  mockQuery: vi.fn(),
+  mockRedis: {
+    getOnlineCount: vi.fn().mockResolvedValue(42),
+    getDAU: vi.fn().mockResolvedValue(100),
+    getWAU: vi.fn().mockResolvedValue(500),
+    getFeatureCounts: vi.fn().mockResolvedValue({ translate: 80 }),
+    getVersionDistribution: vi.fn().mockResolvedValue({ '0.1.0': 50 }),
+    getOSDistribution: vi.fn().mockResolvedValue({ win32: 30 }),
+    getEventStream: vi.fn().mockResolvedValue([]),
+  },
+}));
 
 vi.mock('../../src/db/pool', () => ({
   getPool: vi.fn(() => ({ query: mockQuery })),

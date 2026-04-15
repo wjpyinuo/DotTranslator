@@ -126,7 +126,6 @@ app.whenReady().then(() => {
 
   // IPC: 翻译
   ipcMain.handle('translation:translate', async (_event, params) => {
-    const { settings } = await import('../src/shared/constants');
     return translationRouter.translateCompare(params, params.enabledProviders || ['google']);
   });
 

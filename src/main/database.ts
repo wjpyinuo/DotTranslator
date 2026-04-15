@@ -2,8 +2,42 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import { app } from 'electron';
 import { DB_FILE } from '@shared/constants';
-import type { HistoryEntry, TMEntry, LocalStatsRecord } from '@shared/types';
+import type { FeatureName, HistoryEntry, TMEntry, LocalStatsRecord } from '@shared/types';
 import { v4 as uuidv4 } from 'uuid';
+
+// SQLite row types
+interface HistoryRow {
+  id: string;
+  source_text: string;
+  target_text: string;
+  source_lang: string;
+  target_lang: string;
+  provider: string;
+  is_favorite: number;
+  created_at: number;
+}
+
+interface TMRow {
+  id: string;
+  source_lang: string;
+  target_lang: string;
+  source_text: string;
+  target_text: string;
+  usage_count: number;
+  created_at: number;
+}
+
+interface LocalStatsRow {
+  id: string;
+  feature: FeatureName;
+  provider: string | null;
+  source_lang: string | null;
+  target_lang: string | null;
+  char_count: number | null;
+  latency_ms: number | null;
+  tm_hit: number;
+  created_at: number;
+}
 
 let db: Database.Database | null = null;
 
@@ -101,7 +135,7 @@ export function getHistory(limit = 100): HistoryEntry[] {
   const database = getDatabase();
   const rows = database.prepare(
     'SELECT * FROM history ORDER BY created_at DESC LIMIT ?'
-  ).all(limit) as any[];
+  ).all(limit) as HistoryRow[];
   return rows.map(mapHistoryRow);
 }
 
@@ -109,11 +143,11 @@ export function searchHistory(query: string): HistoryEntry[] {
   const database = getDatabase();
   const rows = database.prepare(
     'SELECT * FROM history WHERE source_text LIKE ? OR target_text LIKE ? ORDER BY created_at DESC LIMIT 50'
-  ).all(`%${query}%`, `%${query}%`) as any[];
+  ).all(`%${query}%`, `%${query}%`) as HistoryRow[];
   return rows.map(mapHistoryRow);
 }
 
-function mapHistoryRow(row: any): HistoryEntry {
+function mapHistoryRow(row: HistoryRow): HistoryEntry {
   return {
     id: row.id,
     sourceText: row.source_text,
@@ -137,7 +171,7 @@ export function tmLookup(sourceLang: string, targetLang: string, sourceText: str
   const database = getDatabase();
   const row = database.prepare(
     'SELECT * FROM tm_entries WHERE source_lang = ? AND target_lang = ? AND source_text = ?'
-  ).get(sourceLang, targetLang, sourceText) as any | undefined;
+  ).get(sourceLang, targetLang, sourceText) as TMRow | undefined;
   if (!row) return null;
   return {
     id: row.id,
@@ -189,15 +223,15 @@ export function getLocalStats(days = 30): LocalStatsRecord[] {
   const since = Date.now() - days * 24 * 60 * 60 * 1000;
   const rows = database.prepare(
     'SELECT * FROM local_stats WHERE created_at > ? ORDER BY created_at DESC'
-  ).all(since) as any[];
+  ).all(since) as LocalStatsRow[];
   return rows.map((row) => ({
     id: row.id,
     feature: row.feature,
-    provider: row.provider,
-    sourceLang: row.source_lang,
-    targetLang: row.target_lang,
-    charCount: row.char_count,
-    latencyMs: row.latency_ms,
+    provider: row.provider ?? undefined,
+    sourceLang: row.source_lang ?? undefined,
+    targetLang: row.target_lang ?? undefined,
+    charCount: row.char_count ?? undefined,
+    latencyMs: row.latency_ms ?? undefined,
     tmHit: row.tm_hit === 1,
     createdAt: row.created_at,
   }));

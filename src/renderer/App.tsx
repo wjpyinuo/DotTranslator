@@ -11,7 +11,7 @@ import './styles/app.css';
 type Tab = 'translate' | 'history' | 'stats';
 
 export function App() {
-  const { showSettings, toggleSettings, settings } = useAppStore();
+  const { toggleSettings, settings } = useAppStore();
   const [activeTab, setActiveTab] = useState<Tab>('translate');
 
   return (

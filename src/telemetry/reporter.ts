@@ -119,7 +119,7 @@ export class TelemetryReporter {
   }
 
   private async sendEvents(events: TelemetryEvent[]): Promise<void> {
-    const serverUrl = this.getServerUrl();
+    const serverUrl = await this.getServerUrl();
     if (!serverUrl) {
       console.log(`[Telemetry] Flushing ${events.length} events (local only, no server configured)`);
       return;
@@ -176,11 +176,10 @@ export class TelemetryReporter {
       },
     };
   }
-  private getServerUrl(): string | null {
+  private async getServerUrl(): Promise<string | null> {
     // Try to read from electron-store or use env var
     try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const Store = require('electron-store');
+      const Store = (await import('electron-store')).default;
       const store = new Store();
       return store.get('serverUrl') as string || null;
     } catch {
@@ -190,7 +189,7 @@ export class TelemetryReporter {
 }
 
 class PrivacyFilter {
-  static sanitizeMetadata(meta?: Record<string, any>): Record<string, string | number> | undefined {
+  static sanitizeMetadata(meta?: Record<string, unknown>): Record<string, string | number> | undefined {
     if (!meta) return undefined;
 
     const sanitized: Record<string, string | number> = {};
