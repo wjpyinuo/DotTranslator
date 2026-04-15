@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # DotTranslator 主项目
+      - name: Install (root)
+        run: npm ci
+      - name: Typecheck (root)
+        run: npm run typecheck
+
+      # DotStats Server
+      - name: Install (server)
+        working-directory: DotStats/server
+        run: npm ci
+      - name: Typecheck (server)
+        working-directory: DotStats/server
+        run: npx tsc --noEmit
+
+      # DotStats Frontend
+      - name: Install (DotStats)
+        working-directory: DotStats
+        run: npm ci
+      - name: Typecheck (DotStats)
+        working-directory: DotStats
+        run: npx tsc --noEmit
+
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: dotstats_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: DotStats/server/package-lock.json
+
+      - name: Install
+        working-directory: DotStats/server
+        run: npm ci
+
+      - name: Test
+        working-directory: DotStats/server
+        run: npm test
+        env:
+          DATABASE_URL: postgres://test:test@localhost:5432/dotstats_test
+          REDIS_URL: redis://localhost:6379
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        working-directory: DotStats/server
+        run: docker build -t dotstats-server:ci .
