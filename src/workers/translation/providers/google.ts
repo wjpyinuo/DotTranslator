@@ -18,22 +18,37 @@ export class GoogleProvider implements TranslationProvider {
     const sl = params.sourceLang === 'auto' ? 'auto' : params.sourceLang;
     const tl = params.targetLang;
 
+    // 使用非官方 API（可能随时失效，做好异常处理）
     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${tl}&dt=t&q=${encodeURIComponent(params.text)}`;
 
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Google Translate error: ${res.status}`);
+    try {
+      const res = await fetch(url);
+      if (res.status === 429) {
+        throw new Error('Google Translate rate limited');
+      }
+      if (!res.ok) {
+        throw new Error(`Google Translate error: ${res.status}`);
+      }
 
-    const data = await res.json();
-    const text = data[0].map((item: string[]) => item[0]).join('');
-    const detectedLang = data[2] || sl;
+      const data = await res.json();
+      if (!Array.isArray(data) || !Array.isArray(data[0])) {
+        throw new Error('Google Translate: unexpected response format');
+      }
 
-    return {
-      text,
-      detectedSourceLang: detectedLang,
-      provider: this.id,
-      confidence: 0.9,
-      latencyMs: Date.now() - start,
-    };
+      const text = data[0].map((item: string[]) => item[0]).join('');
+      const detectedLang = data[2] || sl;
+
+      return {
+        text,
+        detectedSourceLang: detectedLang,
+        provider: this.id,
+        confidence: 0.9,
+        latencyMs: Date.now() - start,
+      };
+    } catch (err) {
+      if (err instanceof Error && err.message.includes('Google Translate')) throw err;
+      throw new Error(`Google Translate failed: ${err instanceof Error ? err.message : 'unknown error'}`);
+    }
   }
 
   async detectLanguage(text: string): Promise<LanguageDetection> {

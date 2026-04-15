@@ -8,6 +8,9 @@ export function TitleBar() {
         <button onClick={() => window.electronAPI?.window.minimize()} className="titlebar-btn">
           ─
         </button>
+        <button onClick={() => window.electronAPI?.window.toggleMaximize()} className="titlebar-btn">
+          ▢
+        </button>
         <button onClick={() => window.electronAPI?.window.close()} className="titlebar-btn close">
           ✕
         </button>
