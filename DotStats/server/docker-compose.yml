@@ -8,6 +8,7 @@ services:
       - REDIS_URL=redis://redis:6379
       - PORT=3000
       - LOG_LEVEL=info
+      - ADMIN_API_KEY=${ADMIN_API_KEY}
     depends_on:
       - db
       - redis

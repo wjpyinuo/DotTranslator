@@ -19,10 +19,14 @@ async function start(): Promise<void> {
     },
   });
 
-  // CORS
+  // CORS - 默认仅允许同源，生产环境须通过 CORS_ORIGIN 环境变量指定允许的域名
+  const corsOrigins = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map(s => s.trim()).filter(Boolean)
+    : false; // false = 禁止跨域（最安全的默认值）
   await app.register(cors, {
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: corsOrigins,
     methods: ['GET', 'POST', 'DELETE'],
+    credentials: true,
   });
 
   // 初始化数据库和缓存
