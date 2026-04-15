@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain, globalShortcut, Tray, Menu, nativeImage, session } from 'electron';
 import path from 'path';
 import { translationRouter } from '../src/workers/translation/router';
+import { telemetry } from '../src/telemetry/reporter';
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
@@ -229,6 +230,9 @@ app.whenReady().then(() => {
   createTray();
   createFloatingBall();
 
+  // 启动遥测
+  telemetry.start();
+
   // 全局快捷键 Alt+Space
   globalShortcut.register('Alt+Space', () => {
     if (mainWindow?.isVisible()) {
@@ -449,11 +453,19 @@ body{
   // IPC: 翻译
   ipcMain.handle('translation:translate', async (_event, params) => {
     const results = await translationRouter.translateCompare(params, params.enabledProviders || ['google']);
-    // 记录 provider 性能指标
+    // 记录 provider 性能指标 + 遥测
     try {
       const { recordProviderMetric } = await import('../src/main/database');
       for (const r of results) {
         recordProviderMetric(r.provider, true, r.latencyMs);
+        telemetry.recordTranslation({
+          provider: r.provider,
+          sourceLang: params.sourceLang,
+          targetLang: params.targetLang,
+          charCount: params.text?.length || 0,
+          latencyMs: r.latencyMs,
+          tmHit: false,
+        });
       }
     } catch { /* 静默 */ }
     return results;
@@ -806,6 +818,7 @@ body{
 
 app.on('before-quit', () => {
   isQuitting = true;
+  telemetry.stop();
 });
 
 app.on('will-quit', () => {
