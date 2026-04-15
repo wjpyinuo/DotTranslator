@@ -43,6 +43,21 @@
       "electron/**/*",
       "dist/**/*",
       "dist-electron/**/*"
-    ]
+    ],
+    "publish": {
+      "provider": "github",
+      "releaseType": "release"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": true
+    }
   }
 }
