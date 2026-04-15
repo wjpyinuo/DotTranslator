@@ -278,6 +278,11 @@ app.whenReady().then(() => {
     floatingBall?.show();
   });
 
+  // IPC: 迷你卡片
+  ipcMain.on('mini-card:auto-hide', () => {
+    miniCard?.hide();
+  });
+
   // IPC: 真正退出应用
   ipcMain.on('app:quit', () => {
     isQuitting = true;
@@ -287,6 +292,82 @@ app.whenReady().then(() => {
   // ========== 剪贴板监听 + 安全过滤 ==========
   let lastClipboardText = '';
   let clipboardMonitorEnabled = true;
+
+  // 迷你卡片窗口
+  let miniCard: BrowserWindow | null = null;
+  let miniCardTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function showMiniCard(text: string, sourceLang: string, targetLang: string): void {
+    const { screen } = require('electron');
+    const { mouse } = screen.getCursorScreenPoint();
+    const cursorPos = screen.getCursorScreenPoint();
+
+    if (miniCard && !miniCard.isDestroyed()) {
+      miniCard.webContents.send('mini-card:update', { text, sourceLang, targetLang });
+      miniCard.setPosition(cursorPos.x + 20, cursorPos.y - 40);
+      miniCard.show();
+    } else {
+      miniCard = new BrowserWindow({
+        width: 200,
+        height: 80,
+        x: cursorPos.x + 20,
+        y: cursorPos.y - 40,
+        frame: false,
+        transparent: true,
+        resizable: false,
+        alwaysOnTop: true,
+        skipTaskbar: true,
+        hasShadow: true,
+        roundedCorners: true,
+        backgroundColor: '#00000000',
+        webPreferences: {
+          preload: path.join(__dirname, 'preload.js'),
+          contextIsolation: true,
+          nodeIntegration: false,
+          sandbox: true,
+        },
+      });
+
+      const cardHtml = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  width:200px;height:80px;overflow:hidden;
+  background:rgba(30,41,59,0.95);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-radius:10px;border:1px solid rgba(255,255,255,0.1);
+  box-shadow:0 8px 24px rgba(0,0,0,0.4);
+  padding:10px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+  color:#f1f5f9;-webkit-app-region:drag;
+}
+.lang{font-size:10px;color:#64748b;margin-bottom:4px}
+.text{font-size:13px;line-height:1.4;word-break:break-all;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+</style></head>
+<body>
+  <div class="lang" id="lang"></div>
+  <div class="text" id="text">等待翻译...</div>
+  <script>
+    const { ipcRenderer } = require('electron');
+    ipcRenderer.on('mini-card:update', (_e, data) => {
+      document.getElementById('lang').textContent = data.sourceLang + ' → ' + data.targetLang;
+      document.getElementById('text').textContent = data.text;
+    });
+    setTimeout(() => ipcRenderer.send('mini-card:auto-hide'), 5000);
+  </script>
+</body></html>`;
+
+      miniCard.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(cardHtml)}`);
+      miniCard.on('closed', () => { miniCard = null; });
+
+      miniCard.webContents.once('did-finish-load', () => {
+        miniCard?.webContents.send('mini-card:update', { text, sourceLang, targetLang });
+      });
+    }
+
+    // 5秒后自动隐藏
+    if (miniCardTimer) clearTimeout(miniCardTimer);
+    miniCardTimer = setTimeout(() => { miniCard?.hide(); }, 5000);
+  }
 
   // 敏感内容黑名单正则
   const CLIPBOARD_BLACKLIST = [
@@ -307,11 +388,16 @@ app.whenReady().then(() => {
         const { clipboard } = require('electron');
         const text = clipboard.readText();
         if (!text || text.trim() === '' || text === lastClipboardText) return;
-        if (isSensitiveContent(text)) return; // 命中安全过滤，静默跳过
+        if (isSensitiveContent(text)) return;
         lastClipboardText = text;
         mainWindow.webContents.send('clipboard:changed', text);
+
+        // 主窗口隐藏时显示迷你卡片
+        if (!mainWindow.isVisible()) {
+          showMiniCard(text, 'auto', 'zh');
+        }
       } catch { /* 静默 */ }
-    }, 1000); // 每秒检测
+    }, 1000);
   }
 
   startClipboardMonitor();
