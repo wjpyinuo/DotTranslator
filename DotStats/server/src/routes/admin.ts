@@ -1,9 +1,10 @@
 import type { FastifyInstance } from 'fastify';
 import { getPool } from '../db/pool';
+import { adminAuth } from '../middleware/auth';
 
 export async function adminRoutes(app: FastifyInstance): Promise<void> {
-  // DELETE /api/v1/instances/:id - GDPR 级联删除
-  app.delete('/instances/:id', async (request, reply) => {
+  // DELETE /api/v1/instances/:id - GDPR 级联删除 (需认证)
+  app.delete('/instances/:id', { preHandler: adminAuth }, async (request, reply) => {
     const { id } = request.params as { id: string };
     const pool = getPool();
 
@@ -20,8 +21,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     }
   });
 
-  // GET /api/v1/admin/export?format=csv&from=2026-04-01&to=2026-04-15
-  app.get('/admin/export', async (request, reply) => {
+  // GET /api/v1/admin/export?format=csv&from=2026-04-01&to=2026-04-15 (需认证)
+  app.get('/admin/export', { preHandler: adminAuth }, async (request, reply) => {
     const { format = 'csv', from, to } = request.query as {
       format?: string; from?: string; to?: string;
     };
