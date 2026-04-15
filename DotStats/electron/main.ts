@@ -1,99 +1,38 @@
-import { app, BrowserWindow, ipcMain, session } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import path from 'path';
 
 let mainWindow: BrowserWindow | null = null;
+let isQuitting = false;
+
 const isDev = !app.isPackaged;
 
-// 允许的导航域名
-const ALLOWED_ORIGINS = isDev
-  ? ['http://localhost:5174', 'http://localhost:3000']
-  : ['file://'];
-
-// ========== 单例锁：防止多开 ==========
-const gotTheLock = app.requestSingleInstanceLock();
-if (!gotTheLock) {
-  app.quit();
-} else {
-  app.on('second-instance', () => {
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore();
-      mainWindow.show();
-      mainWindow.focus();
-    }
-  });
-
-  app.whenReady().then(createWindow);
-}
-
-function createWindow(): void {
+function createMainWindow(): BrowserWindow {
   mainWindow = new BrowserWindow({
-    width: 1200,
+    width: 1280,
     height: 800,
-    minWidth: 900,
+    minWidth: 960,
     minHeight: 600,
     frame: false,
+    transparent: false,
+    backgroundColor: '#0f172a',
     show: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: true,
-      webviewTag: false,
-      allowRunningInsecureContent: false,
     },
   });
 
-  // CSP: Content Security Policy
-  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-    callback({
-      responseHeaders: {
-        ...details.responseHeaders,
-        'Content-Security-Policy': [
-          isDev
-            ? "default-src 'self' 'unsafe-inline' 'unsafe-eval' ws: http://localhost:*; img-src 'self' data:; font-src 'self' data:;"
-            : "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' ws: wss:;",
-        ],
-      },
-    });
-  });
-
-  // 拦截非法导航（防钓鱼）
-  mainWindow.webContents.on('will-navigate', (event, url) => {
-    const targetUrl = new URL(url);
-    const isAllowed = ALLOWED_ORIGINS.some((origin) => {
-      try {
-        const allowed = new URL(origin);
-        return targetUrl.origin === allowed.origin;
-      } catch {
-        return url.startsWith(origin);
-      }
-    });
-    if (!isAllowed) {
-      console.warn(`[Security] Blocked navigation to: ${url}`);
-      event.preventDefault();
-    }
-  });
-
-  // 拦截新窗口打开
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    console.warn(`[Security] Blocked window.open to: ${url}`);
-    return { action: 'deny' };
-  });
-
-  // IPC: 窗口控制
-  ipcMain.on('window:minimize', () => mainWindow?.minimize());
-  ipcMain.on('window:close', () => {
-    mainWindow?.close();
-  });
-  ipcMain.on('window:toggle-maximize', () => {
-    if (mainWindow?.isMaximized()) {
-      mainWindow.unmaximize();
-    } else {
-      mainWindow?.maximize();
-    }
-  });
-
   mainWindow.on('ready-to-show', () => mainWindow?.show());
+
+  mainWindow.on('close', (e) => {
+    if (!isQuitting) {
+      e.preventDefault();
+      mainWindow?.hide();
+    }
+  });
+
+  mainWindow.on('closed', () => { mainWindow = null; });
 
   if (isDev) {
     mainWindow.loadURL('http://localhost:5174');
@@ -102,15 +41,26 @@ function createWindow(): void {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
 
-  mainWindow.on('closed', () => {
-    mainWindow = null;
-  });
+  return mainWindow;
 }
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
+app.whenReady().then(() => {
+  createMainWindow();
+
+  // IPC: 窗口控制
+  const { ipcMain } = require('electron');
+  ipcMain.on('window:minimize', () => mainWindow?.minimize());
+  ipcMain.on('window:toggle-maximize', () => {
+    if (mainWindow?.isMaximized()) mainWindow.unmaximize();
+    else mainWindow?.maximize();
+  });
+  ipcMain.on('window:close', () => {
+    isQuitting = true;
+    mainWindow?.close();
+  });
+  ipcMain.handle('window:is-maximized', () => mainWindow?.isMaximized() ?? false);
+  mainWindow?.on('maximize', () => mainWindow?.webContents.send('window:maximize-changed', true));
+  mainWindow?.on('unmaximize', () => mainWindow?.webContents.send('window:maximize-changed', false));
 });
 
-app.on('activate', () => {
-  if (mainWindow === null) createWindow();
-});
+app.on('window-all-closed', () => app.quit());

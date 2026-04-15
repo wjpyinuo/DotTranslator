@@ -135,13 +135,15 @@ export function HistoryList() {
       <div className="history-header">
         <h3>翻译历史 ({filtered.length})</h3>
         <div className="history-toolbar">
-          <input
-            className="server-input"
-            placeholder="搜索历史..."
-            value={searchQuery}
-            onChange={(e) => handleSearch(e.target.value)}
-            style={{ width: 160, fontSize: 12 }}
-          />
+          <div className="history-search-wrapper">
+            <span className="history-search-icon">🔍</span>
+            <input
+              className="history-search-input"
+              placeholder="搜索翻译记录..."
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+            />
+          </div>
           <button className="history-toolbar-btn" onClick={handleExport} title="导出 JSON">
             📥
           </button>

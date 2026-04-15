@@ -573,6 +573,43 @@ html, body, #root {
   margin-bottom: 8px;
 }
 
+.history-search-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.history-search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.history-search-input {
+  width: 100%;
+  padding: 8px 12px 8px 32px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.history-search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.12);
+}
+
+.history-search-input::placeholder {
+  color: var(--text-tertiary);
+}
+
 .history-toolbar {
   display: flex;
   gap: 6px;
