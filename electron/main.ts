@@ -33,22 +33,24 @@ if (!gotTheLock) {
 
 // ========== 创建托盘图标（程序化生成，无需外部文件）==========
 function createTrayIcon(): Electron.NativeImage {
-  // 翻译图标：两个交错的语言气泡 + 自动翻译箭头
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  // 翻译图标：与 TitleBar / favicon 统一的 "A文" + 双向箭头设计
+  // 使用 32x32 以确保各平台托盘清晰显示
+  const size = 32;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 32 32">
     <defs>
-      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <linearGradient id="tg" x1="0" y1="0" x2="1" y2="1">
         <stop offset="0%" stop-color="#818cf8"/>
         <stop offset="100%" stop-color="#6366f1"/>
       </linearGradient>
     </defs>
-    <rect x="0.5" y="0.5" width="15" height="15" rx="3.5" fill="url(#g)" stroke="#4f46e5" stroke-width="0.5"/>
-    <text x="4.5" y="7.2" font-size="5.5" font-weight="bold" fill="white" font-family="Arial, sans-serif">A</text>
-    <text x="9.5" y="12.2" font-size="5.5" font-weight="bold" fill="rgba(255,255,255,0.85)" font-family="Arial, sans-serif">文</text>
-    <path d="M7 3.5 L9.5 5 L7 6.5" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M6 10 L3.5 11.5 L6 13" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="1" y="1" width="30" height="30" rx="7" fill="url(#tg)"/>
+    <text x="9" y="14" font-size="11" font-weight="bold" fill="white" font-family="Arial, sans-serif">A</text>
+    <text x="17" y="25" font-size="11" font-weight="bold" fill="rgba(255,255,255,0.85)" font-family="Arial, sans-serif">文</text>
+    <path d="M14 5 L19 8.5 L14 12" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M12 20 L7 23.5 L12 27" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>`;
   const buffer = Buffer.from(svg);
-  return nativeImage.createFromBuffer(buffer, { width: 16, height: 16 });
+  return nativeImage.createFromBuffer(buffer, { width: size, height: size });
 }
 
 function createMainWindow(): BrowserWindow {
@@ -204,14 +206,13 @@ function createFloatingBall(): void {
 <html><head><meta charset="UTF-8"><style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{
-  width:48px;height:48px;overflow:hidden;
+  width:48px;height:48px;overflow:visible;
   background:rgba(99,102,241,0.9);
   border-radius:50%;cursor:grab;
   display:flex;align-items:center;justify-content:center;
   box-shadow:0 4px 12px rgba(0,0,0,0.3);
-  transition:all 0.2s;
-  -webkit-app-region:drag;
-  user-select:none;
+  transition:background 0.2s, box-shadow 0.2s;
+  user-select:none;-webkit-user-select:none;
 }
 body.light{
   background:rgba(99,102,241,0.95);
@@ -224,30 +225,126 @@ body.dark{
 body:hover{
   background:rgba(79,70,229,1);
   box-shadow:0 4px 20px rgba(99,102,241,0.5);
-  transform:scale(1.1);
 }
-body:active{cursor:grabbing}
-.ball-icon{font-size:20px;-webkit-app-region:no-drag;pointer-events:auto}
+body.dragging{
+  cursor:grabbing!important;
+  opacity:0.85;
+  box-shadow:0 8px 24px rgba(0,0,0,0.4)!important;
+}
+.ball-icon{font-size:20px;pointer-events:none;line-height:1}
+
+/* 右键菜单 */
+.ctx-menu{
+  position:fixed;
+  background:rgba(30,41,59,0.96);
+  backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:10px;
+  padding:6px 0;
+  min-width:140px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.5);
+  z-index:999;
+  display:none;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+}
+.ctx-menu.light{
+  background:rgba(255,255,255,0.96);
+  border-color:rgba(0,0,0,0.08);
+  box-shadow:0 8px 32px rgba(0,0,0,0.15);
+  color:#1e293b;
+}
+.ctx-item{
+  padding:8px 16px;
+  font-size:12px;
+  cursor:pointer;
+  display:flex;align-items:center;gap:8px;
+  color:#e2e8f0;
+  transition:background 0.15s;
+}
+.ctx-menu.light .ctx-item{color:#334155}
+.ctx-item:hover{background:rgba(99,102,241,0.3)}
+.ctx-menu.light .ctx-item:hover{background:rgba(99,102,241,0.15)}
+.ctx-sep{height:1px;background:rgba(255,255,255,0.08);margin:4px 0}
+.ctx-menu.light .ctx-sep{background:rgba(0,0,0,0.06)}
 </style></head>
-<body class="dark">
+<body class="light">
   <span class="ball-icon" id="icon">✦</span>
+  <div class="ctx-menu" id="ctxMenu">
+    <div class="ctx-item" data-action="toggle">🔲 显示/隐藏窗口</div>
+    <div class="ctx-item" data-action="pip">📺 PiP 窗口</div>
+    <div class="ctx-item" data-action="screenshot">📸 截图翻译</div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" data-action="copy-last">📋 复制上次结果</div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" data-action="hide">🙈 隐藏悬浮球</div>
+    <div class="ctx-item" data-action="close">✕ 退出悬浮球</div>
+  </div>
   <script>
     const api = window.electronAPI?._internal;
     let clickTimer = null;
+    let isDragging = false;
+    let dragStartX = 0, dragStartY = 0;
+    let moved = false;
+    let lastResult = '';
+
+    // ---- 拖拽支持 ----
+    document.body.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return;
+      isDragging = true;
+      moved = false;
+      dragStartX = e.screenX;
+      dragStartY = e.screenY;
+      document.body.classList.add('dragging');
+    });
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const dx = e.screenX - dragStartX;
+      const dy = e.screenY - dragStartY;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
+      if (moved) {
+        api?.send('floating:move', e.screenX - 24, e.screenY - 24);
+        dragStartX = e.screenX;
+        dragStartY = e.screenY;
+      }
+    });
+    document.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        document.body.classList.remove('dragging');
+      }
+    });
+
+    // ---- 单击/双击 ----
     document.body.addEventListener('click', (e) => {
+      if (moved) return;
       if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; api?.send('floating:double-click'); return; }
       clickTimer = setTimeout(() => { clickTimer = null; api?.send('floating:click'); }, 250);
     });
-    // 右键单击 → 关闭悬浮球
+
+    // ---- 右键菜单 ----
+    const menu = document.getElementById('ctxMenu');
     document.body.addEventListener('contextmenu', (e) => {
       e.preventDefault();
-      api?.send('floating:close');
+      menu.style.display = 'block';
+      menu.style.left = (e.clientX - 50) + 'px';
+      menu.style.top = (e.clientY + 8) + 'px';
     });
+    document.addEventListener('click', () => { menu.style.display = 'none'; });
+    menu.addEventListener('click', (e) => {
+      const action = e.target.closest('.ctx-item')?.dataset.action;
+      if (action) api?.send('floating:menu', action);
+      menu.style.display = 'none';
+    });
+
+    // ---- 通信 ----
     api?.on('floating:update-icon', (text) => {
       document.getElementById('icon').textContent = text || '✦';
+      lastResult = text || '';
     });
+    api?.on('floating:last-result', (text) => { lastResult = text || ''; });
     api?.on('theme:changed', (theme) => {
       document.body.className = theme || 'light';
+      menu.className = 'ctx-menu ' + (theme || 'light');
     });
   </script>
 </body></html>`;
@@ -363,6 +460,38 @@ app.whenReady().then(() => {
   ipcMain.on('floating:close', () => {
     floatingBall?.close();
     floatingBall = null;
+  });
+
+  ipcMain.on('floating:move', (_event, x: number, y: number) => {
+    if (floatingBall && !floatingBall.isDestroyed()) {
+      floatingBall.setPosition(Math.round(x), Math.round(y));
+    }
+  });
+
+  ipcMain.on('floating:menu', (_event, action: string) => {
+    switch (action) {
+      case 'toggle':
+        if (mainWindow?.isVisible()) mainWindow.hide();
+        else { mainWindow?.show(); mainWindow?.focus(); }
+        break;
+      case 'pip':
+        mainWindow?.webContents.send('floating:request-last-result');
+        break;
+      case 'screenshot':
+        mainWindow?.webContents.send('ocr:trigger');
+        mainWindow?.show();
+        break;
+      case 'copy-last':
+        mainWindow?.webContents.send('floating:request-last-result');
+        break;
+      case 'hide':
+        floatingBall?.hide();
+        break;
+      case 'close':
+        floatingBall?.close();
+        floatingBall = null;
+        break;
+    }
   });
 
   // 主题变更广播 → 同步到所有辅助窗口

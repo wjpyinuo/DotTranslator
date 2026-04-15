@@ -57,10 +57,13 @@ export function SettingsPanel() {
 
   return (
     <div className="settings-overlay" onClick={toggleSettings}>
-      <div className="settings-panel" onClick={(e) => e.stopPropagation()}>
-        <div className="settings-header">
+      <div
+        className={`settings-panel ${settings.theme === 'dark' ? 'dark' : ''}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="settings-header" style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
           <h2>⚙️ 设置</h2>
-          <button onClick={toggleSettings} className="close-btn">✕</button>
+          <button onClick={toggleSettings} className="close-btn" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>✕</button>
         </div>
 
         {/* 主题 */}

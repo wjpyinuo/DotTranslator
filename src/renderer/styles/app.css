@@ -879,13 +879,20 @@ html, body, #root {
 .settings-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(8px);
+  background: rgba(240, 242, 245, 0.6);
+  backdrop-filter: blur(20px) saturate(1.8);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 100;
   animation: fadeIn 0.2s ease;
+}
+
+/* 暗色模式下设置遮罩 */
+.app-container.dark ~ .settings-overlay,
+.settings-overlay:has(.settings-panel) {
+  background: rgba(15, 23, 42, 0.5);
 }
 
 @keyframes fadeIn {
@@ -897,26 +904,29 @@ html, body, #root {
   width: 90%;
   max-width: 380px;
   max-height: 80%;
-  background: var(--bg-primary);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(40px) saturate(1.8);
+  -webkit-backdrop-filter: blur(40px) saturate(1.8);
   border-radius: var(--radius);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
   padding: 20px;
   overflow-y: auto;
   animation: slideUp 0.25s ease;
 }
 
-.app-container:not(.dark) ~ .settings-overlay .settings-panel,
-.settings-overlay .app-container:not(.dark) .settings-panel {
+/* 暗色模式设置面板 */
+.dark-settings .settings-panel,
+.settings-panel.dark {
+  background: rgba(15, 23, 42, 0.85);
+  border-color: rgba(255, 255, 255, 0.08);
   box-shadow:
-    10px 10px 24px rgba(163, 177, 198, 0.7),
-    -10px -10px 24px rgba(255, 255, 255, 0.95);
-}
-
-.app-container.dark ~ .settings-overlay .settings-panel,
-.settings-overlay .dark .settings-panel {
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(40px);
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+    0 16px 48px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 @keyframes slideUp {

@@ -8,6 +8,14 @@ function containsChinese(text: string): boolean {
   return /[\u4e00-\u9fa5]/.test(text);
 }
 
+// 检测文本是否主要为英文
+function isEnglish(text: string): boolean {
+  const cleaned = text.replace(/[^a-zA-Z\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/g, '');
+  if (!cleaned) return false;
+  const engChars = (cleaned.match(/[a-zA-Z]/g) || []).length;
+  return engChars / cleaned.length > 0.6;
+}
+
 export function InputArea() {
   const {
     inputText, sourceLang, targetLang,
@@ -119,14 +127,19 @@ export function InputArea() {
     }
   }, [setResults, setTranslating]);
 
+  // 跟踪用户是否手动交换过语言（防止自动判断覆盖手动操作）
+  const userSwappedRef = useRef(false);
+
   const handleInput = useCallback((text: string) => {
     setInputText(text);
 
-    // 自动语言判断：如果输入非中文，目标语言自动设为中文
-    if (text.trim() && !containsChinese(text)) {
-      const curTarget = useAppStore.getState().targetLang;
-      if (curTarget !== 'zh') {
-        setTargetLang('zh');
+    // 自动语言判断：仅在用户未手动交换时生效
+    // 英文输入 → 目标中文；非英文输入 → 目标英文
+    if (text.trim() && !userSwappedRef.current) {
+      if (isEnglish(text)) {
+        if (useAppStore.getState().targetLang !== 'zh') setTargetLang('zh');
+      } else {
+        if (useAppStore.getState().targetLang !== 'en') setTargetLang('en');
       }
     }
 
@@ -149,12 +162,25 @@ export function InputArea() {
     }
   }, [setTargetLang, doTranslate]);
 
+  // 交换语言时标记为手动操作
+  const handleSwap = useCallback(() => {
+    userSwappedRef.current = true;
+    swapLanguages();
+    // 如果当前有文本，交换后重新翻译
+    if (useAppStore.getState().inputText.trim()) {
+      setTimeout(() => doTranslate(), 50);
+    }
+  }, [swapLanguages, doTranslate]);
+
   return (
     <div className="input-area">
       <div className="lang-bar">
         <select
           value={sourceLang}
-          onChange={(e) => setSourceLang(e.target.value)}
+          onChange={(e) => {
+            userSwappedRef.current = true;
+            setSourceLang(e.target.value);
+          }}
           className="lang-select"
         >
           {SUPPORTED_LANGUAGES.map((lang) => (
@@ -162,13 +188,16 @@ export function InputArea() {
           ))}
         </select>
 
-        <button onClick={swapLanguages} className="swap-btn" title="交换语言">
+        <button onClick={handleSwap} className="swap-btn" title="交换语言">
           ⇄
         </button>
 
         <select
           value={targetLang}
-          onChange={(e) => handleTargetLangChange(e.target.value)}
+          onChange={(e) => {
+            userSwappedRef.current = true;
+            handleTargetLangChange(e.target.value);
+          }}
           className="lang-select"
         >
           {SUPPORTED_LANGUAGES.filter((l) => l.code !== 'auto').map((lang) => (
