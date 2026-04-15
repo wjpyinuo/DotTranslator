@@ -137,6 +137,24 @@ export function App() {
     });
   }, [settings.clipboardMonitor, settings.privacyMode, setInputText]);
 
+  // 截图 OCR 快捷键监听
+  useEffect(() => {
+    const api = window.electronAPI;
+    if (!api?.ocr?.onTrigger) return;
+
+    api.ocr.onTrigger(async () => {
+      try {
+        const result = await api.ocr.screenshot();
+        // 截图成功，显示提示（OCR 需要 PaddleOCR native addon，Phase 2 实现）
+        console.log('[OCR] Screenshot captured:', result.width, 'x', result.height);
+        // TODO: Phase 2 集成 PaddleOCR 识别截图文字
+        // 目前截图功能框架已就绪，OCR 识别待 native addon 支持
+      } catch (err) {
+        console.error('[OCR] Screenshot failed:', err);
+      }
+    });
+  }, []);
+
   return (
     <div className={`app-container ${settings.theme}`}>
       <TitleBar />

@@ -666,6 +666,33 @@ body{
     pipWindow?.close();
   });
 
+  // ========== 截图 OCR（Ctrl+Shift+X） ==========
+  const { desktopCapturer } = require('electron');
+
+  ipcMain.handle('ocr:screenshot', async () => {
+    try {
+      const sources = await desktopCapturer.getSources({
+        types: ['screen'],
+        thumbnailSize: { width: 1920, height: 1080 },
+      });
+      // 取主屏幕截图
+      const source = sources[0];
+      if (!source) throw new Error('No screen source');
+
+      const imageBase64 = source.thumbnail.toDataURL().split(',')[1];
+      // 返回截图 base64，由渲染进程处理 OCR 或直接发送到翻译
+      return { imageBase64, width: source.thumbnail.getSize().width, height: source.thumbnail.getSize().height };
+    } catch (err: any) {
+      console.error('[OCR] Screenshot failed:', err);
+      throw err;
+    }
+  });
+
+  // 全局快捷键 Ctrl+Shift+X 截图
+  globalShortcut.register('CommandOrControl+Shift+X', () => {
+    mainWindow?.webContents.send('ocr:trigger');
+  });
+
   // IPC: 公告栏 - 从服务器获取公告内容
   ipcMain.handle('announcement:fetch', async (_event, url: string) => {
     try {

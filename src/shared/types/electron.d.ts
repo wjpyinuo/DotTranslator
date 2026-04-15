@@ -58,6 +58,8 @@ interface ElectronAPI {
   };
   ocr: {
     recognize(imageBase64: string): Promise<unknown>;
+    screenshot(): Promise<{ imageBase64: string; width: number; height: number }>;
+    onTrigger(callback: () => void): void;
   };
   history: {
     getAll(limit?: number): Promise<unknown>;

@@ -56,6 +56,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   ocr: {
     recognize: (imageBase64: string) => ipcRenderer.invoke('ocr:recognize', imageBase64),
+    screenshot: () => ipcRenderer.invoke('ocr:screenshot'),
+    onTrigger: (callback: () => void) => {
+      ipcRenderer.on('ocr:trigger', () => callback());
+    },
   },
 
   history: {
