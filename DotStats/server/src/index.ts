@@ -56,6 +56,16 @@ async function start(): Promise<void> {
   await app.register(adminRoutes, { prefix: '/api/v1' });
   await app.register(healthRoutes, { prefix: '/api/v1' });
 
+  // Custom 404 handler
+  app.setNotFoundHandler((request, reply) => {
+    reply.status(404).send({
+      statusCode: 404,
+      error: 'Not Found',
+      message: `Route ${request.method}:${request.url} not found`,
+      docs: '/api/v1/health',
+    });
+  });
+
   // 定时任务
   startCronJobs();
 
