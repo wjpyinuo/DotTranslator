@@ -205,4 +205,4 @@ class PrivacyFilter {
   }
 }
 
-export const telemetry = new TelemetryReporter();
+export const telemetry = new TelemetryReporter(undefined, false);

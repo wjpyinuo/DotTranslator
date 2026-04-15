@@ -17,9 +17,11 @@ export function ProvidersPage() {
   const [metrics, setMetrics] = useState<ProviderMetric[]>([]);
   const [period, setPeriod] = useState('30');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const [distRes, metricRes] = await Promise.all([
         fetch(`${serverUrl}/api/v1/stats/providers`),
@@ -33,7 +35,7 @@ export function ProvidersPage() {
         const json = await metricRes.json();
         setMetrics(json.data || []);
       }
-    } catch { /* 静默 */ }
+    } catch (e: any) { setError(e.message || "请求失败"); }
     setLoading(false);
   }, [serverUrl, period]);
 
@@ -76,7 +78,7 @@ export function ProvidersPage() {
         </select>
       </div>
 
-      {loading ? (
+      {error ? (<div className="empty-chart" style={{color: "#ef4444"}}>⚠️ {error}</div>) : loading ? (
         <div className="empty-chart">加载中...</div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>

@@ -51,6 +51,9 @@ interface ElectronAPI {
     onClipboardChange(callback: (text: string) => void): void;
     setMonitor(enabled: boolean): void;
   };
+  telemetry: {
+    toggle(enabled: boolean): void;
+  };
   translation: {
     translate(params: TranslateParams): Promise<TranslateResultItem[]>;
     getProviders(): Promise<unknown>;

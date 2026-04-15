@@ -6,16 +6,18 @@ export function GeoPage() {
   const { serverUrl } = useStatsStore();
   const [data, setData] = useState<{ locale: string; count: number }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch(`${serverUrl}/api/v1/stats/geo`);
       if (res.ok) {
         const json = await res.json();
         setData(json.data || []);
       }
-    } catch { /* 静默 */ }
+    } catch (e: any) { setError(e.message || "请求失败"); }
     setLoading(false);
   }, [serverUrl]);
 
@@ -64,7 +66,7 @@ export function GeoPage() {
   return (
     <div>
       <h2 className="page-title">🌍 地区分布</h2>
-      {loading ? (
+      {error ? (<div className="empty-chart" style={{color: "#ef4444"}}>⚠️ {error}</div>) : loading ? (
         <div className="empty-chart">加载中...</div>
       ) : data.length === 0 ? (
         <div className="empty-chart">暂无数据</div>

@@ -47,6 +47,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     setMonitor: (enabled: boolean) => ipcRenderer.send('clipboard:monitor-toggle', enabled),
   },
 
+  telemetry: {
+    toggle: (enabled: boolean) => ipcRenderer.send('telemetry:toggle', enabled),
+  },
+
   translation: {
     translate: (params: { text: string; sourceLang: string; targetLang: string; enabledProviders?: string[] }) =>
       ipcRenderer.invoke('translation:translate', params),

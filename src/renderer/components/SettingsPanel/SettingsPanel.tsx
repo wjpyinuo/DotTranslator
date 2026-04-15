@@ -316,7 +316,10 @@ export function SettingsPanel() {
             <input
               type="checkbox"
               checked={settings.telemetryEnabled}
-              onChange={(e) => updateSettings({ telemetryEnabled: e.target.checked })}
+              onChange={(e) => {
+                updateSettings({ telemetryEnabled: e.target.checked });
+                window.electronAPI?.telemetry?.toggle(e.target.checked);
+              }}
             />
             匿名遥测
           </label>

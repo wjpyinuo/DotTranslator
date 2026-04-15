@@ -8,16 +8,18 @@ export function FeaturesPage() {
   const [sort, setSort] = useState<string>('total');
   const [period, setPeriod] = useState('30');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch(`${serverUrl}/api/v1/stats/features?period=${period}d&sort=${sort}&limit=20`);
       if (res.ok) {
         const json = await res.json();
         setData(json.data || []);
       }
-    } catch { /* 静默 */ }
+    } catch (e: any) { setError(e.message || "请求失败"); }
     setLoading(false);
   }, [serverUrl, sort, period]);
 
@@ -85,7 +87,7 @@ export function FeaturesPage() {
         </div>
       </div>
 
-      {loading ? (
+      {error ? (<div className="empty-chart" style={{color: "#ef4444"}}>⚠️ {error}</div>) : loading ? (
         <div className="empty-chart">加载中...</div>
       ) : data.length === 0 ? (
         <div className="empty-chart">暂无数据</div>

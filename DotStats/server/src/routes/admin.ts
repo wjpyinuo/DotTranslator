@@ -62,4 +62,90 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
 
     return { data: result.rows };
   });
+
+  // ========== Alert Rules CRUD ==========
+
+  const alertRuleSchema = z.object({
+    id: z.string().optional(),
+    name: z.string().min(1),
+    metric: z.enum(['online_now', 'dau', 'dau_drop_pct', 'error_rate']),
+    operator: z.enum(['>', '<', '>=', '<=', '==']),
+    threshold: z.number(),
+    window_hours: z.number().int().positive().default(24),
+    notify_channel: z.enum(['webhook']).default('webhook'),
+    notify_target: z.string().optional().default(''),
+    is_enabled: z.boolean().default(true),
+  });
+
+  // GET /api/v1/admin/alerts
+  app.get('/admin/alerts', { preHandler: adminAuth }, async (_request, reply) => {
+    const pool = getPool();
+    const result = await pool.query('SELECT * FROM alert_rules ORDER BY name ASC');
+    return { data: result.rows };
+  });
+
+  // POST /api/v1/admin/alerts (创建或更新)
+  app.post('/admin/alerts', { preHandler: adminAuth }, async (request, reply) => {
+    const parsed = alertRuleSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Invalid payload', details: parsed.error.issues });
+    }
+    const rule = parsed.data;
+    const id = rule.id || crypto.randomUUID();
+    const pool = getPool();
+
+    await pool.query(`
+      INSERT INTO alert_rules (id, name, metric, operator, threshold, window_hours, notify_channel, notify_target, is_enabled)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      ON CONFLICT (id) DO UPDATE SET
+        name = EXCLUDED.name,
+        metric = EXCLUDED.metric,
+        operator = EXCLUDED.operator,
+        threshold = EXCLUDED.threshold,
+        window_hours = EXCLUDED.window_hours,
+        notify_channel = EXCLUDED.notify_channel,
+        notify_target = EXCLUDED.notify_target,
+        is_enabled = EXCLUDED.is_enabled
+    `, [id, rule.name, rule.metric, rule.operator, rule.threshold, rule.window_hours, rule.notify_channel, rule.notify_target, rule.is_enabled]);
+
+    return { success: true, id };
+  });
+
+  // PATCH /api/v1/admin/alerts/:id
+  app.patch('/admin/alerts/:id', { preHandler: adminAuth }, async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const body = request.body as Record<string, unknown>;
+    const pool = getPool();
+
+    const fields: string[] = [];
+    const values: unknown[] = [];
+    let idx = 1;
+
+    for (const [key, val] of Object.entries(body)) {
+      if (['name', 'metric', 'operator', 'threshold', 'window_hours', 'notify_channel', 'notify_target', 'is_enabled'].includes(key)) {
+        fields.push(`${key} = $${idx++}`);
+        values.push(val);
+      }
+    }
+
+    if (fields.length === 0) {
+      return reply.status(400).send({ error: 'No valid fields to update' });
+    }
+
+    values.push(id);
+    await pool.query(
+      `UPDATE alert_rules SET ${fields.join(', ')} WHERE id = $${idx}`,
+      values
+    );
+
+    return { success: true };
+  });
+
+  // DELETE /api/v1/admin/alerts/:id
+  app.delete('/admin/alerts/:id', { preHandler: adminAuth }, async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const pool = getPool();
+    await pool.query('DELETE FROM alert_rules WHERE id = $1', [id]);
+    return { success: true };
+  });
 }

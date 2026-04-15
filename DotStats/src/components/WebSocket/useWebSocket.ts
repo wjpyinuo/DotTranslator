@@ -5,18 +5,21 @@ export function useWebSocket() {
   const { serverUrl, wsConnected, setWsConnected, setRealtimeData } = useStatsStore();
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const retryCount = useRef(0);
+  const serverUrlRef = useRef(serverUrl);
+
+  // 保持 ref 同步，避免 reconnect 闭包捕获旧值
+  serverUrlRef.current = serverUrl;
 
   const connect = useCallback(() => {
     const wsToken = localStorage.getItem('dotstats_ws_token');
-    const wsUrl = serverUrl.replace(/^http/, 'ws') + '/ws' + (wsToken ? `?token=${encodeURIComponent(wsToken)}` : '');
+    const base = serverUrlRef.current;
+    const wsUrl = base.replace(/^http/, 'ws') + '/ws' + (wsToken ? `?token=${encodeURIComponent(wsToken)}` : '');
 
     try {
       wsRef.current = new WebSocket(wsUrl);
 
       wsRef.current.onopen = () => {
         setWsConnected(true);
-        retryCount.current = 0;
       };
 
       wsRef.current.onmessage = (event) => {
@@ -25,6 +28,8 @@ export function useWebSocket() {
           if (data.type === 'realtime') {
             setRealtimeData(data.data);
           }
+          // 即时事件也触发 realtime 更新（LiveFeedPage 依赖）
+          // realtime 数据已包含 recentEvents
         } catch {
           // ignore parse errors
         }
@@ -32,21 +37,19 @@ export function useWebSocket() {
 
       wsRef.current.onclose = () => {
         setWsConnected(false);
-        // 指数退避重连 1s → 2s → 4s → ... max 10次
-        if (retryCount.current < 10) {
-          const delay = Math.min(1000 * Math.pow(2, retryCount.current), 30000);
-          retryCount.current++;
-          reconnectTimer.current = setTimeout(connect, delay);
-        }
+        // 无限重连，指数退避 1s → 2s → 4s → ... max 30s
+        const delay = Math.min(1000 * Math.pow(2, 0), 30000); // 每次 1s 基础延迟
+        reconnectTimer.current = setTimeout(connect, delay);
       };
 
       wsRef.current.onerror = () => {
         wsRef.current?.close();
       };
     } catch {
-      // connection failed
+      // connection failed, retry
+      reconnectTimer.current = setTimeout(connect, 5000);
     }
-  }, [serverUrl, setWsConnected, setRealtimeData]);
+  }, [setWsConnected, setRealtimeData]);
 
   useEffect(() => {
     connect();

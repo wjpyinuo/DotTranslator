@@ -485,17 +485,16 @@ body{
     return clipboard.readText();
   });
 
+  // IPC: 遥测开关
+  ipcMain.on('telemetry:toggle', (_event, enabled: boolean) => {
+    telemetry.setEnabled(enabled);
+  });
+
   // IPC: 翻译
   // 加载并注入 API 密钥到翻译引擎
   async function loadProviderCredentials(): Promise<void> {
-    const { safeStorage } = require('electron');
-    const keyStorePath = path.join(app.getPath('userData'), 'encrypted_keys.dat');
-    const fs = require('fs');
     try {
-      if (!fs.existsSync(keyStorePath)) return;
-      const encrypted = fs.readFileSync(keyStorePath);
-      const decrypted = safeStorage.decryptString(encrypted);
-      const keys: Record<string, string> = JSON.parse(decrypted);
+      const keys = loadEncryptedKeys();
 
       const deeplProvider = translationRouter.getProvider('deepl') as any;
       if (deeplProvider?.setApiKey && keys.deeplApiKey) {

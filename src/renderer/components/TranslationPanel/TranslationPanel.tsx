@@ -75,8 +75,7 @@ export function TranslationPanel() {
     const api = window.electronAPI;
     if (api && inputText.trim() && result?.text) {
       try {
-        await api.tm.lookup(inputText.trim(), sourceLang, targetLang);
-        // TM insert 通过 tm:lookup 路由完成或直接调用
+        await api.tm.insert(inputText.trim(), result.text, sourceLang, targetLang);
       } catch { /* 静默 */ }
     }
     setTimeout(() => setAdoptedIdx(null), 2000);

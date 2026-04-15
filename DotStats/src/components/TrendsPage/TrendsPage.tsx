@@ -10,9 +10,11 @@ export function TrendsPage() {
   const [period, setPeriod] = useState('30');
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchTrends = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const to = new Date().toISOString().split('T')[0];
       const from = new Date(Date.now() - parseInt(period) * 86400000).toISOString().split('T')[0];
@@ -23,7 +25,7 @@ export function TrendsPage() {
         const json = await res.json();
         setData(json.data || []);
       }
-    } catch { /* 静默 */ }
+    } catch (e: any) { setError(e.message || "请求失败"); }
     setLoading(false);
   }, [serverUrl, granularity, period]);
 
@@ -68,7 +70,7 @@ export function TrendsPage() {
         </div>
       </div>
 
-      {loading ? (
+      {error ? (<div className="empty-chart" style={{color: "#ef4444"}}>⚠️ {error}</div>) : loading ? (
         <div className="empty-chart">加载中...</div>
       ) : data.length === 0 ? (
         <div className="empty-chart">暂无数据，等待客户端上报</div>
