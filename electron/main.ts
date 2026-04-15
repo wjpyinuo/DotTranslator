@@ -202,6 +202,14 @@ body{
   -webkit-app-region:drag;
   user-select:none;
 }
+body.light{
+  background:rgba(99,102,241,0.95);
+  box-shadow:0 4px 12px rgba(99,102,241,0.4);
+}
+body.dark{
+  background:rgba(99,102,241,0.9);
+  box-shadow:0 4px 12px rgba(0,0,0,0.3);
+}
 body:hover{
   background:rgba(79,70,229,1);
   box-shadow:0 4px 20px rgba(99,102,241,0.5);
@@ -210,7 +218,7 @@ body:hover{
 body:active{cursor:grabbing}
 .ball-icon{font-size:20px;-webkit-app-region:no-drag;pointer-events:auto}
 </style></head>
-<body onclick="window.electronAPI?.pip?.close()">
+<body class="dark">
   <span class="ball-icon" id="icon">✦</span>
   <script>
     const api = window.electronAPI?._internal;
@@ -219,13 +227,39 @@ body:active{cursor:grabbing}
       if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; api?.send('floating:double-click'); return; }
       clickTimer = setTimeout(() => { clickTimer = null; api?.send('floating:click'); }, 250);
     });
+    // 右键单击 → 关闭悬浮球
+    document.body.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      api?.send('floating:close');
+    });
     api?.on('floating:update-icon', (text) => {
       document.getElementById('icon').textContent = text || '✦';
+    });
+    api?.on('theme:changed', (theme) => {
+      document.body.className = theme || 'dark';
     });
   </script>
 </body></html>`;
 
   floatingBall.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(ballHtml)}`);
+
+  // 设置圆形窗口形状（Windows/Linux 需要显式 setShape）
+  floatingBall.webContents.once('did-finish-load', () => {
+    floatingBall?.setShape([{ x: 0, y: 0, width: 48, height: 48 }]);
+    // 用圆形 hit region（行级近似，性能更好）
+    if (process.platform !== 'darwin') {
+      const r = 24;
+      const shapes = [];
+      for (let y = 0; y < 48; y++) {
+        const dy = y - r;
+        const halfWidth = Math.floor(Math.sqrt(r * r - dy * dy));
+        if (halfWidth > 0) {
+          shapes.push({ x: r - halfWidth, y, width: halfWidth * 2, height: 1 });
+        }
+      }
+      floatingBall?.setShape(shapes);
+    }
+  });
 }
 
 app.whenReady().then(() => {
@@ -290,6 +324,18 @@ app.whenReady().then(() => {
 
   ipcMain.on('floating:show', () => {
     floatingBall?.show();
+  });
+
+  ipcMain.on('floating:close', () => {
+    floatingBall?.close();
+    floatingBall = null;
+  });
+
+  // 主题变更广播 → 同步到所有辅助窗口
+  ipcMain.on('theme:changed', (_event, theme: string) => {
+    floatingBall?.webContents.send('theme:changed', theme);
+    pipWindow?.webContents.send('theme:changed', theme);
+    miniCard?.webContents.send('theme:changed', theme);
   });
 
   // IPC: 迷你卡片
@@ -393,11 +439,19 @@ body{
   box-shadow:0 8px 24px rgba(0,0,0,0.4);
   padding:10px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;
   color:#f1f5f9;-webkit-app-region:drag;
+  transition:all 0.3s;
 }
+body.light{
+  background:rgba(255,255,255,0.95);
+  color:#1e293b;border-color:rgba(0,0,0,0.08);
+  box-shadow:0 8px 24px rgba(0,0,0,0.12);
+}
+body.light .lang{color:#94a3b8}
+body.light .text{color:#1e293b}
 .lang{font-size:10px;color:#64748b;margin-bottom:4px}
 .text{font-size:13px;line-height:1.4;word-break:break-all;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
 </style></head>
-<body>
+<body class="dark">
   <div class="lang" id="lang"></div>
   <div class="text" id="text">等待翻译...</div>
   <script>
@@ -405,6 +459,9 @@ body{
     api?.on('mini-card:update', (data) => {
       document.getElementById('lang').textContent = data.sourceLang + ' → ' + data.targetLang;
       document.getElementById('text').textContent = data.text;
+    });
+    api?.on('theme:changed', (theme) => {
+      document.body.className = theme || 'dark';
     });
     setTimeout(() => api?.send('mini-card:auto-hide'), 5000);
   </script>
@@ -612,7 +669,21 @@ body{
       height: 100vh;
       border: 1px solid rgba(255,255,255,0.08);
       box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      transition: all 0.3s;
     }
+    body.light {
+      background: rgba(255, 255, 255, 0.92);
+      color: #1e293b;
+      border-color: rgba(0,0,0,0.08);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    }
+    body.light .pip-header { background: rgba(241,245,249,0.6); border-bottom-color: rgba(0,0,0,0.06); }
+    body.light .pip-title { color: #6366f1; }
+    body.light .pip-close { color: #94a3b8; }
+    body.light .pip-close:hover { background: rgba(239,68,68,0.15); color: #ef4444; }
+    body.light .pip-lang { color: #94a3b8; }
+    body.light .pip-text { color: #1e293b; }
+    body.light .pip-btn { border-color: rgba(0,0,0,0.1); color: #64748b; }
     .pip-header {
       display: flex;
       justify-content: space-between;
@@ -708,6 +779,15 @@ body{
         u.lang = map[currentLang] || currentLang;
         u.rate = 0.9;
         window.speechSynthesis.speak(u);
+      }
+    });
+    api?.on('theme:changed', (theme) => {
+      if (theme === 'light') {
+        document.body.classList.add('light');
+        document.body.classList.remove('dark');
+      } else {
+        document.body.classList.remove('light');
+        document.body.classList.add('dark');
       }
     });
   </script>

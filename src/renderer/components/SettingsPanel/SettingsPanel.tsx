@@ -69,13 +69,19 @@ export function SettingsPanel() {
           <div className="theme-toggle">
             <button
               className={`theme-btn ${settings.theme === 'light' ? 'active' : ''}`}
-              onClick={() => updateSettings({ theme: 'light' })}
+              onClick={() => {
+                updateSettings({ theme: 'light' });
+                window.electronAPI?._internal?.send('theme:changed', 'light');
+              }}
             >
               ☀️ 亮色
             </button>
             <button
               className={`theme-btn ${settings.theme === 'dark' ? 'active' : ''}`}
-              onClick={() => updateSettings({ theme: 'dark' })}
+              onClick={() => {
+                updateSettings({ theme: 'dark' });
+                window.electronAPI?._internal?.send('theme:changed', 'dark');
+              }}
             >
               🌙 暗色
             </button>
