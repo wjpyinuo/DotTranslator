@@ -1,77 +1,38 @@
-import { useAppStore } from '@renderer/stores/appStore';
-import type { TranslateResult } from '@shared/types';
+import { useAppStore } from '../../stores/appStore';
 
 export function TranslationPanel() {
-  const { results, isTranslating } = useAppStore();
+  const { translation, isLoading } = useAppStore();
 
-  if (isTranslating) {
+  if (isLoading) {
     return (
-      <div className="translation-panel">
-        <div className="loading-indicator">
-          <div className="spinner" />
-          <span>翻译中...</span>
-        </div>
+      <div className="translation-panel loading">
+        <div className="spinner" />
+        <p>翻译中...</p>
       </div>
     );
   }
 
-  if (results.length === 0) {
-    return null;
+  if (!translation) {
+    return (
+      <div className="translation-panel empty">
+        <p className="empty-hint">输入文本后，翻译结果将显示在这里</p>
+      </div>
+    );
   }
 
   return (
     <div className="translation-panel">
-      {results.length === 1 ? (
-        <SingleResult result={results[0]} />
-      ) : (
-        <CompareResults results={results} />
+      <div className="translation-header">
+        <span className="lang-badge">{translation.targetLang}</span>
+        <span className="provider-badge">{translation.provider}</span>
+      </div>
+      <div className="translation-result">
+        {translation.text}
+      </div>
+      {translation.tmHit && (
+        <div className="tm-badge">📎 翻译记忆匹配</div>
       )}
     </div>
   );
 }
 
-function SingleResult({ result }: { result: TranslateResult }) {
-  return (
-    <div className="result-card">
-      <div className="result-header">
-        <span className="provider-badge">{result.provider}</span>
-        <span className="confidence">⭐ {Math.round(result.confidence * 100)}%</span>
-        <span className="latency">{result.latencyMs}ms</span>
-      </div>
-      <div className="result-text">{result.text}</div>
-      <div className="result-actions">
-        <button className="action-btn" onClick={() => navigator.clipboard.writeText(result.text)}>
-          📋 复制
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function CompareResults({ results }: { results: TranslateResult[] }) {
-  return (
-    <div className="compare-results">
-      <div className="compare-header">翻译对比</div>
-      <div className="compare-grid">
-        {results.map((result) => (
-          <div key={result.provider} className="result-card">
-            <div className="result-header">
-              <span className="provider-badge">{result.provider}</span>
-              <span className="confidence">⭐ {Math.round(result.confidence * 100)}%</span>
-              <span className="latency">{result.latencyMs}ms</span>
-            </div>
-            <div className="result-text">{result.text}</div>
-            <div className="result-actions">
-              <button className="action-btn" onClick={() => navigator.clipboard.writeText(result.text)}>
-                📋 复制
-              </button>
-              <button className="action-btn adopt-btn">
-                ✅ 采用此翻译
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
