@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import rateLimit from '@fastify/rate-limit';
 import { eventRoutes } from './routes/events';
 import { statsRoutes } from './routes/stats';
 import { adminRoutes } from './routes/admin';
@@ -27,6 +28,17 @@ async function start(): Promise<void> {
     origin: corsOrigins,
     methods: ['GET', 'POST', 'DELETE'],
     credentials: true,
+  });
+
+  // Rate limiting - 防止 API 被刷
+  await app.register(rateLimit, {
+    max: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),
+    timeWindow: process.env.RATE_LIMIT_WINDOW || '1 minute',
+    errorResponseBuilder: (_req, context) => ({
+      error: 'Too Many Requests',
+      message: `Rate limit exceeded, retry in ${Math.ceil(context.ttl / 1000)}s`,
+      statusCode: 429,
+    }),
   });
 
   // 初始化数据库和缓存
