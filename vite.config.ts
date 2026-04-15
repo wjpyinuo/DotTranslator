@@ -11,6 +11,14 @@ export default defineConfig({
       {
         entry: 'electron/main.ts',
         vite: {
+          resolve: {
+            alias: {
+              '@': path.resolve(__dirname, 'src'),
+              '@shared': path.resolve(__dirname, 'src/shared'),
+              '@main': path.resolve(__dirname, 'src/main'),
+              '@workers': path.resolve(__dirname, 'src/workers'),
+            },
+          },
           build: {
             outDir: 'dist-electron',
             rollupOptions: {
