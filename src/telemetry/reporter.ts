@@ -103,16 +103,44 @@ export class TelemetryReporter {
   }
 
   private async flush(): Promise<void> {
+    // 先尝试重试队列
+    if (this.retryQueue.length > 0) {
+      const retryEvents = [...this.retryQueue];
+      this.retryQueue = [];
+      await this.sendEvents(retryEvents);
+    }
+
     if (this.queue.length === 0) return;
 
     const events = [...this.queue];
     this.queue = [];
 
+    await this.sendEvents(events);
+  }
+
+  private async sendEvents(events: TelemetryEvent[]): Promise<void> {
+    const serverUrl = this.getServerUrl();
+    if (!serverUrl) {
+      console.log(`[Telemetry] Flushing ${events.length} events (local only, no server configured)`);
+      return;
+    }
+
     try {
-      // TODO: 实际发送到 Analytics Server
-      // await fetch(serverUrl + '/api/v1/events', { method: 'POST', body: JSON.stringify({ events }) })
-      console.log(`[Telemetry] Flushing ${events.length} events`);
-    } catch {
+      const res = await fetch(`${serverUrl}/api/v1/events`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Instance-Id': this.instanceId,
+        },
+        body: JSON.stringify({ events }),
+      });
+
+      if (!res.ok) {
+        console.warn(`[Telemetry] Server responded ${res.status}, re-queuing events`);
+        this.retryQueue.push(...events);
+      }
+    } catch (err) {
+      console.warn('[Telemetry] Flush failed, re-queuing events:', err);
       this.retryQueue.push(...events);
     }
   }
@@ -147,6 +175,17 @@ export class TelemetryReporter {
         metadata,
       },
     };
+  }
+  private getServerUrl(): string | null {
+    // Try to read from electron-store or use env var
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const Store = require('electron-store');
+      const store = new Store();
+      return store.get('serverUrl') as string || null;
+    } catch {
+      return null;
+    }
   }
 }
 
