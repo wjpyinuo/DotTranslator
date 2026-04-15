@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
 const ANNOUNCEMENT_URL = 'https://raw.githubusercontent.com/nicekid1/DotTranslator/main/announcement.txt';
+const LOCAL_FILENAME = 'announcement.txt';
 
 interface Announcement {
   id: string;
@@ -11,27 +12,53 @@ export function AnnouncementBar() {
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const [dismissed, setDismissed] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [source, setSource] = useState<'local' | 'remote' | null>(null);
 
   const fetchAnnouncement = useCallback(async () => {
     setLoading(true);
     try {
       const api = window.electronAPI;
       let text = '';
+      let usedSource: 'local' | 'remote' | null = null;
 
-      if (api?.announcement?.fetch) {
-        text = await api.announcement.fetch(ANNOUNCEMENT_URL);
-      } else {
-        // Fallback: 浏览器环境直接 fetch
-        const res = await fetch(ANNOUNCEMENT_URL);
-        if (res.ok) text = await res.text();
+      // 优先尝试本地文件（测试用）
+      if (api?.announcement?.readLocal) {
+        const localText = await api.announcement.readLocal(LOCAL_FILENAME);
+        if (localText && localText.trim()) {
+          text = localText.trim();
+          usedSource = 'local';
+        }
       }
 
-      if (text && text.trim()) {
+      // 本地无文件或内容为空 → 回退到远程服务器
+      if (!text && api?.announcement?.fetch) {
+        const remoteText = await api.announcement.fetch(ANNOUNCEMENT_URL);
+        if (remoteText && remoteText.trim()) {
+          text = remoteText.trim();
+          usedSource = 'remote';
+        }
+      } else if (!text) {
+        // 浏览器环境 fallback
+        try {
+          const res = await fetch(ANNOUNCEMENT_URL);
+          if (res.ok) {
+            const remoteText = await res.text();
+            if (remoteText && remoteText.trim()) {
+              text = remoteText.trim();
+              usedSource = 'remote';
+            }
+          }
+        } catch { /* 静默 */ }
+      }
+
+      setSource(usedSource);
+
+      if (text) {
         // 用内容 hash 作为 id，内容变化时重新显示
-        const id = btoa(unescape(encodeURIComponent(text.trim()))).slice(0, 16);
+        const id = btoa(unescape(encodeURIComponent(text))).slice(0, 16);
         const dismissedId = localStorage.getItem('dot_announcement_dismissed');
         if (dismissedId !== id) {
-          setAnnouncement({ id, content: text.trim() });
+          setAnnouncement({ id, content: text });
           setDismissed(false);
         } else {
           setDismissed(true);
@@ -61,9 +88,10 @@ export function AnnouncementBar() {
   if (loading || dismissed || !announcement) return null;
 
   return (
-    <div className="announcement-bar">
-      <span className="announcement-icon">📢</span>
+    <div className={`announcement-bar ${source === 'local' ? 'announcement-local' : ''}`}>
+      <span className="announcement-icon">{source === 'local' ? '📝' : '📢'}</span>
       <span className="announcement-text">{announcement.content}</span>
+      {source === 'local' && <span className="announcement-badge">本地测试</span>}
       <button className="announcement-close" onClick={handleDismiss} title="关闭公告">
         ✕
       </button>

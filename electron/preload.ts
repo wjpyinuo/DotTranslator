@@ -82,6 +82,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   announcement: {
     fetch: (url: string) => ipcRenderer.invoke('announcement:fetch', url),
+    readLocal: (filename: string) => ipcRenderer.invoke('announcement:readLocal', filename),
+    writeLocal: (filename: string, content: string) => ipcRenderer.invoke('announcement:writeLocal', filename, content),
   },
 
   localApi: {

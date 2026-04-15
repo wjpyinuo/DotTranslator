@@ -76,6 +76,8 @@ interface ElectronAPI {
   };
   announcement: {
     fetch(url: string): Promise<string>;
+    readLocal(filename: string): Promise<string>;
+    writeLocal(filename: string, content: string): Promise<boolean>;
   };
   localApi: {
     getToken(): Promise<string>;

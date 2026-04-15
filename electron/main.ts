@@ -757,6 +757,39 @@ body{
     }
   });
 
+  // IPC: 公告栏 - 读取本地 .txt 文件（测试用）
+  ipcMain.handle('announcement:readLocal', async (_event, filename: string) => {
+    const fs = require('fs');
+    const localPath = path.join(app.getPath('userData'), filename);
+    try {
+      if (fs.existsSync(localPath)) {
+        return fs.readFileSync(localPath, 'utf-8');
+      }
+      // 也尝试读取应用根目录的文件
+      const appPath = path.join(app.getAppPath(), filename);
+      if (fs.existsSync(appPath)) {
+        return fs.readFileSync(appPath, 'utf-8');
+      }
+      return '';
+    } catch (err) {
+      console.error('[Announcement] local read failed:', err);
+      return '';
+    }
+  });
+
+  // IPC: 公告栏 - 写入本地测试公告文件
+  ipcMain.handle('announcement:writeLocal', async (_event, filename: string, content: string) => {
+    const fs = require('fs');
+    const localPath = path.join(app.getPath('userData'), filename);
+    try {
+      fs.writeFileSync(localPath, content, 'utf-8');
+      return true;
+    } catch (err) {
+      console.error('[Announcement] local write failed:', err);
+      return false;
+    }
+  });
+
   // IPC: TM 精确匹配
   ipcMain.handle('tm:lookup', async (_event, text: string, sourceLang: string, targetLang: string) => {
     const { tmLookup, tmInsert } = await import('../src/main/database');
