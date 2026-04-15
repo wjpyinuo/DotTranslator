@@ -159,6 +159,7 @@ function createTray(): void {
 
 // ========== 悬浮球 48×48 常驻圆形 ==========
 function createFloatingBall(): void {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { screen } = require('electron');
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
@@ -303,6 +304,7 @@ app.whenReady().then(() => {
   });
 
   // ========== safeStorage API Key 加密存储 ==========
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { safeStorage } = require('electron');
   const keyStorePath = path.join(app.getPath('userData'), 'encrypted_keys.dat');
   const fs = require('fs');
@@ -350,6 +352,7 @@ app.whenReady().then(() => {
   let miniCardTimer: ReturnType<typeof setTimeout> | null = null;
 
   function showMiniCard(text: string, sourceLang: string, targetLang: string): void {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { screen } = require('electron');
     const cursorPos = screen.getCursorScreenPoint();
 
@@ -458,6 +461,7 @@ body{
     setInterval(() => {
       if (!clipboardMonitorEnabled || !mainWindow) return;
       try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const { clipboard } = require('electron');
         const text = clipboard.readText();
         if (!text || text.trim() === '' || text === lastClipboardText) return;
@@ -480,6 +484,7 @@ body{
   });
 
   ipcMain.handle('clipboard:readText', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { clipboard } = require('electron');
     return clipboard.readText();
   });
@@ -726,6 +731,7 @@ body{
   });
 
   // ========== 截图 OCR（Ctrl+Shift+X） ==========
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { desktopCapturer } = require('electron');
 
   ipcMain.handle('ocr:screenshot', async () => {
