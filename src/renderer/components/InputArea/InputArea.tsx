@@ -1,34 +1,33 @@
-import { SUPPORTED_LANGUAGES } from '@shared/constants';
+import { SUPPORTED_LANGUAGES, DEBOUNCE_TRANSLATE_MS } from '@shared/constants';
 import { useAppStore } from '@renderer/stores/appStore';
-import { useCallback, useState } from 'react';
-import { DEBOUNCE_TRANSLATE_MS } from '@shared/constants';
+import { useCallback, useRef } from 'react';
 
 export function InputArea() {
   const { inputText, sourceLang, targetLang, setInputText, setSourceLang, setTargetLang, swapLanguages, setTranslating, setResults } = useAppStore();
-  const [timer, setTimer] = useState<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const handleInput = useCallback((text: string) => {
     setInputText(text);
 
-    if (timer) clearTimeout(timer);
+    if (timerRef.current) clearTimeout(timerRef.current);
     if (!text.trim()) {
       setResults([]);
       return;
     }
 
-    const newTimer = setTimeout(async () => {
+    timerRef.current = setTimeout(async () => {
       setTranslating(true);
       try {
+        // 从 store 读取最新值，避免闭包过期
+        const { sourceLang: src, targetLang: tgt } = useAppStore.getState();
         // TODO: 调用翻译 router
-        // const results = await translationRouter.translateCompare({ text, sourceLang, targetLang }, enabledProviders);
+        // const results = await translationRouter.translateCompare({ text, sourceLang: src, targetLang: tgt }, enabledProviders);
         // setResults(results);
       } finally {
         setTranslating(false);
       }
     }, DEBOUNCE_TRANSLATE_MS);
-
-    setTimer(newTimer);
-  }, [sourceLang, targetLang]);
+  }, [setInputText, setResults, setTranslating]);
 
   return (
     <div className="input-area">
