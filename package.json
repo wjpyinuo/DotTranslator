@@ -2,7 +2,7 @@
   "name": "dot-translator",
   "version": "0.1.0",
   "description": "DotTranslator - 即时翻译桌面工具",
-  "main": "electron/main.js",
+  "main": "dist-electron/main.js",
   "author": "wjpyinuo",
   "license": "MIT",
   "scripts": {
@@ -50,7 +50,8 @@
     },
     "files": [
       "electron/**/*",
-      "dist/**/*"
+      "dist/**/*",
+      "dist-electron/**/*"
     ],
     "win": {
       "target": "nsis",
