@@ -1,5 +1,5 @@
 import { useAppStore } from '@renderer/stores/appStore';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 // API 申请链接
 const API_LINKS = {
@@ -10,6 +10,35 @@ const API_LINKS = {
 export function SettingsPanel() {
   const { settings, updateSettings, toggleSettings, showSettings } = useAppStore();
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
+  const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
+
+  // 从 safeStorage 加载 API Key
+  useEffect(() => {
+    if (!showSettings) return;
+    const api = window.electronAPI;
+    if (!api?.secureStorage) return;
+    (async () => {
+      const deepl = await api.secureStorage.get('deeplApiKey') || '';
+      const baiduId = await api.secureStorage.get('baiduAppId') || '';
+      const baiduKey = await api.secureStorage.get('baiduSecretKey') || '';
+      setApiKeys({ deeplApiKey: deepl, baiduAppId: baiduId, baiduSecretKey: baiduKey });
+    })();
+  }, [showSettings]);
+
+  // 保存 API Key 到 safeStorage
+  const saveApiKey = useCallback(async (key: string, value: string) => {
+    const api = window.electronAPI;
+    if (api?.secureStorage) {
+      if (value) {
+        await api.secureStorage.set(key, value);
+      } else {
+        await api.secureStorage.delete(key);
+      }
+    }
+    setApiKeys((prev) => ({ ...prev, [key]: value }));
+    // 同步到 settings 以便翻译引擎读取
+    updateSettings({ [key]: value });
+  }, [updateSettings]);
 
   if (!showSettings) return null;
 
@@ -72,8 +101,8 @@ export function SettingsPanel() {
                 type={showKeys.deepl ? 'text' : 'password'}
                 className="api-key-input"
                 placeholder="输入 DeepL API Key"
-                value={showKeys.deepl ? (settings.deeplApiKey || '') : maskKey(settings.deeplApiKey)}
-                onChange={(e) => updateSettings({ deeplApiKey: e.target.value })}
+                value={showKeys.deepl ? (apiKeys.deeplApiKey || '') : maskKey(apiKeys.deeplApiKey)}
+                onChange={(e) => saveApiKey('deeplApiKey', e.target.value)}
                 onFocus={(e) => {
                   if (!showKeys.deepl) {
                     setShowKeys((p) => ({ ...p, deepl: true }));
@@ -110,8 +139,8 @@ export function SettingsPanel() {
                 type={showKeys.baiduId ? 'text' : 'password'}
                 className="api-key-input"
                 placeholder="输入百度 App ID"
-                value={showKeys.baiduId ? (settings.baiduAppId || '') : maskKey(settings.baiduAppId)}
-                onChange={(e) => updateSettings({ baiduAppId: e.target.value })}
+                value={showKeys.baiduId ? (apiKeys.baiduAppId || '') : maskKey(apiKeys.baiduAppId)}
+                onChange={(e) => saveApiKey('baiduAppId', e.target.value)}
                 onFocus={(e) => {
                   if (!showKeys.baiduId) {
                     setShowKeys((p) => ({ ...p, baiduId: true }));
@@ -139,8 +168,8 @@ export function SettingsPanel() {
                 type={showKeys.baiduKey ? 'text' : 'password'}
                 className="api-key-input"
                 placeholder="输入百度 Secret Key"
-                value={showKeys.baiduKey ? (settings.baiduSecretKey || '') : maskKey(settings.baiduSecretKey)}
-                onChange={(e) => updateSettings({ baiduSecretKey: e.target.value })}
+                value={showKeys.baiduKey ? (apiKeys.baiduSecretKey || '') : maskKey(apiKeys.baiduSecretKey)}
+                onChange={(e) => saveApiKey('baiduSecretKey', e.target.value)}
                 onFocus={(e) => {
                   if (!showKeys.baiduKey) {
                     setShowKeys((p) => ({ ...p, baiduKey: true }));

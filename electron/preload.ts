@@ -11,6 +11,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     quit: () => ipcRenderer.send('app:quit'),
   },
 
+  secureStorage: {
+    get: (key: string) => ipcRenderer.invoke('secure-storage:get', key),
+    set: (key: string, value: string) => ipcRenderer.invoke('secure-storage:set', key, value),
+    delete: (key: string) => ipcRenderer.invoke('secure-storage:delete', key),
+    isAvailable: () => ipcRenderer.invoke('secure-storage:is-available'),
+  },
+
   pip: {
     show: (data: { text: string; sourceLang: string; targetLang: string }) => ipcRenderer.send('pip:show', data),
     hide: () => ipcRenderer.send('pip:hide'),
