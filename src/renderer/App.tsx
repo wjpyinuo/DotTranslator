@@ -122,16 +122,20 @@ export function App() {
   // 剪贴板监听 → 自动填入并翻译
   useEffect(() => {
     const api = window.electronAPI;
-    if (!api?.clipboard?.onClipboardChange) return;
+    if (!api?.clipboard) return;
 
+    // 同步剪贴板监听开关到主进程
+    api.clipboard.setMonitor(settings.clipboardMonitor && !settings.privacyMode);
+
+    if (!api.clipboard.onClipboardChange) return;
     api.clipboard.onClipboardChange((text: string) => {
-      if (!settings.clipboardMonitor) return;
+      // 无痕模式或关闭监听 → 不处理
+      if (!settings.clipboardMonitor || settings.privacyMode) return;
       if (text && text.trim()) {
         setInputText(text.trim());
-        // InputArea 的 handleInput 会自动触发翻译
       }
     });
-  }, [settings.clipboardMonitor, setInputText]);
+  }, [settings.clipboardMonitor, settings.privacyMode, setInputText]);
 
   return (
     <div className={`app-container ${settings.theme}`}>
@@ -162,7 +166,7 @@ export function App() {
           <>
             <InputArea />
             <TranslationPanel />
-            <InlineStats />
+            {!settings.privacyMode && <InlineStats />}
           </>
         )}
         {activeTab === 'history' && <HistoryList />}

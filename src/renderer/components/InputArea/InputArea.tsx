@@ -35,6 +35,21 @@ export function InputArea() {
         enabledProviders: settings.enabledProviders,
       });
       setResults(results as TranslateResult[]);
+
+      // 非无痕模式 → 写入历史
+      if (!settings.privacyMode && results.length > 0) {
+        const best = (results as TranslateResult[])[0];
+        useAppStore.getState().addToHistory({
+          id: crypto.randomUUID(),
+          sourceText: text,
+          targetText: best.text,
+          sourceLang: src,
+          targetLang: tgt,
+          provider: best.provider,
+          isFavorite: false,
+          createdAt: Date.now(),
+        });
+      }
     } catch (err) {
       console.error('Translation failed:', err);
       setResults([]);
