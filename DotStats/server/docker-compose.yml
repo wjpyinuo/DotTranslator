@@ -23,15 +23,15 @@ services:
       POSTGRES_DB: dotstats
       POSTGRES_USER: dotstats
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-    ports:
-      - '5432:5432'
+    expose:
+      - '5432'
     restart: unless-stopped
 
   redis:
     image: redis:7-alpine
     command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
-    ports:
-      - '6379:6379'
+    expose:
+      - '6379'
     restart: unless-stopped
 
   nginx:
