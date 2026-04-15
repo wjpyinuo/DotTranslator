@@ -24,6 +24,11 @@ interface ElectronAPI {
   app: {
     quit(): void;
   };
+  pip: {
+    show(data: { text: string; sourceLang: string; targetLang: string }): void;
+    hide(): void;
+    close(): void;
+  };
   storage: {
     get(key: string): Promise<unknown>;
     set(key: string, value: unknown): Promise<void>;

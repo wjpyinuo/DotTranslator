@@ -11,7 +11,6 @@ const PROVIDER_NAMES: Record<string, string> = {
 // 简单音标生成（英文 → IPA近似）
 function getPhonetic(text: string, lang: string): string | null {
   if (lang === 'en' || lang === 'en-US') {
-    // 对于短文本(单词级别)，提供简单音标提示
     const words = text.trim().split(/\s+/);
     if (words.length <= 3 && /^[a-zA-Z\s'-]+$/.test(text.trim())) {
       return `/${text.trim().toLowerCase().replace(/[aeiou]/g, (m) => {
@@ -28,7 +27,6 @@ function speak(text: string, lang: string) {
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    // 映射语言代码到 BCP 47
     const langMap: Record<string, string> = {
       zh: 'zh-CN', en: 'en-US', ja: 'ja-JP', ko: 'ko-KR',
       fr: 'fr-FR', de: 'de-DE', es: 'es-ES', ru: 'ru-RU',
@@ -42,7 +40,7 @@ function speak(text: string, lang: string) {
 }
 
 export function TranslationPanel() {
-  const { results, isTranslating, targetLang } = useAppStore();
+  const { results, isTranslating, targetLang, sourceLang } = useAppStore();
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
 
   const handleCopy = useCallback(async (text: string, idx: number) => {
@@ -51,7 +49,6 @@ export function TranslationPanel() {
       setCopiedIdx(idx);
       setTimeout(() => setCopiedIdx(null), 1500);
     } catch {
-      // fallback
       const ta = document.createElement('textarea');
       ta.value = text;
       document.body.appendChild(ta);
@@ -62,6 +59,15 @@ export function TranslationPanel() {
       setTimeout(() => setCopiedIdx(null), 1500);
     }
   }, []);
+
+  // 悬浮球 - 发送翻译结果到 PiP 窗口
+  const handlePip = useCallback((text: string) => {
+    window.electronAPI?.pip.show({
+      text,
+      sourceLang,
+      targetLang,
+    });
+  }, [sourceLang, targetLang]);
 
   if (isTranslating) {
     return (
@@ -122,6 +128,13 @@ export function TranslationPanel() {
                 title="复制翻译结果"
               >
                 {copiedIdx === i ? '✓ 已复制' : '📋 复制'}
+              </button>
+              <button
+                className="action-btn"
+                onClick={() => handlePip(result.text)}
+                title="发送到悬浮球"
+              >
+                🪟 悬浮球
               </button>
             </div>
           </div>

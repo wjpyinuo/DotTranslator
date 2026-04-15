@@ -11,6 +11,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     quit: () => ipcRenderer.send('app:quit'),
   },
 
+  pip: {
+    show: (data: { text: string; sourceLang: string; targetLang: string }) => ipcRenderer.send('pip:show', data),
+    hide: () => ipcRenderer.send('pip:hide'),
+    close: () => ipcRenderer.send('pip:close'),
+  },
+
   storage: {
     get: (key: string) => ipcRenderer.invoke('storage:get', key),
     set: (key: string, value: unknown) => ipcRenderer.invoke('storage:set', key, value),
