@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, globalShortcut, Tray, Menu, nativeImage } from 'electron';
 import path from 'path';
+import { translationRouter } from '../src/workers/translation/router';
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
@@ -82,6 +83,31 @@ app.whenReady().then(() => {
     } else {
       mainWindow?.maximize();
     }
+  });
+
+  // IPC: 翻译
+  ipcMain.handle('translation:translate', async (_event, params) => {
+    const { settings } = await import('../src/shared/constants');
+    return translationRouter.translateCompare(params, params.enabledProviders || ['google']);
+  });
+
+  ipcMain.handle('translation:getProviders', () => {
+    return translationRouter.getAllProviders().map((p) => ({
+      id: p.id,
+      name: p.name,
+      requiresApiKey: p.requiresApiKey,
+    }));
+  });
+
+  ipcMain.handle('translation:detectLanguage', async (_event, text: string) => {
+    const providers = translationRouter.getAllProviders();
+    for (const p of providers) {
+      try {
+        const available = await p.isAvailable();
+        if (available) return p.detectLanguage(text);
+      } catch { /* try next */ }
+    }
+    throw new Error('No available provider for language detection');
   });
 });
 

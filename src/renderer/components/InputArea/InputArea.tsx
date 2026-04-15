@@ -18,11 +18,17 @@ export function InputArea() {
     timerRef.current = setTimeout(async () => {
       setTranslating(true);
       try {
-        // 从 store 读取最新值，避免闭包过期
-        const { sourceLang: src, targetLang: tgt } = useAppStore.getState();
-        // TODO: 调用翻译 router
-        // const results = await translationRouter.translateCompare({ text, sourceLang: src, targetLang: tgt }, enabledProviders);
-        // setResults(results);
+        const { sourceLang: src, targetLang: tgt, settings } = useAppStore.getState();
+        const results = await window.electronAPI.translation.translate({
+          text,
+          sourceLang: src,
+          targetLang: tgt,
+          enabledProviders: settings.enabledProviders,
+        });
+        setResults(results);
+      } catch (err) {
+        console.error('Translation failed:', err);
+        setResults([]);
       } finally {
         setTranslating(false);
       }
