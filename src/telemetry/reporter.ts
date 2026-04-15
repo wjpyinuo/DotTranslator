@@ -177,11 +177,9 @@ export class TelemetryReporter {
     };
   }
   private async getServerUrl(): Promise<string | null> {
-    // Try to read from electron-store or use env var
     try {
-      const Store = (await import('electron-store')).default;
-      const store = new Store();
-      return store.get('serverUrl') as string || null;
+      const { getSetting } = await import('@main/database');
+      return getSetting('serverUrl') || null;
     } catch {
       return null;
     }

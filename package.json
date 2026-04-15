@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "better-sqlite3": "^11.7.0",
-    "electron-store": "^10.0.0",
     "uuid": "^10.0.0",
     "zustand": "^5.0.0",
     "immer": "^10.1.0"
@@ -51,7 +50,6 @@
       "output": "dist"
     },
     "files": [
-      "electron/**/*",
       "dist/**/*",
       "dist-electron/**/*"
     ],
