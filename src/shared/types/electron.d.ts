@@ -1,3 +1,20 @@
+interface TranslateParams {
+  text: string;
+  sourceLang: string;
+  targetLang: string;
+  provider?: string;
+  enabledProviders?: string[];
+}
+
+interface TranslateResultItem {
+  text: string;
+  provider: string;
+  confidence: number;
+  latencyMs: number;
+  detectedSourceLang?: string;
+  tmHit?: boolean;
+}
+
 interface ElectronAPI {
   window: {
     minimize(): void;
@@ -14,7 +31,7 @@ interface ElectronAPI {
     onClipboardChange(callback: (text: string) => void): void;
   };
   translation: {
-    translate(params: { text: string; sourceLang: string; targetLang: string; provider?: string }): Promise<unknown>;
+    translate(params: TranslateParams): Promise<TranslateResultItem[]>;
     getProviders(): Promise<unknown>;
     detectLanguage(text: string): Promise<unknown>;
   };
@@ -31,8 +48,17 @@ interface ElectronAPI {
     lookup(text: string, sourceLang: string, targetLang: string): Promise<unknown>;
   };
   stats: {
-    get(): Promise<unknown>;
+    get(): Promise<StatsData>;
   };
+}
+
+interface StatsData {
+  totalTranslations: number;
+  totalChars: number;
+  avgLatency: number;
+  providerDistribution: Record<string, number>;
+  topLanguagePairs: { pair: string; count: number }[];
+  tmHitRate: number;
 }
 
 interface Window {
