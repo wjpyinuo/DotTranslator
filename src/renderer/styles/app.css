@@ -571,7 +571,78 @@ html, body, #root {
   font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.history-toolbar {
+  display: flex;
+  gap: 6px;
+  align-items: center;
   margin-bottom: 12px;
+}
+
+.history-toolbar-btn {
+  padding: 5px 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.history-toolbar-btn:hover {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.history-toolbar-btn.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.history-toolbar-btn.danger:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: white;
+}
+
+.history-toolbar-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.history-checkbox {
+  accent-color: var(--accent);
+  width: 14px;
+  height: 14px;
+  margin-right: 4px;
+  cursor: pointer;
+}
+
+.history-item-selected {
+  border-left: 3px solid var(--accent) !important;
+  background: rgba(99, 102, 241, 0.08) !important;
+}
+
+.history-time {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+.history-btn-delete {
+  color: var(--text-tertiary) !important;
+}
+
+.history-btn-delete:hover {
+  background: #ef4444 !important;
+  color: white !important;
+  border-color: #ef4444 !important;
 }
 
 .history-item {
@@ -882,6 +953,14 @@ html, body, #root {
 
 .settings-section {
   margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px dashed var(--border-subtle);
+}
+
+.settings-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
 }
 
 .settings-section h3 {

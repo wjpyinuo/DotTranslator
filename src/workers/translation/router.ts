@@ -2,6 +2,7 @@ import type { TranslationProvider, TranslateParams, TranslateResult } from '@sha
 import { DeepLProvider } from './providers/deepl';
 import { YoudaoProvider } from './providers/youdao';
 import { BaiduProvider } from './providers/baidu';
+import { FallbackProvider } from './providers/fallback';
 
 export class TranslationRouter {
   private providers = new Map<string, TranslationProvider>();
@@ -11,6 +12,7 @@ export class TranslationRouter {
     this.register(new DeepLProvider());
     this.register(new YoudaoProvider());
     this.register(new BaiduProvider());
+    this.register(new FallbackProvider());
   }
 
   register(provider: TranslationProvider): void {

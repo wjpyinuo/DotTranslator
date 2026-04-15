@@ -56,7 +56,7 @@ export const useAppStore = create<AppStore>()(
       defaultSourceLang: 'auto',
       defaultTargetLang: 'en',
       defaultProvider: '',
-      enabledProviders: ['deepl', 'youdao'],
+      enabledProviders: ['deepl', 'youdao', 'fallback'],
       clipboardMonitor: true,
       telemetryEnabled: true,
       privacyMode: false,

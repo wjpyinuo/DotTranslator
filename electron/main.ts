@@ -9,6 +9,8 @@ let floatingBall: BrowserWindow | null = null;
 let miniCard: BrowserWindow | null = null;
 let pipWindow: BrowserWindow | null = null;
 let isQuitting = false;
+let isMaximized = false;
+let currentTheme = 'light';
 
 const isDev = !app.isPackaged;
 const ALLOWED_ORIGINS = isDev
@@ -31,10 +33,19 @@ if (!gotTheLock) {
 
 // ========== 创建托盘图标（程序化生成，无需外部文件）==========
 function createTrayIcon(): Electron.NativeImage {
-  // 生成一个简单的 SVG 转 nativeImage 作为托盘图标
+  // 翻译图标：两个交错的语言气泡 + 自动翻译箭头
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-    <circle cx="8" cy="8" r="7" fill="#6366f1" stroke="#4f46e5" stroke-width="1"/>
-    <text x="8" y="12" text-anchor="middle" font-size="10" font-weight="bold" fill="white" font-family="Arial">D</text>
+    <defs>
+      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#818cf8"/>
+        <stop offset="100%" stop-color="#6366f1"/>
+      </linearGradient>
+    </defs>
+    <rect x="0.5" y="0.5" width="15" height="15" rx="3.5" fill="url(#g)" stroke="#4f46e5" stroke-width="0.5"/>
+    <text x="4.5" y="7.2" font-size="5.5" font-weight="bold" fill="white" font-family="Arial, sans-serif">A</text>
+    <text x="9.5" y="12.2" font-size="5.5" font-weight="bold" fill="rgba(255,255,255,0.85)" font-family="Arial, sans-serif">文</text>
+    <path d="M7 3.5 L9.5 5 L7 6.5" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M6 10 L3.5 11.5 L6 13" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>`;
   const buffer = Buffer.from(svg);
   return nativeImage.createFromBuffer(buffer, { width: 16, height: 16 });
@@ -236,7 +247,7 @@ body:active{cursor:grabbing}
       document.getElementById('icon').textContent = text || '✦';
     });
     api?.on('theme:changed', (theme) => {
-      document.body.className = theme || 'dark';
+      document.body.className = theme || 'light';
     });
   </script>
 </body></html>`;
@@ -245,20 +256,20 @@ body:active{cursor:grabbing}
 
   // 设置圆形窗口形状（Windows/Linux 需要显式 setShape）
   floatingBall.webContents.once('did-finish-load', () => {
-    floatingBall?.setShape([{ x: 0, y: 0, width: 48, height: 48 }]);
-    // 用圆形 hit region（行级近似，性能更好）
-    if (process.platform !== 'darwin') {
-      const r = 24;
-      const shapes = [];
-      for (let y = 0; y < 48; y++) {
-        const dy = y - r;
-        const halfWidth = Math.floor(Math.sqrt(r * r - dy * dy));
-        if (halfWidth > 0) {
-          shapes.push({ x: r - halfWidth, y, width: halfWidth * 2, height: 1 });
-        }
+    // 用圆形 hit region（行级近似，确保真圆形交互区域）
+    const r = 24;
+    const shapes = [];
+    for (let y = 0; y < 48; y++) {
+      const dy = y - r;
+      const halfWidth = Math.floor(Math.sqrt(Math.max(0, r * r - dy * dy)));
+      if (halfWidth > 0) {
+        shapes.push({ x: r - halfWidth, y, width: halfWidth * 2, height: 1 });
       }
-      floatingBall?.setShape(shapes);
     }
+    floatingBall?.setShape(shapes);
+
+    // 同步当前主题到悬浮球
+    floatingBall?.webContents.send('theme:changed', currentTheme);
   });
 }
 
@@ -298,6 +309,29 @@ app.whenReady().then(() => {
     }
   });
 
+  // 最大化状态跟踪 → 通知渲染进程更新图标
+  mainWindow?.on('maximize', () => {
+    isMaximized = true;
+    mainWindow?.webContents.send('window:maximize-changed', true);
+  });
+  mainWindow?.on('unmaximize', () => {
+    isMaximized = false;
+    mainWindow?.webContents.send('window:maximize-changed', false);
+  });
+  ipcMain.handle('window:is-maximized', () => {
+    return mainWindow?.isMaximized() ?? false;
+  });
+
+  // 窗口自动调整尺寸（跟随内容）
+  ipcMain.on('window:resize', (_event, { width, height }: { width: number; height: number }) => {
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    const clampedW = Math.max(360, Math.min(width, 800));
+    const clampedH = Math.max(400, Math.min(height, 900));
+    if (!mainWindow.isMaximized()) {
+      mainWindow.setSize(clampedW, clampedH);
+    }
+  });
+
   // IPC: 悬浮球事件
   ipcMain.on('floating:click', () => {
     // 单击 → 显示/隐藏主窗口
@@ -333,9 +367,10 @@ app.whenReady().then(() => {
 
   // 主题变更广播 → 同步到所有辅助窗口
   ipcMain.on('theme:changed', (_event, theme: string) => {
-    floatingBall?.webContents.send('theme:changed', theme);
-    pipWindow?.webContents.send('theme:changed', theme);
-    miniCard?.webContents.send('theme:changed', theme);
+    currentTheme = theme || 'light';
+    floatingBall?.webContents.send('theme:changed', currentTheme);
+    pipWindow?.webContents.send('theme:changed', currentTheme);
+    miniCard?.webContents.send('theme:changed', currentTheme);
   });
 
   // IPC: 迷你卡片
@@ -746,7 +781,7 @@ body.light .text{color:#1e293b}
 <body>
   <div class="pip-header">
     <span class="pip-title">✦ DotTranslator v0.2.0</span>
-    <button class="pip-close" onclick="window.electronAPI?.window.close()">✕</button>
+    <button class="pip-close" id="pipCloseBtn">✕</button>
   </div>
   <div class="pip-body">
     <div class="pip-lang" id="lang">加载中...</div>
@@ -781,14 +816,12 @@ body.light .text{color:#1e293b}
         window.speechSynthesis.speak(u);
       }
     });
+    document.getElementById('pipCloseBtn').addEventListener('click', () => {
+      api?.send('pip:close');
+    });
     api?.on('theme:changed', (theme) => {
-      if (theme === 'light') {
-        document.body.classList.add('light');
-        document.body.classList.remove('dark');
-      } else {
-        document.body.classList.remove('light');
-        document.body.classList.add('dark');
-      }
+      document.body.classList.toggle('light', theme === 'light');
+      document.body.classList.toggle('dark', theme !== 'light');
     });
   </script>
 </body>
@@ -796,9 +829,10 @@ body.light .text{color:#1e293b}
 
     pipWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(pipHtml)}`);
 
-    // 发送初始数据
+    // 发送初始数据和主题
     pipWindow.webContents.once('did-finish-load', () => {
       pipWindow?.webContents.send('pip:update', data);
+      pipWindow?.webContents.send('theme:changed', currentTheme);
     });
   });
 
@@ -1015,6 +1049,22 @@ body.light .text{color:#1e293b}
   ipcMain.handle('history:removeFavorite', async (_event, id: string) => {
     const { toggleFavorite } = await import('../src/main/database');
     toggleFavorite(id, false);
+  });
+  ipcMain.handle('history:delete', async (_event, id: string) => {
+    const { deleteHistory } = await import('../src/main/database');
+    deleteHistory(id);
+  });
+  ipcMain.handle('history:deleteBatch', async (_event, ids: string[]) => {
+    const { deleteHistoryBatch } = await import('../src/main/database');
+    deleteHistoryBatch(ids);
+  });
+  ipcMain.handle('history:clearAll', async () => {
+    const { clearAllHistory } = await import('../src/main/database');
+    clearAllHistory();
+  });
+  ipcMain.handle('history:export', async () => {
+    const { exportHistory } = await import('../src/main/database');
+    return exportHistory();
   });
 
   // IPC: OCR 识别（需要 PaddleOCR native addon，当前返回占位）

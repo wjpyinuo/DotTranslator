@@ -165,6 +165,30 @@ export function toggleFavorite(id: string, favorite: boolean): void {
   database.prepare('UPDATE history SET is_favorite = ? WHERE id = ?').run(favorite ? 1 : 0, id);
 }
 
+export function deleteHistory(id: string): void {
+  const database = getDatabase();
+  database.prepare('DELETE FROM history WHERE id = ?').run(id);
+}
+
+export function deleteHistoryBatch(ids: string[]): void {
+  const database = getDatabase();
+  if (ids.length === 0) return;
+  const placeholders = ids.map(() => '?').join(',');
+  database.prepare(`DELETE FROM history WHERE id IN (${placeholders})`).run(...ids);
+}
+
+export function clearAllHistory(): void {
+  const database = getDatabase();
+  database.prepare('DELETE FROM history').run();
+}
+
+export function exportHistory(): string {
+  const database = getDatabase();
+  const rows = database.prepare('SELECT * FROM history ORDER BY created_at DESC').all() as HistoryRow[];
+  const entries = rows.map(mapHistoryRow);
+  return JSON.stringify(entries, null, 2);
+}
+
 // ==================== TM ====================
 
 export function tmLookup(sourceLang: string, targetLang: string, sourceText: string): TMEntry | null {

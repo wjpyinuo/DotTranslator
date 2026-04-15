@@ -45,13 +45,34 @@ export function InputArea() {
         }
       } catch { /* TM 未命中，继续正常翻译 */ }
 
+      // 确保 fallback 兜底翻译始终可用
+      const providersWithFallback = settings.enabledProviders.includes('fallback')
+        ? settings.enabledProviders
+        : [...settings.enabledProviders, 'fallback'];
+
       const results = await api.translation.translate({
         text,
         sourceLang: src,
         targetLang: tgt,
-        enabledProviders: settings.enabledProviders,
+        enabledProviders: providersWithFallback,
       });
-      setResults(results as TranslateResult[]);
+
+      if (results && (results as TranslateResult[]).length > 0) {
+        setResults(results as TranslateResult[]);
+      } else {
+        // 所有引擎都失败，单独尝试 fallback
+        try {
+          const fallbackResults = await api.translation.translate({
+            text,
+            sourceLang: src,
+            targetLang: tgt,
+            enabledProviders: ['fallback'],
+          });
+          setResults(fallbackResults as TranslateResult[]);
+        } catch {
+          setResults([]);
+        }
+      }
 
       // 更新悬浮球图标为翻译结果首字
       if (results.length > 0) {

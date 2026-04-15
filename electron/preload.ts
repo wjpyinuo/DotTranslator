@@ -5,6 +5,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     minimize: () => ipcRenderer.send('window:minimize'),
     close: () => ipcRenderer.send('window:close'),
     toggleMaximize: () => ipcRenderer.send('window:toggle-maximize'),
+    isMaximized: () => ipcRenderer.invoke('window:is-maximized'),
+    resize: (width: number, height: number) => ipcRenderer.send('window:resize', { width, height }),
+    onMaximizeChanged: (callback: (maximized: boolean) => void) => {
+      ipcRenderer.on('window:maximize-changed', (_event, maximized) => callback(maximized));
+    },
   },
 
   app: {
@@ -72,6 +77,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     search: (query: string) => ipcRenderer.invoke('history:search', query),
     addFavorite: (id: string) => ipcRenderer.invoke('history:addFavorite', id),
     removeFavorite: (id: string) => ipcRenderer.invoke('history:removeFavorite', id),
+    delete: (id: string) => ipcRenderer.invoke('history:delete', id),
+    deleteBatch: (ids: string[]) => ipcRenderer.invoke('history:deleteBatch', ids),
+    clearAll: () => ipcRenderer.invoke('history:clearAll'),
+    export: () => ipcRenderer.invoke('history:export'),
   },
 
   tm: {

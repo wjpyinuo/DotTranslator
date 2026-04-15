@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { TitleBar } from './components/TitleBar/TitleBar';
 import { InputArea } from './components/InputArea/InputArea';
 import { TranslationPanel } from './components/TranslationPanel/TranslationPanel';
@@ -118,6 +118,29 @@ function InlineStats() {
 export function App() {
   const { toggleSettings, settings, setInputText } = useAppStore();
   const [activeTab, setActiveTab] = useState<Tab>('translate');
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // 窗口自动调整尺寸（跟随内容变化）
+  const resizeTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const handleResize = useCallback(() => {
+    if (resizeTimerRef.current) clearTimeout(resizeTimerRef.current);
+    resizeTimerRef.current = setTimeout(() => {
+      const el = containerRef.current;
+      if (!el || !window.electronAPI?.window?.resize) return;
+      const scrollH = el.scrollHeight;
+      const scrollW = el.scrollWidth;
+      // 只在内容高度超过当前窗口时调整
+      window.electronAPI.window.resize(scrollW + 2, scrollH + 2);
+    }, 150);
+  }, []);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(handleResize);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [handleResize]);
 
   // 剪贴板监听 → 自动填入并翻译
   useEffect(() => {
@@ -156,7 +179,7 @@ export function App() {
   }, []);
 
   return (
-    <div className={`app-container ${settings.theme}`}>
+    <div className={`app-container ${settings.theme}`} ref={containerRef}>
       <TitleBar />
 
       <nav className="tab-bar">

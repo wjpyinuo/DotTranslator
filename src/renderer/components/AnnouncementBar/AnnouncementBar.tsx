@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const ANNOUNCEMENT_URL = 'https://raw.githubusercontent.com/nicekid1/DotTranslator/main/announcement.txt';
+const ANNOUNCEMENT_URL = 'https://raw.githubusercontent.com/wjpyinuo/DotTranslator/main/announcement.txt';
 const LOCAL_FILENAME = 'announcement.txt';
 
 interface Announcement {
@@ -23,32 +23,38 @@ export function AnnouncementBar() {
 
       // 优先尝试本地文件（测试用）
       if (api?.announcement?.readLocal) {
-        const localText = await api.announcement.readLocal(LOCAL_FILENAME);
-        if (localText && localText.trim()) {
-          text = localText.trim();
-          usedSource = 'local';
-        }
+        try {
+          const localText = await api.announcement.readLocal(LOCAL_FILENAME);
+          if (localText && localText.trim()) {
+            text = localText.trim();
+            usedSource = 'local';
+          }
+        } catch { /* 本地文件读取失败，继续尝试远程 */ }
       }
 
       // 本地无文件或内容为空 → 回退到远程服务器
-      if (!text && api?.announcement?.fetch) {
-        const remoteText = await api.announcement.fetch(ANNOUNCEMENT_URL);
-        if (remoteText && remoteText.trim()) {
-          text = remoteText.trim();
-          usedSource = 'remote';
-        }
-      } else if (!text) {
-        // 浏览器环境 fallback
-        try {
-          const res = await fetch(ANNOUNCEMENT_URL);
-          if (res.ok) {
-            const remoteText = await res.text();
+      if (!text) {
+        if (api?.announcement?.fetch) {
+          try {
+            const remoteText = await api.announcement.fetch(ANNOUNCEMENT_URL);
             if (remoteText && remoteText.trim()) {
               text = remoteText.trim();
               usedSource = 'remote';
             }
-          }
-        } catch { /* 静默 */ }
+          } catch { /* 远程获取失败 */ }
+        } else {
+          // 浏览器环境 fallback
+          try {
+            const res = await fetch(ANNOUNCEMENT_URL);
+            if (res.ok) {
+              const remoteText = await res.text();
+              if (remoteText && remoteText.trim()) {
+                text = remoteText.trim();
+                usedSource = 'remote';
+              }
+            }
+          } catch { /* 静默 */ }
+        }
       }
 
       setSource(usedSource);
@@ -59,27 +65,23 @@ export function AnnouncementBar() {
         usedSource = null;
       }
 
-      if (text) {
-        // 用内容 hash 作为 id，内容变化时重新显示
-        const id = btoa(unescape(encodeURIComponent(text))).slice(0, 16);
-        const dismissedId = localStorage.getItem('dot_announcement_dismissed');
-        if (dismissedId !== id) {
-          setAnnouncement({ id, content: text });
-          setDismissed(false);
-        } else {
-          setDismissed(true);
-        }
+      // 用内容 hash 作为 id，内容变化时重新显示
+      const id = btoa(unescape(encodeURIComponent(text))).slice(0, 16);
+      const dismissedId = localStorage.getItem('dot_announcement_dismissed');
+      if (dismissedId !== id) {
+        setAnnouncement({ id, content: text });
+        setDismissed(false);
+      } else {
+        setDismissed(true);
       }
     } catch {
       // 公告获取失败不阻塞主流程，显示默认公告
-      if (!announcement) {
-        const defaultContent = '欢迎使用 DotTranslator v0.2.0 — 多引擎翻译 · 亮/暗主题 · TM 缓存';
-        const id = 'default-v020';
-        const dismissedId = localStorage.getItem('dot_announcement_dismissed');
-        if (dismissedId !== id) {
-          setAnnouncement({ id, content: defaultContent });
-          setDismissed(false);
-        }
+      const defaultContent = '欢迎使用 DotTranslator v0.2.0 — 多引擎翻译 · 亮/暗主题 · TM 缓存';
+      const id = 'default-v020';
+      const dismissedId = localStorage.getItem('dot_announcement_dismissed');
+      if (dismissedId !== id) {
+        setAnnouncement({ id, content: defaultContent });
+        setDismissed(false);
       }
     } finally {
       setLoading(false);

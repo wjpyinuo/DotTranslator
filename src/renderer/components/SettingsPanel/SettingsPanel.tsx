@@ -305,6 +305,19 @@ export function SettingsPanel() {
             />
             百度翻译
           </label>
+          <label className="setting-item">
+            <input
+              type="checkbox"
+              checked={settings.enabledProviders.includes('fallback')}
+              onChange={(e) => {
+                const providers = e.target.checked
+                  ? [...settings.enabledProviders, 'fallback']
+                  : settings.enabledProviders.filter((p) => p !== 'fallback');
+                updateSettings({ enabledProviders: providers });
+              }}
+            />
+            免费翻译（无需 API Key）
+          </label>
         </div>
 
         {/* 隐私 */}

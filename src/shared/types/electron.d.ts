@@ -20,6 +20,9 @@ interface ElectronAPI {
     minimize(): void;
     close(): void;
     toggleMaximize(): void;
+    isMaximized(): Promise<boolean>;
+    resize(width: number, height: number): void;
+    onMaximizeChanged?(callback: (maximized: boolean) => void): void;
   };
   app: {
     quit(): void;
@@ -70,6 +73,10 @@ interface ElectronAPI {
     search(query: string): Promise<unknown>;
     addFavorite(id: string): Promise<void>;
     removeFavorite(id: string): Promise<void>;
+    delete(id: string): Promise<void>;
+    deleteBatch(ids: string[]): Promise<void>;
+    clearAll(): Promise<void>;
+    export(): Promise<string>;
   };
   tm: {
     lookup(text: string, sourceLang: string, targetLang: string): Promise<unknown>;
