@@ -8,7 +8,8 @@ export function useWebSocket() {
   const retryCount = useRef(0);
 
   const connect = useCallback(() => {
-    const wsUrl = serverUrl.replace(/^http/, 'ws') + '/ws';
+    const wsToken = localStorage.getItem('dotstats_ws_token');
+    const wsUrl = serverUrl.replace(/^http/, 'ws') + '/ws' + (wsToken ? `?token=${encodeURIComponent(wsToken)}` : '');
 
     try {
       wsRef.current = new WebSocket(wsUrl);

@@ -10,8 +10,20 @@ const clients = new Set<any>();
 export async function setupWebSocket(app: FastifyInstance): Promise<void> {
   await app.register(websocket);
 
+  const wsToken = process.env.WS_TOKEN; // 可选：设置后要求连接时携带 token
+
   app.register(async function (fastify) {
-    fastify.get('/ws', { websocket: true }, (connection) => {
+    fastify.get('/ws', { websocket: true }, (connection, request) => {
+      // Token 校验（如果配置了 WS_TOKEN）
+      if (wsToken) {
+        const url = new URL(request.url, 'http://localhost');
+        const clientToken = url.searchParams.get('token');
+        if (clientToken !== wsToken) {
+          connection.socket.close(4001, 'Unauthorized');
+          return;
+        }
+      }
+
       clients.add(connection.socket);
 
       connection.socket.on('close', () => {

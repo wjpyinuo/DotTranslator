@@ -9,6 +9,7 @@ services:
       - PORT=3000
       - LOG_LEVEL=info
       - ADMIN_API_KEY=${ADMIN_API_KEY}
+      - WS_TOKEN=${WS_TOKEN}
     depends_on:
       - db
       - redis
