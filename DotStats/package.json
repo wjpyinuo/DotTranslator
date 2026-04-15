@@ -5,6 +5,11 @@
   "main": "dist-electron/main.js",
   "author": "wjpyinuo",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wjpyinuo/DotTranslator.git",
+    "directory": "DotStats"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
