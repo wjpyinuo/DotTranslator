@@ -28,6 +28,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     onClipboardChange: (callback: (text: string) => void) => {
       ipcRenderer.on('clipboard:changed', (_event, text) => callback(text));
     },
+    setMonitor: (enabled: boolean) => ipcRenderer.send('clipboard:monitor-toggle', enabled),
   },
 
   translation: {

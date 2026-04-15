@@ -37,6 +37,7 @@ interface ElectronAPI {
   clipboard: {
     readText(): Promise<string>;
     onClipboardChange(callback: (text: string) => void): void;
+    setMonitor(enabled: boolean): void;
   };
   translation: {
     translate(params: TranslateParams): Promise<TranslateResultItem[]>;

@@ -184,6 +184,42 @@ app.whenReady().then(() => {
     app.quit();
   });
 
+  // ========== 剪贴板监听 + 安全过滤 ==========
+  let lastClipboardText = '';
+  let clipboardMonitorEnabled = true;
+
+  // 敏感内容黑名单正则
+  const CLIPBOARD_BLACKLIST = [
+    /\d{16}/,                                    // 信用卡号（16位连续数字）
+    /1[3-9]\d{9}/,                               // 中国手机号
+    /(?=.*[a-z])(?=.*\d)[a-z\d]{8,}/i,           // 密码模式（字母+数字混合≥8位）
+    /\d{6}/,                                     // 验证码（6位数字）
+  ];
+
+  function isSensitiveContent(text: string): boolean {
+    return CLIPBOARD_BLACKLIST.some((regex) => regex.test(text));
+  }
+
+  function startClipboardMonitor(): void {
+    setInterval(() => {
+      if (!clipboardMonitorEnabled || !mainWindow) return;
+      try {
+        const { clipboard } = require('electron');
+        const text = clipboard.readText();
+        if (!text || text.trim() === '' || text === lastClipboardText) return;
+        if (isSensitiveContent(text)) return; // 命中安全过滤，静默跳过
+        lastClipboardText = text;
+        mainWindow.webContents.send('clipboard:changed', text);
+      } catch { /* 静默 */ }
+    }, 1000); // 每秒检测
+  }
+
+  startClipboardMonitor();
+
+  ipcMain.on('clipboard:monitor-toggle', (_event, enabled: boolean) => {
+    clipboardMonitorEnabled = enabled;
+  });
+
   // IPC: 翻译
   ipcMain.handle('translation:translate', async (_event, params) => {
     return translationRouter.translateCompare(params, params.enabledProviders || ['google']);

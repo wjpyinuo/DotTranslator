@@ -116,8 +116,22 @@ function InlineStats() {
 }
 
 export function App() {
-  const { toggleSettings, settings } = useAppStore();
+  const { toggleSettings, settings, setInputText } = useAppStore();
   const [activeTab, setActiveTab] = useState<Tab>('translate');
+
+  // 剪贴板监听 → 自动填入并翻译
+  useEffect(() => {
+    const api = window.electronAPI;
+    if (!api?.clipboard?.onClipboardChange) return;
+
+    api.clipboard.onClipboardChange((text: string) => {
+      if (!settings.clipboardMonitor) return;
+      if (text && text.trim()) {
+        setInputText(text.trim());
+        // InputArea 的 handleInput 会自动触发翻译
+      }
+    });
+  }, [settings.clipboardMonitor, setInputText]);
 
   return (
     <div className={`app-container ${settings.theme}`}>
