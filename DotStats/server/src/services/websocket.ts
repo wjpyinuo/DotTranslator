@@ -74,7 +74,7 @@ export async function setupWebSocket(app: FastifyInstance): Promise<void> {
     } catch (err) {
       console.error('WebSocket broadcast error:', err);
     }
-  }, 10_000);
+  }, broadcastMs);
 }
 
 // 事件到达时即时广播
@@ -94,4 +94,4 @@ export async function broadcastEvent(event: Record<string, unknown>): Promise<vo
       clients.delete(client);
     }
   }
-}, 10_000);/}, broadcastMs);}
+}
