@@ -1,6 +1,7 @@
 node_modules/
 dist/
 dist-electron/
+builds/
 *.local
 .env
 .env.*
