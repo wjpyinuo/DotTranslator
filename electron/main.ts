@@ -245,7 +245,10 @@ app.whenReady().then(() => {
 
   // IPC: 窗口控制
   ipcMain.on('window:minimize', () => mainWindow?.minimize());
-  ipcMain.on('window:close', () => mainWindow?.hide());
+  ipcMain.on('window:close', () => {
+    isQuitting = true;
+    mainWindow?.close();
+  });
   ipcMain.on('window:toggle-maximize', () => {
     if (mainWindow?.isMaximized()) {
       mainWindow.unmaximize();
@@ -852,8 +855,7 @@ app.on('will-quit', () => {
   globalShortcut.unregisterAll();
 });
 
-// 关闭所有窗口时不退出 → 保留在托盘
-// 只有通过托盘菜单"退出"或 app:quit IPC 才真正退出
+// 关闭所有窗口时退出应用
 app.on('window-all-closed', () => {
-  // 不做任何事，保持托盘运行
+  app.quit();
 });
