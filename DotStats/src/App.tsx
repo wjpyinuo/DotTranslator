@@ -27,7 +27,7 @@ const PLANNED_PAGES: { label: string; desc: string }[] = [
   { label: '📈 趋势', desc: '翻译量/活跃用户时序图表' },
   { label: '🎯 功能分析', desc: '各翻译引擎使用占比与性能对比' },
   { label: '📦 版本', desc: '客户端版本分布与升级率' },
-  { label: '🔌 引擎', desc: 'DeepL / Google / 百度 各引擎调用量与延迟' },
+  { label: '🔌 引擎', desc: 'DeepL / 有道 / 百度 各引擎调用量与延迟' },
   { label: '📋 实时事件', desc: 'WebSocket 实时事件流' },
   { label: '⚙️ 设置', desc: '服务器地址 / 数据保留策略 / 告警规则' },
 ];
