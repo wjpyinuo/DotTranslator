@@ -16,17 +16,21 @@ export function StatsPage() {
     let cancelled = false;
     async function loadStats() {
       try {
-        const data = await window.electronAPI.stats.get();
+        const api = window.electronAPI;
+        if (!api) {
+          if (!cancelled) setStats({
+            totalTranslations: 0, totalChars: 0, avgLatency: 0,
+            providerDistribution: {}, topLanguagePairs: [], tmHitRate: 0,
+          });
+          return;
+        }
+        const data = await api.stats.get();
         if (!cancelled) setStats(data);
       } catch {
         if (!cancelled) {
           setStats({
-            totalTranslations: 0,
-            totalChars: 0,
-            avgLatency: 0,
-            providerDistribution: {},
-            topLanguagePairs: [],
-            tmHitRate: 0,
+            totalTranslations: 0, totalChars: 0, avgLatency: 0,
+            providerDistribution: {}, topLanguagePairs: [], tmHitRate: 0,
           });
         }
       }
@@ -69,12 +73,7 @@ export function StatsPage() {
               <div key={provider} className="provider-bar">
                 <span className="provider-name">{provider}</span>
                 <div className="bar-track">
-                  <div
-                    className="bar-fill"
-                    style={{
-                      width: `${(count / maxCount) * 100}%`,
-                    }}
-                  />
+                  <div className="bar-fill" style={{ width: `${(count / maxCount) * 100}%` }} />
                 </div>
                 <span className="provider-count">{count}</span>
               </div>
