@@ -53,7 +53,7 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: DotStats/server/package-lock.json
-      - run: cd DotStats/server && npm ci
+      - run: cd DotStats/server && npm install
       - run: cd DotStats/server && npm test
         env:
           DATABASE_URL: postgresql://dotstats:testpassword@localhost:5432/dotstats_test
