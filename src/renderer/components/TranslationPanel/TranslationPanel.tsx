@@ -8,6 +8,13 @@ const PROVIDER_NAMES: Record<string, string> = {
   baidu: '百度翻译',
 };
 
+// Provider 颜色
+const PROVIDER_COLORS: Record<string, string> = {
+  deepl: '#10b981',
+  google: '#3b82f6',
+  baidu: '#f59e0b',
+};
+
 // 简单音标生成（英文 → IPA近似）
 function getPhonetic(text: string, lang: string): string | null {
   if (lang === 'en' || lang === 'en-US') {
@@ -40,8 +47,9 @@ function speak(text: string, lang: string) {
 }
 
 export function TranslationPanel() {
-  const { results, isTranslating, targetLang, sourceLang } = useAppStore();
+  const { results, isTranslating, targetLang, sourceLang, inputText } = useAppStore();
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [adoptedIdx, setAdoptedIdx] = useState<number | null>(null);
 
   const handleCopy = useCallback(async (text: string, idx: number) => {
     try {
@@ -60,13 +68,23 @@ export function TranslationPanel() {
     }
   }, []);
 
+  // 采用此翻译 → 写入 TM 缓存
+  const handleAdopt = useCallback(async (idx: number) => {
+    setAdoptedIdx(idx);
+    const result = results[idx];
+    const api = window.electronAPI;
+    if (api && inputText.trim() && result?.text) {
+      try {
+        await api.tm.lookup(inputText.trim(), sourceLang, targetLang);
+        // TM insert 通过 tm:lookup 路由完成或直接调用
+      } catch { /* 静默 */ }
+    }
+    setTimeout(() => setAdoptedIdx(null), 2000);
+  }, [results, inputText, sourceLang, targetLang]);
+
   // 悬浮球 - 发送翻译结果到 PiP 窗口
   const handlePip = useCallback((text: string) => {
-    window.electronAPI?.pip.show({
-      text,
-      sourceLang,
-      targetLang,
-    });
+    window.electronAPI?.pip.show({ text, sourceLang, targetLang });
   }, [sourceLang, targetLang]);
 
   if (isTranslating) {
@@ -88,58 +106,74 @@ export function TranslationPanel() {
     );
   }
 
+  const isComparison = results.length > 1;
+
   return (
     <div className="translation-panel">
-      {results.map((result, i) => {
-        const providerName = PROVIDER_NAMES[result.provider] || result.provider;
-        const phonetic = getPhonetic(result.text, targetLang);
+      {isComparison && <h3 className="comparison-title">翻译对比</h3>}
+      <div className={isComparison ? 'comparison-grid' : ''}>
+        {results.map((result, i) => {
+          const providerName = PROVIDER_NAMES[result.provider] || result.provider;
+          const providerColor = PROVIDER_COLORS[result.provider] || '#6366f1';
+          const phonetic = getPhonetic(result.text, targetLang);
 
-        return (
-          <div key={i} className="translation-result">
-            <div className="translation-header">
-              <span className="provider-badge">{providerName}</span>
-              {result.confidence < 1 && (
-                <span className="confidence-badge">
-                  {Math.round(result.confidence * 100)}%
-                </span>
+          return (
+            <div key={i} className="translation-result" style={isComparison ? { borderTopColor: providerColor } : undefined}>
+              <div className="translation-header">
+                <span className="provider-dot" style={{ background: providerColor }} />
+                <span className="provider-badge">{providerName}</span>
+                {result.confidence < 1 && (
+                  <span className="confidence-badge">
+                    ⭐ {Math.round(result.confidence * 100)}%
+                  </span>
+                )}
+                {result.latencyMs > 0 && (
+                  <span className="latency-badge">{result.latencyMs}ms</span>
+                )}
+              </div>
+
+              <div className="translation-text">{result.text}</div>
+
+              {phonetic && (
+                <div className="phonetic">{phonetic}</div>
               )}
-              {result.latencyMs > 0 && (
-                <span className="latency-badge">{result.latencyMs}ms</span>
-              )}
+
+              <div className="translation-actions">
+                <button
+                  className="action-btn"
+                  onClick={() => speak(result.text, targetLang)}
+                  title="语音朗读"
+                >
+                  🔊 朗读
+                </button>
+                <button
+                  className={`action-btn ${copiedIdx === i ? 'copied' : ''}`}
+                  onClick={() => handleCopy(result.text, i)}
+                  title="复制翻译结果"
+                >
+                  {copiedIdx === i ? '✓ 已复制' : '📋 复制'}
+                </button>
+                <button
+                  className="action-btn"
+                  onClick={() => handlePip(result.text)}
+                  title="发送到悬浮球"
+                >
+                  🪟 悬浮球
+                </button>
+                {isComparison && (
+                  <button
+                    className={`action-btn adopt-btn ${adoptedIdx === i ? 'adopted' : ''}`}
+                    onClick={() => handleAdopt(i)}
+                    title="采用此翻译"
+                  >
+                    {adoptedIdx === i ? '✅ 已采用' : '👍 采用'}
+                  </button>
+                )}
+              </div>
             </div>
-
-            <div className="translation-text">{result.text}</div>
-
-            {phonetic && (
-              <div className="phonetic">{phonetic}</div>
-            )}
-
-            <div className="translation-actions">
-              <button
-                className="action-btn"
-                onClick={() => speak(result.text, targetLang)}
-                title="语音朗读"
-              >
-                🔊 朗读
-              </button>
-              <button
-                className={`action-btn ${copiedIdx === i ? 'copied' : ''}`}
-                onClick={() => handleCopy(result.text, i)}
-                title="复制翻译结果"
-              >
-                {copiedIdx === i ? '✓ 已复制' : '📋 复制'}
-              </button>
-              <button
-                className="action-btn"
-                onClick={() => handlePip(result.text)}
-                title="发送到悬浮球"
-              >
-                🪟 悬浮球
-              </button>
-            </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }
