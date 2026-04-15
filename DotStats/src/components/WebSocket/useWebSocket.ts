@@ -1,10 +1,10 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { useStatsStore } from '../stores/statsStore';
+import { useStatsStore } from '../../stores/statsStore';
 
 export function useWebSocket() {
   const { serverUrl, wsConnected, setWsConnected, setRealtimeData } = useStatsStore();
   const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimer = useRef<ReturnType<typeof setTimeout>>();
+  const reconnectTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const retryCount = useRef(0);
 
   const connect = useCallback(() => {
