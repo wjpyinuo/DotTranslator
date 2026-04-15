@@ -4,6 +4,7 @@ import { InputArea } from './components/InputArea/InputArea';
 import { TranslationPanel } from './components/TranslationPanel/TranslationPanel';
 import { HistoryList } from './components/HistoryList/HistoryList';
 import { SettingsPanel } from './components/SettingsPanel/SettingsPanel';
+import { AnnouncementBar } from './components/AnnouncementBar/AnnouncementBar';
 import { useAppStore } from './stores/appStore';
 import './styles/app.css';
 
@@ -139,6 +140,8 @@ export function App() {
           ⚙️
         </button>
       </nav>
+
+      <AnnouncementBar />
 
       <main className="main-content">
         {activeTab === 'translate' && (
