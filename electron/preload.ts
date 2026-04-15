@@ -7,6 +7,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     toggleMaximize: () => ipcRenderer.send('window:toggle-maximize'),
   },
 
+  app: {
+    quit: () => ipcRenderer.send('app:quit'),
+  },
+
   storage: {
     get: (key: string) => ipcRenderer.invoke('storage:get', key),
     set: (key: string, value: unknown) => ipcRenderer.invoke('storage:set', key, value),
@@ -45,5 +49,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   stats: {
     get: () => ipcRenderer.invoke('stats:get'),
+  },
+
+  announcement: {
+    fetch: (url: string) => ipcRenderer.invoke('announcement:fetch', url),
   },
 });

@@ -21,6 +21,9 @@ interface ElectronAPI {
     close(): void;
     toggleMaximize(): void;
   };
+  app: {
+    quit(): void;
+  };
   storage: {
     get(key: string): Promise<unknown>;
     set(key: string, value: unknown): Promise<void>;
@@ -49,6 +52,9 @@ interface ElectronAPI {
   };
   stats: {
     get(): Promise<StatsData>;
+  };
+  announcement: {
+    fetch(url: string): Promise<string>;
   };
 }
 

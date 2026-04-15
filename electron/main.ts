@@ -4,11 +4,37 @@ import { translationRouter } from '../src/workers/translation/router';
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
+let isQuitting = false;
 
 const isDev = !app.isPackaged;
 const ALLOWED_ORIGINS = isDev
   ? ['http://localhost:5173']
   : ['file://'];
+
+// ========== 单例锁：防止多开 ==========
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.show();
+      mainWindow.focus();
+    }
+  });
+}
+
+// ========== 创建托盘图标（程序化生成，无需外部文件）==========
+function createTrayIcon(): Electron.NativeImage {
+  // 生成一个简单的 SVG 转 nativeImage 作为托盘图标
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+    <circle cx="8" cy="8" r="7" fill="#6366f1" stroke="#4f46e5" stroke-width="1"/>
+    <text x="8" y="12" text-anchor="middle" font-size="10" font-weight="bold" fill="white" font-family="Arial">D</text>
+  </svg>`;
+  const buffer = Buffer.from(svg);
+  return nativeImage.createFromBuffer(buffer, { width: 16, height: 16 });
+}
 
 function createMainWindow(): BrowserWindow {
   mainWindow = new BrowserWindow({
@@ -70,6 +96,14 @@ function createMainWindow(): BrowserWindow {
     return { action: 'deny' };
   });
 
+  // 点击关闭按钮 → 最小化到托盘（不退出）
+  mainWindow.on('close', (e) => {
+    if (!isQuitting) {
+      e.preventDefault();
+      mainWindow?.hide();
+    }
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -85,20 +119,38 @@ function createMainWindow(): BrowserWindow {
 }
 
 function createTray(): void {
-  const icon = nativeImage.createFromPath(
-    path.join(__dirname, isDev ? '../../assets/tray.png' : '../assets/tray.png')
-  );
+  // 防止重复创建托盘
+  if (tray && !tray.isDestroyed()) {
+    return;
+  }
+
+  const icon = createTrayIcon();
   tray = new Tray(icon.resize({ width: 16, height: 16 }));
 
   const contextMenu = Menu.buildFromTemplate([
-    { label: '显示主窗口', click: () => mainWindow?.show() },
+    {
+      label: '显示主窗口',
+      click: () => {
+        mainWindow?.show();
+        mainWindow?.focus();
+      },
+    },
     { type: 'separator' },
-    { label: '退出', click: () => app.quit() },
+    {
+      label: '退出',
+      click: () => {
+        isQuitting = true;
+        app.quit();
+      },
+    },
   ]);
 
-  tray.setToolTip('DotTranslator');
+  tray.setToolTip('DotTranslator - 即时翻译');
   tray.setContextMenu(contextMenu);
-  tray.on('click', () => mainWindow?.show());
+  tray.on('click', () => {
+    mainWindow?.show();
+    mainWindow?.focus();
+  });
 }
 
 app.whenReady().then(() => {
@@ -126,6 +178,12 @@ app.whenReady().then(() => {
     }
   });
 
+  // IPC: 真正退出应用
+  ipcMain.on('app:quit', () => {
+    isQuitting = true;
+    app.quit();
+  });
+
   // IPC: 翻译
   ipcMain.handle('translation:translate', async (_event, params) => {
     return translationRouter.translateCompare(params, params.enabledProviders || ['google']);
@@ -148,6 +206,18 @@ app.whenReady().then(() => {
       } catch { /* try next */ }
     }
     throw new Error('No available provider for language detection');
+  });
+
+  // IPC: 公告栏 - 从服务器获取公告内容
+  ipcMain.handle('announcement:fetch', async (_event, url: string) => {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.text();
+    } catch (err) {
+      console.error('[Announcement] fetch failed:', err);
+      return '';
+    }
   });
 
   // IPC: 本地统计
@@ -193,12 +263,16 @@ app.whenReady().then(() => {
   });
 });
 
+app.on('before-quit', () => {
+  isQuitting = true;
+});
+
 app.on('will-quit', () => {
   globalShortcut.unregisterAll();
 });
 
+// 关闭所有窗口时不退出 → 保留在托盘
+// 只有通过托盘菜单"退出"或 app:quit IPC 才真正退出
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  // 不做任何事，保持托盘运行
 });
