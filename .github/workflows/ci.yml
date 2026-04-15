@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+      - run: npm install
       - run: npm run lint
       - run: npm run typecheck
 
@@ -53,7 +53,7 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: DotStats/server/package-lock.json
-      - run: cd DotStats/server && npm install
+      - run: cd DotStats/server && npm ci
       - run: cd DotStats/server && npm test
         env:
           DATABASE_URL: postgresql://dotstats:testpassword@localhost:5432/dotstats_test
@@ -67,9 +67,9 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+      - run: npm install
       - run: npm run build
-      - run: cd DotStats && npm ci && npm run build
+      - run: cd DotStats && npm install && npm run build
 
   build-and-release:
     runs-on: windows-latest
@@ -84,21 +84,20 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Install DotTranslator deps
-        run: npm ci
-      - name: Build DotTranslator
-        run: npm run build
-      - name: Package DotTranslator
-        run: npx electron-builder --win --x64
+      - name: Install & Build DotTranslator
+        run: |
+          npm install
+          npm run build
+          npx electron-builder --win --x64
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install DotStats deps
-        run: cd DotStats && npm ci
-      - name: Build DotStats
-        run: cd DotStats && npm run build
-      - name: Package DotStats
-        run: cd DotStats && npx electron-builder --win --x64
+      - name: Install & Build DotStats
+        run: |
+          cd DotStats
+          npm install
+          npm run build
+          npx electron-builder --win --x64
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

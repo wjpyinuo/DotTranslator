@@ -63,6 +63,7 @@ interface ElectronAPI {
   };
   history: {
     getAll(limit?: number): Promise<unknown>;
+    add(entry: { sourceText: string; targetText: string; sourceLang: string; targetLang: string; provider: string; isFavorite?: boolean }): Promise<unknown>;
     search(query: string): Promise<unknown>;
     addFavorite(id: string): Promise<void>;
     removeFavorite(id: string): Promise<void>;

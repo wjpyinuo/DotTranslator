@@ -909,6 +909,10 @@ body{
     const { getHistory } = await import('../src/main/database');
     return getHistory(limit || 100);
   });
+  ipcMain.handle('history:add', async (_event, entry: { sourceText: string; targetText: string; sourceLang: string; targetLang: string; provider: string; isFavorite?: boolean }) => {
+    const { addHistory } = await import('../src/main/database');
+    return addHistory(entry);
+  });
   ipcMain.handle('history:search', async (_event, query: string) => {
     const { searchHistory } = await import('../src/main/database');
     return searchHistory(query);

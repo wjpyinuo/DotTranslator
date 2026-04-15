@@ -64,6 +64,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   history: {
     getAll: (limit?: number) => ipcRenderer.invoke('history:getAll', limit),
+    add: (entry: { sourceText: string; targetText: string; sourceLang: string; targetLang: string; provider: string; isFavorite?: boolean }) => ipcRenderer.invoke('history:add', entry),
     search: (query: string) => ipcRenderer.invoke('history:search', query),
     addFavorite: (id: string) => ipcRenderer.invoke('history:addFavorite', id),
     removeFavorite: (id: string) => ipcRenderer.invoke('history:removeFavorite', id),

@@ -61,7 +61,7 @@ export function InputArea() {
       // 非无痕模式 → 写入历史 + TM 缓存
       if (!settings.privacyMode && results.length > 0) {
         const best = (results as TranslateResult[])[0];
-        useAppStore.getState().addToHistory({
+        const entry = {
           id: crypto.randomUUID(),
           sourceText: text,
           targetText: best.text,
@@ -70,7 +70,20 @@ export function InputArea() {
           provider: best.provider,
           isFavorite: false,
           createdAt: Date.now(),
-        });
+        };
+        // 写入 Zustand store（当前会话）
+        useAppStore.getState().addToHistory(entry);
+
+        // 持久化到 SQLite
+        try {
+          await api.history.add({
+            sourceText: text,
+            targetText: best.text,
+            sourceLang: src,
+            targetLang: tgt,
+            provider: best.provider,
+          });
+        } catch { /* 静默 */ }
 
         // 写入 TM 缓存
         try {
