@@ -4,8 +4,8 @@ import { eventRoutes } from './routes/events';
 import { statsRoutes } from './routes/stats';
 import { adminRoutes } from './routes/admin';
 import { healthRoutes } from './routes/health';
-import { initDatabase } from './db/pool';
-import { initRedis } from './services/redis';
+import { initDatabase, getPool } from './db/pool';
+import { initRedis, getRedis } from './services/redis';
 import { setupWebSocket } from './services/websocket';
 import { startCronJobs } from './tasks/cron';
 
@@ -52,6 +52,26 @@ async function start(): Promise<void> {
     app.log.error(err);
     process.exit(1);
   }
+
+  // 优雅关闭
+  const shutdown = async (signal: string) => {
+    console.log(`\n🛑 Received ${signal}, shutting down gracefully...`);
+    try {
+      await app.close();
+      const pool = getPool();
+      await pool.end();
+      const redis = getRedis();
+      await redis.quit();
+      console.log('✅ Cleanup complete');
+      process.exit(0);
+    } catch (err) {
+      console.error('❌ Shutdown error:', err);
+      process.exit(1);
+    }
+  };
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
 }
 
 start();
