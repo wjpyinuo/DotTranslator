@@ -167,13 +167,15 @@ export function App() {
 
     api.ocr.onTrigger(async () => {
       try {
-        const result = await api.ocr.screenshot();
-        // 截图成功，显示提示（OCR 需要 PaddleOCR native addon，Phase 2 实现）
-        console.log('[OCR] Screenshot captured:', result.width, 'x', result.height);
-        // TODO: Phase 2 集成 PaddleOCR 识别截图文字
-        // 目前截图功能框架已就绪，OCR 识别待 native addon 支持
+        const screenshot = await api.ocr.screenshot();
+        console.log('[OCR] Screenshot captured:', screenshot.width, 'x', screenshot.height);
+        // OCR 识别截图文字
+        const ocrResult = await api.ocr.recognize(screenshot.imageBase64);
+        if (ocrResult && typeof ocrResult === 'object' && 'text' in ocrResult && (ocrResult as { text: string }).text) {
+          setInputText((ocrResult as { text: string }).text.trim());
+        }
       } catch (err) {
-        console.error('[OCR] Screenshot failed:', err);
+        console.error('[OCR] Failed:', err);
       }
     });
   }, []);

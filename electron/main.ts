@@ -160,7 +160,7 @@ function createTray(): void {
     },
   ]);
 
-  tray.setToolTip('DotTranslator v0.2.0 - 即时翻译');
+  tray.setToolTip('DotTranslator v0.3.0 - 即时翻译');
   tray.setContextMenu(contextMenu);
   tray.on('click', () => {
     mainWindow?.show();
@@ -780,7 +780,7 @@ body.light .text{color:#1e293b}
 </head>
 <body>
   <div class="pip-header">
-    <span class="pip-title">✦ DotTranslator v0.2.0</span>
+    <span class="pip-title">✦ DotTranslator v0.3.0</span>
     <button class="pip-close" id="pipCloseBtn">✕</button>
   </div>
   <div class="pip-body">
@@ -955,7 +955,7 @@ body.light .text{color:#1e293b}
       try {
         if (pathname === '/api/health' && req.method === 'GET') {
           res.writeHead(200);
-          res.end(JSON.stringify({ status: 'ok', version: '0.2.0', uptime: process.uptime() }));
+          res.end(JSON.stringify({ status: 'ok', version: '0.3.0', uptime: process.uptime() }));
 
         } else if (pathname === '/api/languages' && req.method === 'GET') {
           const { SUPPORTED_LANGUAGES } = await import('../src/shared/constants');
@@ -1067,10 +1067,19 @@ body.light .text{color:#1e293b}
     return exportHistory();
   });
 
-  // IPC: OCR 识别（需要 PaddleOCR native addon，当前返回占位）
-  ipcMain.handle('ocr:recognize', async () => {
-    // TODO: Phase 2 集成 PaddleOCR
-    return { result: [], error: 'OCR not available - PaddleOCR native addon required' };
+  // IPC: OCR 识别（Tesseract.js）
+  ipcMain.handle('ocr:recognize', async (_event, imageBase64: string) => {
+    try {
+      const { createWorker } = await import('tesseract.js');
+      const worker = await createWorker('chi_sim+eng');
+      const buffer = Buffer.from(imageBase64, 'base64');
+      const { data } = await worker.recognize(buffer);
+      await worker.terminate();
+      return { text: data.text.trim(), confidence: data.confidence };
+    } catch (err: any) {
+      console.error('[OCR] Recognition failed:', err);
+      return { text: '', confidence: 0, error: err.message };
+    }
   });
 
   // IPC: 本地统计

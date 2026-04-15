@@ -5,6 +5,12 @@ const { Pool } = pg;
 let pool: pg.Pool | null = null;
 
 export async function initDatabase(): Promise<pg.Pool> {
+  if (process.env.LITE_MODE === '1') {
+    const lite = await import('./lite-pool');
+    await lite.initDatabase();
+    return lite.getPool() as unknown as pg.Pool;
+  }
+
   if (pool) return pool;
 
   pool = new Pool({
@@ -22,7 +28,12 @@ export async function initDatabase(): Promise<pg.Pool> {
   return pool;
 }
 
-export function getPool(): pg.Pool {
+export function getPool() {
+  if (process.env.LITE_MODE === '1') {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const lite = require('./lite-pool');
+    return lite.getPool();
+  }
   if (!pool) throw new Error('Database not initialized');
   return pool;
 }
@@ -31,7 +42,6 @@ async function initSchema(): Promise<void> {
   const db = getPool();
 
   await db.query(`
-    -- 实例注册表
     CREATE TABLE IF NOT EXISTS instances (
       instance_id     TEXT PRIMARY KEY,
       first_seen      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -50,7 +60,6 @@ async function initSchema(): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_instances_os ON instances(os);
     CREATE INDEX IF NOT EXISTS idx_instances_active ON instances(is_active, last_seen);
 
-    -- 事件流水表
     CREATE TABLE IF NOT EXISTS events (
       id            BIGSERIAL PRIMARY KEY,
       instance_id   TEXT NOT NULL REFERENCES instances(instance_id) ON DELETE CASCADE,
@@ -63,7 +72,6 @@ async function initSchema(): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_events_received ON events(received_at);
     CREATE INDEX IF NOT EXISTS idx_events_feature ON events(feature, received_at);
 
-    -- 日聚合表
     CREATE TABLE IF NOT EXISTS daily_metrics (
       date                   DATE NOT NULL PRIMARY KEY,
       dau                    INTEGER NOT NULL,
@@ -78,7 +86,6 @@ async function initSchema(): Promise<void> {
     );
     CREATE INDEX IF NOT EXISTS idx_daily_date ON daily_metrics(date DESC);
 
-    -- 周留存快照
     CREATE TABLE IF NOT EXISTS retention_weekly (
       cohort_week       TEXT NOT NULL PRIMARY KEY,
       cohort_size       INTEGER NOT NULL,
@@ -90,7 +97,6 @@ async function initSchema(): Promise<void> {
       created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
-    -- 告警规则
     CREATE TABLE IF NOT EXISTS alert_rules (
       id              TEXT PRIMARY KEY,
       name            TEXT NOT NULL,
@@ -104,7 +110,6 @@ async function initSchema(): Promise<void> {
       last_triggered  TIMESTAMPTZ
     );
 
-    -- 引擎性能指标
     CREATE TABLE IF NOT EXISTS provider_metrics (
       provider    TEXT NOT NULL,
       date        DATE NOT NULL DEFAULT CURRENT_DATE,

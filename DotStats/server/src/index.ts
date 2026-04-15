@@ -109,12 +109,16 @@ async function start(): Promise<void> {
       await app.close();
 
       // 3. 关闭数据库连接
-      const pool = getPool();
-      await pool.end();
+      try {
+        const pool = getPool();
+        if (typeof pool.end === 'function') await pool.end();
+      } catch { /* 轻量模式无需关闭 */ }
 
       // 4. 关闭 Redis
-      const redis = getRedis();
-      await redis.quit();
+      try {
+        const redis = getRedis();
+        if (typeof redis.quit === 'function') await redis.quit();
+      } catch { /* 轻量模式无需关闭 */ }
 
       clearTimeout(forceTimer);
       console.log('✅ Cleanup complete');

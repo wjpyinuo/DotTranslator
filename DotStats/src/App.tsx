@@ -43,7 +43,7 @@ export function App() {
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-header">
-          <h1 className="logo">📊 DotStats v0.2.0</h1>
+          <h1 className="logo">📊 DotStats v0.3.0</h1>
           <div className={`ws-status ${wsConnected ? 'connected' : 'disconnected'}`}>
             {wsConnected ? '● 已连接' : '○ 未连接'}
           </div>

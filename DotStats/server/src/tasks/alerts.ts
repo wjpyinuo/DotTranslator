@@ -16,9 +16,9 @@ interface AlertRule {
 export async function checkAlerts(): Promise<void> {
   const pool = getPool();
 
-  const { rows: rules } = await pool.query<AlertRule>(
+  const { rows: rules } = await pool.query(
     'SELECT * FROM alert_rules WHERE is_enabled = TRUE'
-  );
+  ) as { rows: AlertRule[] };
 
   for (const rule of rules) {
     try {

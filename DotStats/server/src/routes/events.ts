@@ -60,26 +60,38 @@ export async function eventRoutes(app: FastifyInstance): Promise<void> {
       `, [instanceId, firstEvent?.version || 'unknown', firstEvent?.os || 'unknown',
         firstEvent?.osVersion, firstEvent?.arch, firstEvent?.locale, now]);
 
-      // Batch insert events（使用 UNNEST 优化大批量插入）
+      // Batch insert events
       if (events.length > 0) {
-        const ids: string[] = [];
-        const types: string[] = [];
-        const features: (string | null)[] = [];
-        const metadatas: string[] = [];
-        const timestamps: number[] = [];
+        if (process.env.LITE_MODE === '1') {
+          // 轻量模式：逐条插入（SQLite 不支持 UNNEST）
+          for (const event of events) {
+            await client.query(
+              'INSERT INTO events (instance_id, event_type, feature, metadata, client_ts) VALUES (?, ?, ?, ?, ?)',
+              [instanceId, event.type, event.payload.feature || null,
+                JSON.stringify(event.payload.metadata || {}), event.timestamp]
+            );
+          }
+        } else {
+          // 生产模式：使用 UNNEST 优化大批量插入
+          const ids: string[] = [];
+          const types: string[] = [];
+          const features: (string | null)[] = [];
+          const metadatas: string[] = [];
+          const timestamps: number[] = [];
 
-        for (const event of events) {
-          ids.push(instanceId);
-          types.push(event.type);
-          features.push(event.payload.feature || null);
-          metadatas.push(JSON.stringify(event.payload.metadata || {}));
-          timestamps.push(event.timestamp);
+          for (const event of events) {
+            ids.push(instanceId);
+            types.push(event.type);
+            features.push(event.payload.feature || null);
+            metadatas.push(JSON.stringify(event.payload.metadata || {}));
+            timestamps.push(event.timestamp);
+          }
+
+          await client.query(`
+            INSERT INTO events (instance_id, event_type, feature, metadata, client_ts)
+            SELECT * FROM UNNEST($1::text[], $2::text[], $3::text[], $4::jsonb[], $5::bigint[])
+          `, [ids, types, features, metadatas, timestamps]);
         }
-
-        await client.query(`
-          INSERT INTO events (instance_id, event_type, feature, metadata, client_ts)
-          SELECT * FROM UNNEST($1::text[], $2::text[], $3::text[], $4::jsonb[], $5::bigint[])
-        `, [ids, types, features, metadatas, timestamps]);
       }
 
       // 聚合 provider_metrics（按 provider 分组，一次性更新）
