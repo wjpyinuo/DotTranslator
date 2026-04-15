@@ -2,7 +2,7 @@
   "name": "dotstats",
   "version": "0.1.0",
   "description": "DotStats - 数据看板桌面端",
-  "main": "electron/main.js",
+  "main": "dist-electron/main.js",
   "author": "wjpyinuo",
   "license": "MIT",
   "scripts": {
@@ -36,7 +36,13 @@
   "build": {
     "appId": "com.dotstats.app",
     "productName": "DotStats",
-    "directories": { "output": "dist" },
-    "files": ["electron/**/*", "dist/**/*"]
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "dist/**/*",
+      "dist-electron/**/*"
+    ]
   }
 }
