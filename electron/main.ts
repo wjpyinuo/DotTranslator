@@ -432,6 +432,18 @@ app.whenReady().then(() => {
     }
   });
 
+  // IPC: TM 精确匹配
+  ipcMain.handle('tm:lookup', async (_event, text: string, sourceLang: string, targetLang: string) => {
+    const { tmLookup, tmInsert } = await import('../src/main/database');
+    const match = tmLookup(sourceLang, targetLang, text);
+    return match;
+  });
+
+  ipcMain.handle('tm:insert', async (_event, text: string, targetText: string, sourceLang: string, targetLang: string) => {
+    const { tmInsert } = await import('../src/main/database');
+    tmInsert({ sourceLang, targetLang, sourceText: text, targetText, usageCount: 1 });
+  });
+
   // IPC: 本地统计
   ipcMain.handle('stats:get', async () => {
     const { getLocalStats, getHistory } = await import('../src/main/database');

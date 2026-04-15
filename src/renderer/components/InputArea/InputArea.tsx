@@ -28,6 +28,23 @@ export function InputArea() {
         console.error('electronAPI not available');
         return;
       }
+
+      // TM 精确匹配查询
+      try {
+        const tmResult = await api.tm.lookup(text.trim(), src, tgt);
+        if (tmResult && typeof tmResult === 'object' && 'targetText' in tmResult) {
+          // TM 命中，直接返回
+          setResults([{
+            text: (tmResult as any).targetText,
+            provider: 'tm-cache',
+            confidence: 1,
+            latencyMs: 1,
+          } as TranslateResult]);
+          setTranslating(false);
+          return;
+        }
+      } catch { /* TM 未命中，继续正常翻译 */ }
+
       const results = await api.translation.translate({
         text,
         sourceLang: src,
@@ -36,7 +53,7 @@ export function InputArea() {
       });
       setResults(results as TranslateResult[]);
 
-      // 非无痕模式 → 写入历史
+      // 非无痕模式 → 写入历史 + TM 缓存
       if (!settings.privacyMode && results.length > 0) {
         const best = (results as TranslateResult[])[0];
         useAppStore.getState().addToHistory({
@@ -49,6 +66,11 @@ export function InputArea() {
           isFavorite: false,
           createdAt: Date.now(),
         });
+
+        // 写入 TM 缓存
+        try {
+          await api.tm.insert(text.trim(), best.text, src, tgt);
+        } catch { /* 静默 */ }
       }
     } catch (err) {
       console.error('Translation failed:', err);

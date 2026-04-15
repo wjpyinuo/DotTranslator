@@ -52,6 +52,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   tm: {
     lookup: (text: string, sourceLang: string, targetLang: string) =>
       ipcRenderer.invoke('tm:lookup', text, sourceLang, targetLang),
+    insert: (text: string, targetText: string, sourceLang: string, targetLang: string) =>
+      ipcRenderer.invoke('tm:insert', text, targetText, sourceLang, targetLang),
   },
 
   stats: {

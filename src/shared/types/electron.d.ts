@@ -55,6 +55,7 @@ interface ElectronAPI {
   };
   tm: {
     lookup(text: string, sourceLang: string, targetLang: string): Promise<unknown>;
+    insert(text: string, targetText: string, sourceLang: string, targetLang: string): Promise<void>;
   };
   stats: {
     get(): Promise<StatsData>;
