@@ -126,4 +126,19 @@ export async function statsRoutes(app: FastifyInstance): Promise<void> {
     `);
     return { data: result.rows[0] };
   });
+
+  // GET /api/v1/stats/providers/metrics?period=30d
+  app.get('/stats/providers/metrics', async (request, reply) => {
+    const { period = '30d' } = request.query as { period?: string };
+    const days = parseInt(period) || 30;
+
+    const pool = getPool();
+    const result = await pool.query(`
+      SELECT provider, date, total_calls, success, fail, avg_latency
+      FROM provider_metrics
+      WHERE date >= CURRENT_DATE - INTERVAL '${days} days'
+      ORDER BY date DESC, total_calls DESC
+    `);
+    return { data: result.rows };
+  });
 }

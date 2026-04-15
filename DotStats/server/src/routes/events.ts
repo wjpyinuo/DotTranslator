@@ -83,6 +83,19 @@ export async function eventRoutes(app: FastifyInstance): Promise<void> {
       for (const event of events) {
         if (event.type === 'feature' && event.payload.feature) {
           await incrementFeature(event.payload.feature);
+
+          // 记录 provider 性能指标
+          const provider = event.payload.metadata?.provider;
+          if (provider) {
+            await pool.query(`
+              INSERT INTO provider_metrics (provider, date, total_calls, success, fail, avg_latency)
+              VALUES ($1, CURRENT_DATE, 1, 1, 0, $2)
+              ON CONFLICT (provider, date) DO UPDATE SET
+                total_calls = provider_metrics.total_calls + 1,
+                success = provider_metrics.success + 1,
+                avg_latency = (provider_metrics.avg_latency * provider_metrics.total_calls + $2) / (provider_metrics.total_calls + 1)
+            `, [provider, event.payload.metadata?.latencyMs || 0]);
+          }
         }
         if (event.payload.version) {
           await updateVersion(instanceId, event.payload.version);
