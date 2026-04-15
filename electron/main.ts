@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, globalShortcut, Tray, Menu, nativeImage } from 'electron';
+import { app, BrowserWindow, ipcMain, globalShortcut, Tray, Menu, nativeImage, session } from 'electron';
 import path from 'path';
 import { translationRouter } from '../src/workers/translation/router';
 
@@ -6,6 +6,9 @@ let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 
 const isDev = !app.isPackaged;
+const ALLOWED_ORIGINS = isDev
+  ? ['http://localhost:5173']
+  : ['file://'];
 
 function createMainWindow(): BrowserWindow {
   mainWindow = new BrowserWindow({
@@ -27,6 +30,42 @@ function createMainWindow(): BrowserWindow {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow?.show();
+  });
+
+  // CSP: Content Security Policy
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [
+          isDev
+            ? "default-src 'self' 'unsafe-inline' 'unsafe-eval' ws: http://localhost:*; img-src 'self' data:; font-src 'self' data:;"
+            : "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;",
+        ],
+      },
+    });
+  });
+
+  // 拦截非法导航
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    const targetUrl = new URL(url);
+    const isAllowed = ALLOWED_ORIGINS.some((origin) => {
+      try {
+        return targetUrl.origin === new URL(origin).origin;
+      } catch {
+        return url.startsWith(origin);
+      }
+    });
+    if (!isAllowed) {
+      console.warn(`[Security] Blocked navigation to: ${url}`);
+      event.preventDefault();
+    }
+  });
+
+  // 拦截新窗口
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    console.warn(`[Security] Blocked window.open to: ${url}`);
+    return { action: 'deny' };
   });
 
   mainWindow.on('closed', () => {
