@@ -803,6 +803,44 @@ body{
 
   startLocalApiServer();
 
+  // IPC: 通用存储（settings 表）
+  ipcMain.handle('storage:get', async (_event, key: string) => {
+    const { getSetting } = await import('../src/main/database');
+    return getSetting(key);
+  });
+  ipcMain.handle('storage:set', async (_event, key: string, value: unknown) => {
+    const { setSetting } = await import('../src/main/database');
+    setSetting(key, JSON.stringify(value));
+  });
+  ipcMain.handle('storage:delete', async (_event, key: string) => {
+    const { setSetting } = await import('../src/main/database');
+    setSetting(key, '');
+  });
+
+  // IPC: 翻译历史
+  ipcMain.handle('history:getAll', async (_event, limit?: number) => {
+    const { getHistory } = await import('../src/main/database');
+    return getHistory(limit || 100);
+  });
+  ipcMain.handle('history:search', async (_event, query: string) => {
+    const { searchHistory } = await import('../src/main/database');
+    return searchHistory(query);
+  });
+  ipcMain.handle('history:addFavorite', async (_event, id: string) => {
+    const { toggleFavorite } = await import('../src/main/database');
+    toggleFavorite(id, true);
+  });
+  ipcMain.handle('history:removeFavorite', async (_event, id: string) => {
+    const { toggleFavorite } = await import('../src/main/database');
+    toggleFavorite(id, false);
+  });
+
+  // IPC: OCR 识别（需要 PaddleOCR native addon，当前返回占位）
+  ipcMain.handle('ocr:recognize', async (_event, _imageBase64: string) => {
+    // TODO: Phase 2 集成 PaddleOCR
+    return { result: [], error: 'OCR not available - PaddleOCR native addon required' };
+  });
+
   // IPC: 本地统计
   ipcMain.handle('stats:get', async () => {
     const { getLocalStats, getHistory } = await import('../src/main/database');
