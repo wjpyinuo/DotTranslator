@@ -37,11 +37,28 @@ export async function statsRoutes(app: FastifyInstance): Promise<void> {
     };
 
     const pool = getPool();
-    const metricList = metrics.split(',');
 
-    let dateGroup = 'date';
-    if (granularity === 'week') dateGroup = "DATE_TRUNC('week', date)";
-    if (granularity === 'month') dateGroup = "DATE_TRUNC('month', date)";
+    // 白名单校验：防止 SQL 注入
+    const ALLOWED_GRANULARITIES: Record<string, string> = {
+      day: 'date',
+      week: "DATE_TRUNC('week', date)",
+      month: "DATE_TRUNC('month', date)",
+    };
+    const ALLOWED_METRICS = new Set([
+      'dau', 'new_instances', 'heartbeats', 'feature_calls',
+    ]);
+
+    const dateGroup = ALLOWED_GRANULARITIES[granularity || 'day']
+      || ALLOWED_GRANULARITIES['day'];
+
+    const metricList = (metrics || 'dau')
+      .split(',')
+      .map(m => m.trim())
+      .filter(m => ALLOWED_METRICS.has(m));
+
+    if (metricList.length === 0) {
+      return reply.status(400).send({ error: 'No valid metrics specified' });
+    }
 
     const selectCols = metricList.map((m) => `AVG(${m}) as ${m}`).join(', ');
     const query = `
