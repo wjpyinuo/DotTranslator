@@ -94,7 +94,7 @@ export function AboutPanel() {
           🔗 GitHub
         </button>
         <button className="about-btn donate-btn" onClick={() => setShowDonate(true)}>
-          ☕ 打赏
+          <span className="donate-icon">☕</span> 打赏
         </button>
       </div>
 

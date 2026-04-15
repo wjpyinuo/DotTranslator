@@ -1220,14 +1220,67 @@ kbd {
 }
 
 .donate-btn {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  background: linear-gradient(270deg, #f59e0b, #ef4444, #ec4899, #8b5cf6, #06b6d4, #22c55e, #f59e0b) !important;
+  background-size: 400% 400% !important;
   color: white !important;
   border-color: transparent !important;
+  font-weight: 600 !important;
+  animation: donateGradient 4s ease infinite, donatePulse 2s ease-in-out infinite;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.donate-btn::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 60%);
+  animation: donateShine 3s linear infinite;
+  pointer-events: none;
 }
 
 .donate-btn:hover {
-  background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+  animation: donateGradient 2s ease infinite, donatePulse 1s ease-in-out infinite;
+  transform: scale(1.03);
+  box-shadow:
+    0 0 20px rgba(245, 158, 11, 0.4),
+    0 0 40px rgba(236, 72, 153, 0.2),
+    0 0 60px rgba(139, 92, 246, 0.1);
+}
+
+@keyframes donateGradient {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes donatePulse {
+  0%, 100% { box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3); }
+  50%      { box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4), 0 0 30px rgba(139, 92, 246, 0.2); }
+}
+
+@keyframes donateShine {
+  0%   { transform: translateX(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) rotate(45deg); }
+}
+
+.donate-icon {
+  display: inline-block;
+  animation: coffeeWiggle 1.5s ease-in-out infinite;
+  font-size: 15px;
+}
+
+@keyframes coffeeWiggle {
+  0%, 100% { transform: rotate(0deg); }
+  15%      { transform: rotate(14deg); }
+  30%      { transform: rotate(-10deg); }
+  45%      { transform: rotate(8deg); }
+  60%      { transform: rotate(-4deg); }
+  75%      { transform: rotate(2deg); }
 }
 
 /* ==================== Donate Modal ==================== */
