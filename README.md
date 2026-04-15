@@ -18,7 +18,7 @@ DotTranslator/
 │   │   └── styles/           # CSS (拟态 + Glassmorphism 双主题)
 │   ├── shared/               # 共享类型和常量
 │   ├── telemetry/            # 匿名遥测模块 (可关闭)
-│   └── workers/              # 翻译引擎 (DeepL/Google/百度) + 智能路由
+│   └── workers/              # 翻译引擎 (DeepL/有道/百度) + 智能路由
 └── DotStats/                  # 数据看板子项目
     ├── electron/              # DotStats Electron 主进程
     ├── src/                   # React UI (ECharts 仪表盘)
@@ -62,7 +62,7 @@ npm run dev
 | 客户端框架 | Electron 33 + React 19 + Vite 6 |
 | 状态管理 | Zustand 5 + Immer |
 | 本地存储 | better-sqlite3 (WAL) |
-| 翻译引擎 | DeepL / Google / 百度 (可插拔) |
+| 翻译引擎 | DeepL / 有道 / 百度 (可插拔) |
 | 服务端 | Fastify 5 + PostgreSQL 16 + Redis 7 |
 | 实时通信 | WebSocket |
 | 图表 | ECharts 5 |
