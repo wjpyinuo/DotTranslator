@@ -20,6 +20,8 @@ function createMainWindow(): BrowserWindow {
     transparent: true,
     resizable: true,
     show: false,
+    roundedCorners: true,
+    backgroundColor: '#00000000',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
