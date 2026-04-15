@@ -1,11 +1,23 @@
 import type { FastifyInstance } from 'fastify';
 import { getPool } from '../db/pool';
+import { z } from 'zod';
 import { adminAuth } from '../middleware/auth';
 
 export async function adminRoutes(app: FastifyInstance): Promise<void> {
   // DELETE /api/v1/instances/:id - GDPR 级联删除 (需认证)
+  const deleteParamsSchema = z.object({ id: z.string().uuid() });
+  const exportQuerySchema = z.object({
+    format: z.enum(['csv', 'json']).default('csv'),
+    from: z.string().date().optional(),
+    to: z.string().date().optional(),
+  });
+
   app.delete('/instances/:id', { preHandler: adminAuth }, async (request, reply) => {
-    const { id } = request.params as { id: string };
+    const parsed = deleteParamsSchema.safeParse(request.params);
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Invalid instance ID', details: parsed.error.issues });
+    }
+    const { id } = parsed.data;
     const pool = getPool();
 
     await pool.query('BEGIN');
@@ -23,9 +35,11 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
 
   // GET /api/v1/admin/export?format=csv&from=2026-04-01&to=2026-04-15 (需认证)
   app.get('/admin/export', { preHandler: adminAuth }, async (request, reply) => {
-    const { format = 'csv', from, to } = request.query as {
-      format?: string; from?: string; to?: string;
-    };
+    const parsed = exportQuerySchema.safeParse(request.query);
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Invalid query parameters', details: parsed.error.issues });
+    }
+    const { format, from, to } = parsed.data;
 
     const pool = getPool();
     const result = await pool.query(`
