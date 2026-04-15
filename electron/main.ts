@@ -351,7 +351,6 @@ app.whenReady().then(() => {
 
   function showMiniCard(text: string, sourceLang: string, targetLang: string): void {
     const { screen } = require('electron');
-    const { mouse } = screen.getCursorScreenPoint();
     const cursorPos = screen.getCursorScreenPoint();
 
     if (miniCard && !miniCard.isDestroyed()) {
@@ -496,15 +495,15 @@ body{
     try {
       const keys = loadEncryptedKeys();
 
-      const deeplProvider = translationRouter.getProvider('deepl') as any;
+      const deeplProvider = translationRouter.getProvider('deepl') as { setApiKey?: (k: string) => void } | undefined;
       if (deeplProvider?.setApiKey && keys.deeplApiKey) {
         deeplProvider.setApiKey(keys.deeplApiKey);
       }
-      const youdaoProvider = translationRouter.getProvider('youdao') as any;
+      const youdaoProvider = translationRouter.getProvider('youdao') as { setCredentials?: (id: string, secret: string) => void } | undefined;
       if (youdaoProvider?.setCredentials && keys.youdaoAppId && keys.youdaoAppSecret) {
         youdaoProvider.setCredentials(keys.youdaoAppId, keys.youdaoAppSecret);
       }
-      const baiduProvider = translationRouter.getProvider('baidu') as any;
+      const baiduProvider = translationRouter.getProvider('baidu') as { setCredentials?: (id: string, key: string) => void } | undefined;
       if (baiduProvider?.setCredentials && keys.baiduAppId && keys.baiduSecretKey) {
         baiduProvider.setCredentials(keys.baiduAppId, keys.baiduSecretKey);
       }
@@ -919,7 +918,7 @@ body{
   });
   ipcMain.handle('history:add', async (_event, entry: { sourceText: string; targetText: string; sourceLang: string; targetLang: string; provider: string; isFavorite?: boolean }) => {
     const { addHistory } = await import('../src/main/database');
-    return addHistory(entry);
+    return addHistory({ ...entry, isFavorite: entry.isFavorite ?? false });
   });
   ipcMain.handle('history:search', async (_event, query: string) => {
     const { searchHistory } = await import('../src/main/database');

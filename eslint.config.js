@@ -7,4 +7,11 @@ export default tseslint.config(
   {
     ignores: ["dist/**", "dist-electron/**", "DotStats/**", "node_modules/**"],
   },
+  {
+    files: ["electron/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+      "@typescript-eslint/no-explicit-any": "warn",
+    },
+  },
 );
