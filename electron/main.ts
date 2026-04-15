@@ -55,10 +55,10 @@ function createTrayIcon(): Electron.NativeImage {
 
 function createMainWindow(): BrowserWindow {
   mainWindow = new BrowserWindow({
-    width: 420,
-    height: 560,
+    width: 480,
+    height: 680,
     minWidth: 420,
-    minHeight: 400,
+    minHeight: 480,
     frame: false,
     transparent: true,
     resizable: true,

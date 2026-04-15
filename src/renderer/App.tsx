@@ -5,10 +5,11 @@ import { TranslationPanel } from './components/TranslationPanel/TranslationPanel
 import { HistoryList } from './components/HistoryList/HistoryList';
 import { SettingsPanel } from './components/SettingsPanel/SettingsPanel';
 import { AnnouncementBar } from './components/AnnouncementBar/AnnouncementBar';
+import { AboutPanel } from './components/AboutPanel/AboutPanel';
 import { useAppStore } from './stores/appStore';
 import './styles/app.css';
 
-type Tab = 'translate' | 'history';
+type Tab = 'translate' | 'history' | 'about';
 
 interface StatsData {
   totalTranslations: number;
@@ -240,6 +241,12 @@ export function App() {
         >
           📜 历史
         </button>
+        <button
+          className={`tab-btn ${activeTab === 'about' ? 'active' : ''}`}
+          onClick={() => setActiveTab('about')}
+        >
+          ℹ️ 关于
+        </button>
         <button className="tab-btn settings-tab" onClick={toggleSettings}>
           ⚙️
         </button>
@@ -256,6 +263,7 @@ export function App() {
           </>
         )}
         {activeTab === 'history' && <HistoryList />}
+        {activeTab === 'about' && <AboutPanel />}
       </main>
 
       {settings.privacyMode && (
