@@ -151,6 +151,33 @@ export interface LocalStatsRecord {
   createdAt: number;
 }
 
+// ==================== 术语库（Phase 2 预留） ====================
+
+export interface TermMatch {
+  source: string;
+  target: string;
+  start: number;
+  end: number;
+  glossaryId: string;
+}
+
+export interface GlossaryEngine {
+  // Phase 1: 返回空数组（不启用）
+  // Phase 2: 返回匹配的术语标注
+  matchTerms(text: string, glossaryId: string): Promise<TermMatch[]>;
+  importTBX(file: Buffer, glossaryId: string): Promise<{ imported: number; skipped: number }>;
+}
+
+// Stub 实现
+export class StubGlossaryEngine implements GlossaryEngine {
+  async matchTerms(): Promise<TermMatch[]> {
+    return []; // Phase 2 实现
+  }
+  async importTBX(): Promise<{ imported: number; skipped: number }> {
+    return { imported: 0, skipped: 0 };
+  }
+}
+
 // ==================== UI ====================
 
 export type ViewMode = 'main' | 'mini' | 'pip';
