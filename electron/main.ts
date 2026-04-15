@@ -448,7 +448,15 @@ body{
 
   // IPC: 翻译
   ipcMain.handle('translation:translate', async (_event, params) => {
-    return translationRouter.translateCompare(params, params.enabledProviders || ['google']);
+    const results = await translationRouter.translateCompare(params, params.enabledProviders || ['google']);
+    // 记录 provider 性能指标
+    try {
+      const { recordProviderMetric } = await import('../src/main/database');
+      for (const r of results) {
+        recordProviderMetric(r.provider, true, r.latencyMs);
+      }
+    } catch { /* 静默 */ }
+    return results;
   });
 
   ipcMain.handle('translation:getProviders', () => {

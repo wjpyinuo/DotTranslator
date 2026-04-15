@@ -236,3 +236,36 @@ export function getLocalStats(days = 30): LocalStatsRecord[] {
     createdAt: row.created_at,
   }));
 }
+
+// ==================== Provider Metrics ====================
+
+export function recordProviderMetric(provider: string, success: boolean, latencyMs: number): void {
+  const database = getDatabase();
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  database.prepare(`
+    INSERT INTO provider_metrics (provider, date, total_calls, success, fail, avg_latency)
+    VALUES (?, ?, 1, ?, ?, ?)
+    ON CONFLICT(provider, date) DO UPDATE SET
+      total_calls = total_calls + 1,
+      success = success + ?,
+      fail = fail + ?,
+      avg_latency = (avg_latency * (total_calls - 1) + ?) / total_calls
+  `).run(provider, today, success ? 1 : 0, success ? 0 : 1, latencyMs,
+    success ? 1 : 0, success ? 0 : 1, latencyMs);
+}
+
+export function getProviderMetrics(days = 30): { provider: string; date: string; totalCalls: number; success: number; fail: number; avgLatency: number }[] {
+  const database = getDatabase();
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const rows = database.prepare(
+    'SELECT * FROM provider_metrics WHERE date >= ? ORDER BY date DESC'
+  ).all(since) as { provider: string; date: string; total_calls: number; success: number; fail: number; avg_latency: number }[];
+  return rows.map((row) => ({
+    provider: row.provider,
+    date: row.date,
+    totalCalls: row.total_calls,
+    success: row.success,
+    fail: row.fail,
+    avgLatency: row.avg_latency,
+  }));
+}
