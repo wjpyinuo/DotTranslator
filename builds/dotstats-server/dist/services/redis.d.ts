@@ -1,0 +1,17 @@
+import { type RedisClientType } from 'redis';
+export declare function initRedis(): Promise<RedisClientType>;
+export declare function getRedis(): RedisClientType;
+export declare function setOnline(instanceId: string): Promise<void>;
+export declare function getOnlineCount(windowMs?: number): Promise<number>;
+export declare function cleanExpiredOnline(): Promise<void>;
+export declare function addToDAU(instanceId: string): Promise<void>;
+export declare function getDAU(date?: string): Promise<number>;
+export declare function addToWAU(instanceId: string): Promise<void>;
+export declare function getWAU(): Promise<number>;
+export declare function incrementFeature(feature: string): Promise<void>;
+export declare function getFeatureCounts(date?: string): Promise<Record<string, number>>;
+export declare function updateVersion(instanceId: string, version: string): Promise<void>;
+export declare function getVersionDistribution(): Promise<Record<string, number>>;
+export declare function getOSDistribution(): Promise<Record<string, number>>;
+export declare function pushEventStream(event: Record<string, unknown>): Promise<void>;
+export declare function getEventStream(limit?: number): Promise<Record<string, unknown>[]>;
