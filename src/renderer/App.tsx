@@ -142,6 +142,49 @@ export function App() {
     return () => observer.disconnect();
   }, [handleResize]);
 
+  // 设置持久化：从 SQLite 加载
+  useEffect(() => {
+    const api = window.electronAPI;
+    if (!api?.storage) return;
+    const keys = ['theme', 'defaultSourceLang', 'defaultTargetLang', 'enabledProviders',
+      'clipboardMonitor', 'telemetryEnabled', 'privacyMode'];
+    (async () => {
+      for (const key of keys) {
+        try {
+          const val = await api.storage.get(key);
+          if (val !== null && val !== undefined) {
+            const parsed = typeof val === 'string' ? (() => { try { return JSON.parse(val); } catch { return val; } })() : val;
+            if (parsed !== '' && parsed !== null) {
+              useAppStore.getState().updateSettings({ [key]: parsed });
+            }
+          }
+        } catch { /* 静默 */ }
+      }
+      // 加载后同步主题到辅助窗口
+      const theme = useAppStore.getState().settings.theme;
+      window.electronAPI?._internal?.send('theme:changed', theme);
+    })();
+  }, []);
+
+  // 设置变更时持久化到 SQLite（防抖 500ms）
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      const api = window.electronAPI;
+      if (!api?.storage) return;
+      const s = useAppStore.getState().settings;
+      const persistKeys = ['theme', 'defaultSourceLang', 'defaultTargetLang', 'enabledProviders',
+        'clipboardMonitor', 'telemetryEnabled', 'privacyMode'];
+      for (const key of persistKeys) {
+        try {
+          api.storage.set(key, (s as unknown as Record<string, unknown>)[key]);
+        } catch { /* 静默 */ }
+      }
+    }, 500);
+  }, [settings.theme, settings.enabledProviders, settings.clipboardMonitor,
+      settings.telemetryEnabled, settings.privacyMode]);
+
   // 剪贴板监听 → 自动填入并翻译
   useEffect(() => {
     const api = window.electronAPI;

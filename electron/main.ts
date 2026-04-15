@@ -202,154 +202,7 @@ function createFloatingBall(): void {
     floatingBall = null;
   });
 
-  const ballHtml = `<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{
-  width:48px;height:48px;overflow:visible;
-  background:rgba(99,102,241,0.9);
-  border-radius:50%;cursor:grab;
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 4px 12px rgba(0,0,0,0.3);
-  transition:background 0.2s, box-shadow 0.2s;
-  user-select:none;-webkit-user-select:none;
-}
-body.light{
-  background:rgba(99,102,241,0.95);
-  box-shadow:0 4px 12px rgba(99,102,241,0.4);
-}
-body.dark{
-  background:rgba(99,102,241,0.9);
-  box-shadow:0 4px 12px rgba(0,0,0,0.3);
-}
-body:hover{
-  background:rgba(79,70,229,1);
-  box-shadow:0 4px 20px rgba(99,102,241,0.5);
-}
-body.dragging{
-  cursor:grabbing!important;
-  opacity:0.85;
-  box-shadow:0 8px 24px rgba(0,0,0,0.4)!important;
-}
-.ball-icon{font-size:20px;pointer-events:none;line-height:1}
-
-/* 右键菜单 */
-.ctx-menu{
-  position:fixed;
-  background:rgba(30,41,59,0.96);
-  backdrop-filter:blur(16px);
-  border:1px solid rgba(255,255,255,0.1);
-  border-radius:10px;
-  padding:6px 0;
-  min-width:140px;
-  box-shadow:0 8px 32px rgba(0,0,0,0.5);
-  z-index:999;
-  display:none;
-  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-}
-.ctx-menu.light{
-  background:rgba(255,255,255,0.96);
-  border-color:rgba(0,0,0,0.08);
-  box-shadow:0 8px 32px rgba(0,0,0,0.15);
-  color:#1e293b;
-}
-.ctx-item{
-  padding:8px 16px;
-  font-size:12px;
-  cursor:pointer;
-  display:flex;align-items:center;gap:8px;
-  color:#e2e8f0;
-  transition:background 0.15s;
-}
-.ctx-menu.light .ctx-item{color:#334155}
-.ctx-item:hover{background:rgba(99,102,241,0.3)}
-.ctx-menu.light .ctx-item:hover{background:rgba(99,102,241,0.15)}
-.ctx-sep{height:1px;background:rgba(255,255,255,0.08);margin:4px 0}
-.ctx-menu.light .ctx-sep{background:rgba(0,0,0,0.06)}
-</style></head>
-<body class="light">
-  <span class="ball-icon" id="icon">✦</span>
-  <div class="ctx-menu" id="ctxMenu">
-    <div class="ctx-item" data-action="toggle">🔲 显示/隐藏窗口</div>
-    <div class="ctx-item" data-action="pip">📺 PiP 窗口</div>
-    <div class="ctx-item" data-action="screenshot">📸 截图翻译</div>
-    <div class="ctx-sep"></div>
-    <div class="ctx-item" data-action="copy-last">📋 复制上次结果</div>
-    <div class="ctx-sep"></div>
-    <div class="ctx-item" data-action="hide">🙈 隐藏悬浮球</div>
-    <div class="ctx-item" data-action="close">✕ 退出悬浮球</div>
-  </div>
-  <script>
-    const api = window.electronAPI?._internal;
-    let clickTimer = null;
-    let isDragging = false;
-    let dragStartX = 0, dragStartY = 0;
-    let moved = false;
-    let lastResult = '';
-
-    // ---- 拖拽支持 ----
-    document.body.addEventListener('mousedown', (e) => {
-      if (e.button !== 0) return;
-      isDragging = true;
-      moved = false;
-      dragStartX = e.screenX;
-      dragStartY = e.screenY;
-      document.body.classList.add('dragging');
-    });
-    document.addEventListener('mousemove', (e) => {
-      if (!isDragging) return;
-      const dx = e.screenX - dragStartX;
-      const dy = e.screenY - dragStartY;
-      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
-      if (moved) {
-        api?.send('floating:move', e.screenX - 24, e.screenY - 24);
-        dragStartX = e.screenX;
-        dragStartY = e.screenY;
-      }
-    });
-    document.addEventListener('mouseup', () => {
-      if (isDragging) {
-        isDragging = false;
-        document.body.classList.remove('dragging');
-      }
-    });
-
-    // ---- 单击/双击 ----
-    document.body.addEventListener('click', (e) => {
-      if (moved) return;
-      if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; api?.send('floating:double-click'); return; }
-      clickTimer = setTimeout(() => { clickTimer = null; api?.send('floating:click'); }, 250);
-    });
-
-    // ---- 右键菜单 ----
-    const menu = document.getElementById('ctxMenu');
-    document.body.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      menu.style.display = 'block';
-      menu.style.left = (e.clientX - 50) + 'px';
-      menu.style.top = (e.clientY + 8) + 'px';
-    });
-    document.addEventListener('click', () => { menu.style.display = 'none'; });
-    menu.addEventListener('click', (e) => {
-      const action = e.target.closest('.ctx-item')?.dataset.action;
-      if (action) api?.send('floating:menu', action);
-      menu.style.display = 'none';
-    });
-
-    // ---- 通信 ----
-    api?.on('floating:update-icon', (text) => {
-      document.getElementById('icon').textContent = text || '✦';
-      lastResult = text || '';
-    });
-    api?.on('floating:last-result', (text) => { lastResult = text || ''; });
-    api?.on('theme:changed', (theme) => {
-      document.body.className = theme || 'light';
-      menu.className = 'ctx-menu ' + (theme || 'light');
-    });
-  </script>
-</body></html>`;
-
-  floatingBall.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(ballHtml)}`);
+  floatingBall.loadFile(path.join(__dirname, 'aux-windows', 'floating-ball.html'));
 
   // 设置圆形窗口形状（Windows/Linux 需要显式 setShape）
   floatingBall.webContents.once('did-finish-load', () => {
@@ -592,46 +445,7 @@ app.whenReady().then(() => {
         },
       });
 
-      const cardHtml = `<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{
-  width:200px;height:80px;overflow:hidden;
-  background:rgba(30,41,59,0.95);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border-radius:10px;border:1px solid rgba(255,255,255,0.1);
-  box-shadow:0 8px 24px rgba(0,0,0,0.4);
-  padding:10px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-  color:#f1f5f9;-webkit-app-region:drag;
-  transition:all 0.3s;
-}
-body.light{
-  background:rgba(255,255,255,0.95);
-  color:#1e293b;border-color:rgba(0,0,0,0.08);
-  box-shadow:0 8px 24px rgba(0,0,0,0.12);
-}
-body.light .lang{color:#94a3b8}
-body.light .text{color:#1e293b}
-.lang{font-size:10px;color:#64748b;margin-bottom:4px}
-.text{font-size:13px;line-height:1.4;word-break:break-all;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
-</style></head>
-<body class="dark">
-  <div class="lang" id="lang"></div>
-  <div class="text" id="text">等待翻译...</div>
-  <script>
-    const api = window.electronAPI?._internal;
-    api?.on('mini-card:update', (data) => {
-      document.getElementById('lang').textContent = data.sourceLang + ' → ' + data.targetLang;
-      document.getElementById('text').textContent = data.text;
-    });
-    api?.on('theme:changed', (theme) => {
-      document.body.className = theme || 'dark';
-    });
-    setTimeout(() => api?.send('mini-card:auto-hide'), 5000);
-  </script>
-</body></html>`;
-
-      miniCard.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(cardHtml)}`);
+      miniCard.loadFile(path.join(__dirname, 'aux-windows', 'mini-card.html'));
       miniCard.on('closed', () => { miniCard = null; });
 
       miniCard.webContents.once('did-finish-load', () => {
@@ -738,10 +552,12 @@ body.light .text{color:#1e293b}
 
   ipcMain.handle('translation:translate', async (_event, params) => {
     await loadProviderCredentials();
-    const results = await translationRouter.translateCompare(params, params.enabledProviders || ['deepl']);
+    const enabled = params.enabledProviders || ['fallback'];
+    const results = await translationRouter.translateCompare(params, enabled);
     // 记录 provider 性能指标 + 遥测
     try {
       const { recordProviderMetric } = await import('../src/main/database');
+      const succeeded = new Set(results.map((r: any) => r.provider));
       for (const r of results) {
         recordProviderMetric(r.provider, true, r.latencyMs);
         telemetry.recordTranslation({
@@ -752,6 +568,12 @@ body.light .text{color:#1e293b}
           latencyMs: r.latencyMs,
           tmHit: false,
         });
+      }
+      // 记录失败的 provider
+      for (const id of enabled) {
+        if (!succeeded.has(id)) {
+          recordProviderMetric(id, false, 0);
+        }
       }
     } catch { /* 静默 */ }
     return results;
@@ -816,147 +638,7 @@ body.light .text{color:#1e293b}
     });
 
     // PiP 使用独立的 HTML
-    const pipHtml = `<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'PingFang SC', sans-serif;
-      background: rgba(15, 23, 42, 0.92);
-      backdrop-filter: blur(40px) saturate(1.5);
-      -webkit-backdrop-filter: blur(40px) saturate(1.5);
-      color: #f1f5f9;
-      border-radius: 16px;
-      overflow: hidden;
-      height: 100vh;
-      border: 1px solid rgba(255,255,255,0.08);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-      transition: all 0.3s;
-    }
-    body.light {
-      background: rgba(255, 255, 255, 0.92);
-      color: #1e293b;
-      border-color: rgba(0,0,0,0.08);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-    }
-    body.light .pip-header { background: rgba(241,245,249,0.6); border-bottom-color: rgba(0,0,0,0.06); }
-    body.light .pip-title { color: #6366f1; }
-    body.light .pip-close { color: #94a3b8; }
-    body.light .pip-close:hover { background: rgba(239,68,68,0.15); color: #ef4444; }
-    body.light .pip-lang { color: #94a3b8; }
-    body.light .pip-text { color: #1e293b; }
-    body.light .pip-btn { border-color: rgba(0,0,0,0.1); color: #64748b; }
-    .pip-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 12px;
-      -webkit-app-region: drag;
-      background: rgba(30, 41, 59, 0.6);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-    .pip-title {
-      font-size: 12px;
-      font-weight: 600;
-      color: #818cf8;
-    }
-    .pip-close {
-      -webkit-app-region: no-drag;
-      background: transparent;
-      border: none;
-      color: #94a3b8;
-      font-size: 14px;
-      cursor: pointer;
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-    .pip-close:hover { background: rgba(239,68,68,0.8); color: white; }
-    .pip-body {
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .pip-lang {
-      font-size: 11px;
-      color: #64748b;
-    }
-    .pip-text {
-      font-size: 14px;
-      line-height: 1.5;
-      color: #f1f5f9;
-      word-break: break-word;
-    }
-    .pip-actions {
-      display: flex;
-      gap: 6px;
-      margin-top: 4px;
-    }
-    .pip-btn {
-      padding: 4px 10px;
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 6px;
-      background: transparent;
-      color: #94a3b8;
-      font-size: 11px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .pip-btn:hover { background: #818cf8; color: white; border-color: #818cf8; }
-  </style>
-</head>
-<body>
-  <div class="pip-header">
-    <span class="pip-title">✦ DotTranslator v0.3.0</span>
-    <button class="pip-close" id="pipCloseBtn">✕</button>
-  </div>
-  <div class="pip-body">
-    <div class="pip-lang" id="lang">加载中...</div>
-    <div class="pip-text" id="text">等待翻译结果...</div>
-    <div class="pip-actions">
-      <button class="pip-btn" id="copyBtn">📋 复制</button>
-      <button class="pip-btn" id="speakBtn">🔊 朗读</button>
-    </div>
-  </div>
-  <script>
-    const api = window.electronAPI?._internal;
-    let currentText = '';
-    let currentLang = 'zh';
-
-    api?.on('pip:update', (data) => {
-      currentText = data.text || '';
-      currentLang = data.targetLang || 'zh';
-      document.getElementById('lang').textContent = data.sourceLang + ' → ' + data.targetLang;
-      document.getElementById('text').textContent = data.text || '无结果';
-    });
-
-    document.getElementById('copyBtn').addEventListener('click', () => {
-      navigator.clipboard.writeText(currentText);
-    });
-    document.getElementById('speakBtn').addEventListener('click', () => {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(currentText);
-        const map = { zh: 'zh-CN', en: 'en-US', ja: 'ja-JP', ko: 'ko-KR' };
-        u.lang = map[currentLang] || currentLang;
-        u.rate = 0.9;
-        window.speechSynthesis.speak(u);
-      }
-    });
-    document.getElementById('pipCloseBtn').addEventListener('click', () => {
-      api?.send('pip:close');
-    });
-    api?.on('theme:changed', (theme) => {
-      document.body.classList.toggle('light', theme === 'light');
-      document.body.classList.toggle('dark', theme !== 'light');
-    });
-  </script>
-</body>
-</html>`;
-
-    pipWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(pipHtml)}`);
+    pipWindow.loadFile(path.join(__dirname, 'aux-windows', 'pip.html'));
 
     // 发送初始数据和主题
     pipWindow.webContents.once('did-finish-load', () => {
@@ -1104,7 +786,7 @@ body.light .text{color:#1e293b}
           await new Promise<void>((resolve) => { req.on('end', resolve); });
           const params = JSON.parse(body);
           const results = await translationRouter.translateCompare(
-            params, params.enabledProviders || ['deepl']
+            params, params.enabledProviders || ['fallback']
           );
           res.writeHead(200);
           res.end(JSON.stringify(results));

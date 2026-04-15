@@ -153,6 +153,8 @@ function initSchema(): void {
     );
     CREATE INDEX IF NOT EXISTS idx_instances_last_seen ON instances(last_seen);
     CREATE INDEX IF NOT EXISTS idx_instances_version ON instances(version);
+    CREATE INDEX IF NOT EXISTS idx_instances_os ON instances(os);
+    CREATE INDEX IF NOT EXISTS idx_instances_active ON instances(is_active, last_seen);
 
     CREATE TABLE IF NOT EXISTS events (
       id            INTEGER PRIMARY KEY AUTOINCREMENT,

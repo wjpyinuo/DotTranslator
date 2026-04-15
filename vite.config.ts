@@ -3,6 +3,28 @@ import react from '@vitejs/plugin-react';
 import electron from 'vite-plugin-electron';
 import electronRenderer from 'vite-plugin-electron-renderer';
 import path from 'path';
+import fs from 'fs';
+
+// 复制辅助窗口 HTML 到 dist-electron
+function copyAuxWindows() {
+  const src = path.resolve(__dirname, 'electron/aux-windows');
+  const dest = path.resolve(__dirname, 'dist-electron/aux-windows');
+  if (!fs.existsSync(src)) return;
+  fs.mkdirSync(dest, { recursive: true });
+  for (const file of fs.readdirSync(src)) {
+    fs.copyFileSync(path.join(src, file), path.join(dest, file));
+  }
+}
+
+// Vite 插件：构建后复制辅助窗口文件
+function copyAuxPlugin() {
+  return {
+    name: 'copy-aux-windows',
+    closeBundle() {
+      copyAuxWindows();
+    },
+  };
+}
 
 export default defineConfig({
   plugins: [
@@ -10,6 +32,10 @@ export default defineConfig({
     electron([
       {
         entry: 'electron/main.ts',
+        onstart(args) {
+          copyAuxWindows();
+          args.startup();
+        },
         vite: {
           resolve: {
             alias: {
@@ -40,6 +66,7 @@ export default defineConfig({
       },
     ]),
     electronRenderer(),
+    copyAuxPlugin(),
   ],
   resolve: {
     alias: {

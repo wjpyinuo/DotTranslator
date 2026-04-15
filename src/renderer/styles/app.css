@@ -392,8 +392,7 @@ html, body, #root {
   margin-bottom: 14px;
 }
 
-.loading-indicator,
-.loading {
+.loading-indicator {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -765,45 +764,6 @@ html, body, #root {
   font-size: 10px;
   color: var(--text-tertiary);
   margin-top: 2px;
-}
-
-.stats-page {
-  /* Keep for backwards compat if needed */
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-
-.stat-card {
-  padding: 14px;
-  background: var(--bg-secondary);
-  border-radius: var(--radius-sm);
-  text-align: center;
-}
-
-.app-container:not(.dark) .stat-card {
-  box-shadow: var(--shadow-sm);
-}
-
-.app-container.dark .stat-card {
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(255,255,255,0.04);
-}
-
-.stat-value {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--accent);
-}
-
-.stat-label {
-  font-size: 11px;
-  color: var(--text-secondary);
-  margin-top: 4px;
 }
 
 .stats-section {

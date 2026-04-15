@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'PingFang SC', sans-serif;
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(40px) saturate(1.5);
+      -webkit-backdrop-filter: blur(40px) saturate(1.5);
+      color: #f1f5f9;
+      border-radius: 16px;
+      overflow: hidden;
+      height: 100vh;
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      transition: all 0.3s;
+    }
+    body.light {
+      background: rgba(255, 255, 255, 0.92);
+      color: #1e293b;
+      border-color: rgba(0,0,0,0.08);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    }
+    body.light .pip-header { background: rgba(241,245,249,0.6); border-bottom-color: rgba(0,0,0,0.06); }
+    body.light .pip-title { color: #6366f1; }
+    body.light .pip-close { color: #94a3b8; }
+    body.light .pip-close:hover { background: rgba(239,68,68,0.15); color: #ef4444; }
+    body.light .pip-lang { color: #94a3b8; }
+    body.light .pip-text { color: #1e293b; }
+    body.light .pip-btn { border-color: rgba(0,0,0,0.1); color: #64748b; }
+    .pip-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      -webkit-app-region: drag;
+      background: rgba(30, 41, 59, 0.6);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .pip-title { font-size: 12px; font-weight: 600; color: #818cf8; }
+    .pip-close {
+      -webkit-app-region: no-drag;
+      background: transparent; border: none; color: #94a3b8;
+      font-size: 14px; cursor: pointer; padding: 2px 6px; border-radius: 4px;
+    }
+    .pip-close:hover { background: rgba(239,68,68,0.8); color: white; }
+    .pip-body { padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+    .pip-lang { font-size: 11px; color: #64748b; }
+    .pip-text { font-size: 14px; line-height: 1.5; color: #f1f5f9; word-break: break-word; }
+    .pip-actions { display: flex; gap: 6px; margin-top: 4px; }
+    .pip-btn {
+      padding: 4px 10px; border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px; background: transparent; color: #94a3b8;
+      font-size: 11px; cursor: pointer; transition: all 0.2s;
+    }
+    .pip-btn:hover { background: #818cf8; color: white; border-color: #818cf8; }
+  </style>
+</head>
+<body>
+  <div class="pip-header">
+    <span class="pip-title">✦ DotTranslator v0.3.0</span>
+    <button class="pip-close" id="pipCloseBtn">✕</button>
+  </div>
+  <div class="pip-body">
+    <div class="pip-lang" id="lang">加载中...</div>
+    <div class="pip-text" id="text">等待翻译结果...</div>
+    <div class="pip-actions">
+      <button class="pip-btn" id="copyBtn">📋 复制</button>
+      <button class="pip-btn" id="speakBtn">🔊 朗读</button>
+    </div>
+  </div>
+  <script>
+    const api = window.electronAPI._internal;
+    let currentText = '';
+    let currentLang = 'zh';
+
+    api.on('pip:update', (data) => {
+      currentText = data.text || '';
+      currentLang = data.targetLang || 'zh';
+      document.getElementById('lang').textContent = data.sourceLang + ' → ' + data.targetLang;
+      document.getElementById('text').textContent = data.text || '无结果';
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      navigator.clipboard.writeText(currentText);
+    });
+    document.getElementById('speakBtn').addEventListener('click', () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(currentText);
+        const map = { zh: 'zh-CN', en: 'en-US', ja: 'ja-JP', ko: 'ko-KR' };
+        u.lang = map[currentLang] || currentLang;
+        u.rate = 0.9;
+        window.speechSynthesis.speak(u);
+      }
+    });
+    document.getElementById('pipCloseBtn').addEventListener('click', () => {
+      api.send('pip:close');
+    });
+    api.on('theme:changed', (theme) => {
+      document.body.classList.toggle('light', theme === 'light');
+      document.body.classList.toggle('dark', theme !== 'light');
+    });
+  </script>
+</body>
+</html>
