@@ -103,5 +103,16 @@ async function initSchema(): Promise<void> {
       is_enabled      BOOLEAN DEFAULT TRUE,
       last_triggered  TIMESTAMPTZ
     );
+
+    -- 引擎性能指标
+    CREATE TABLE IF NOT EXISTS provider_metrics (
+      provider    TEXT NOT NULL,
+      date        DATE NOT NULL DEFAULT CURRENT_DATE,
+      total_calls INTEGER DEFAULT 0,
+      success     INTEGER DEFAULT 0,
+      fail        INTEGER DEFAULT 0,
+      avg_latency REAL DEFAULT 0,
+      PRIMARY KEY (provider, date)
+    );
   `);
 }
