@@ -101,16 +101,29 @@ export function getHistory(limit = 100): HistoryEntry[] {
   const database = getDatabase();
   const rows = database.prepare(
     'SELECT * FROM history ORDER BY created_at DESC LIMIT ?'
-  ).all(limit) as HistoryEntry[];
-  return rows;
+  ).all(limit) as any[];
+  return rows.map(mapHistoryRow);
 }
 
 export function searchHistory(query: string): HistoryEntry[] {
   const database = getDatabase();
   const rows = database.prepare(
     'SELECT * FROM history WHERE source_text LIKE ? OR target_text LIKE ? ORDER BY created_at DESC LIMIT 50'
-  ).all(`%${query}%`, `%${query}%`) as HistoryEntry[];
-  return rows;
+  ).all(`%${query}%`, `%${query}%`) as any[];
+  return rows.map(mapHistoryRow);
+}
+
+function mapHistoryRow(row: any): HistoryEntry {
+  return {
+    id: row.id,
+    sourceText: row.source_text,
+    targetText: row.target_text,
+    sourceLang: row.source_lang,
+    targetLang: row.target_lang,
+    provider: row.provider,
+    isFavorite: row.is_favorite === 1,
+    createdAt: row.created_at,
+  };
 }
 
 export function toggleFavorite(id: string, favorite: boolean): void {
@@ -122,9 +135,19 @@ export function toggleFavorite(id: string, favorite: boolean): void {
 
 export function tmLookup(sourceLang: string, targetLang: string, sourceText: string): TMEntry | null {
   const database = getDatabase();
-  return database.prepare(
+  const row = database.prepare(
     'SELECT * FROM tm_entries WHERE source_lang = ? AND target_lang = ? AND source_text = ?'
-  ).get(sourceLang, targetLang, sourceText) as TMEntry | null;
+  ).get(sourceLang, targetLang, sourceText) as any | undefined;
+  if (!row) return null;
+  return {
+    id: row.id,
+    sourceLang: row.source_lang,
+    targetLang: row.target_lang,
+    sourceText: row.source_text,
+    targetText: row.target_text,
+    usageCount: row.usage_count,
+    createdAt: row.created_at,
+  };
 }
 
 export function tmInsert(entry: Omit<TMEntry, 'id' | 'createdAt'>): void {
@@ -164,7 +187,18 @@ export function recordLocalStat(record: Omit<LocalStatsRecord, 'id' | 'createdAt
 export function getLocalStats(days = 30): LocalStatsRecord[] {
   const database = getDatabase();
   const since = Date.now() - days * 24 * 60 * 60 * 1000;
-  return database.prepare(
+  const rows = database.prepare(
     'SELECT * FROM local_stats WHERE created_at > ? ORDER BY created_at DESC'
-  ).all(since) as LocalStatsRecord[];
+  ).all(since) as any[];
+  return rows.map((row) => ({
+    id: row.id,
+    feature: row.feature,
+    provider: row.provider,
+    sourceLang: row.source_lang,
+    targetLang: row.target_lang,
+    charCount: row.char_count,
+    latencyMs: row.latency_ms,
+    tmHit: row.tm_hit === 1,
+    createdAt: row.created_at,
+  }));
 }
