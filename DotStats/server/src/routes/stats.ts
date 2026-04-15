@@ -153,9 +153,9 @@ export async function statsRoutes(app: FastifyInstance): Promise<void> {
     const result = await pool.query(`
       SELECT provider, date, total_calls, success, fail, avg_latency
       FROM provider_metrics
-      WHERE date >= CURRENT_DATE - INTERVAL '${days} days'
+      WHERE date >= CURRENT_DATE - INTERVAL \$1::int || ' days'
       ORDER BY date DESC, total_calls DESC
-    `);
+    \`, [days]);
     return { data: result.rows };
   });
 }
