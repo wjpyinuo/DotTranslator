@@ -117,6 +117,7 @@ async function initSchema(): Promise<void> {
       success       INTEGER DEFAULT 0,
       fail          INTEGER DEFAULT 0,
       total_latency REAL DEFAULT 0,
+      avg_latency   REAL DEFAULT 0,
       PRIMARY KEY (provider, date)
     );
   `);
