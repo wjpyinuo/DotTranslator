@@ -151,7 +151,8 @@ export async function statsRoutes(app: FastifyInstance): Promise<void> {
 
     const pool = getPool();
     const result = await pool.query(`
-      SELECT provider, date, total_calls, success, fail, avg_latency
+      SELECT provider, date, total_calls, success, fail,
+        CASE WHEN total_calls > 0 THEN total_latency / total_calls ELSE 0 END AS avg_latency
       FROM provider_metrics
       WHERE date >= CURRENT_DATE - INTERVAL $1::int || ' days'
       ORDER BY date DESC, total_calls DESC

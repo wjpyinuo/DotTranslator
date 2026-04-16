@@ -2,7 +2,8 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { getPool } from '../db/pool';
 import { setOnline, addToDAU, addToWAU, incrementFeature, updateVersion, pushEventStream } from '../services/redis';
-import { broadcastEvent } from '../services/websocket';
+import { broadcastEvents } from '../services/websocket';
+import { eventAuth } from '../middleware/auth';
 
 const eventSchema = z.object({
   events: z.array(z.object({
@@ -23,8 +24,8 @@ const eventSchema = z.object({
 });
 
 export async function eventRoutes(app: FastifyInstance): Promise<void> {
-  // POST /api/v1/events - 数据接收
-  app.post('/events', async (request, reply) => {
+  // POST /api/v1/events - 数据接收（需 INGEST_API_KEY 认证）
+  app.post('/events', { preHandler: eventAuth }, async (request, reply) => {
     const parsed = eventSchema.safeParse(request.body);
     if (!parsed.success) {
       return reply.status(400).send({ error: 'Invalid payload', details: parsed.error.issues });
@@ -64,9 +65,10 @@ export async function eventRoutes(app: FastifyInstance): Promise<void> {
       if (events.length > 0) {
         if (process.env.LITE_MODE === '1') {
           // 轻量模式：逐条插入（SQLite 不支持 UNNEST）
+          // 注意：占位符统一使用 $1 风格，由 lite-pool normalizeSQL 转换为 ?
           for (const event of events) {
             await client.query(
-              'INSERT INTO events (instance_id, event_type, feature, metadata, client_ts) VALUES (?, ?, ?, ?, ?)',
+              'INSERT INTO events (instance_id, event_type, feature, metadata, client_ts) VALUES ($1, $2, $3, $4, $5)',
               [instanceId, event.type, event.payload.feature || null,
                 JSON.stringify(event.payload.metadata || {}), event.timestamp]
             );
@@ -105,15 +107,14 @@ export async function eventRoutes(app: FastifyInstance): Promise<void> {
         }
       }
       for (const [provider, agg] of Object.entries(providerAgg)) {
-        const avgLatency = agg.totalLatency / agg.calls;
         await client.query(`
-          INSERT INTO provider_metrics (provider, date, total_calls, success, fail, avg_latency)
+          INSERT INTO provider_metrics (provider, date, total_calls, success, fail, total_latency)
           VALUES ($1, CURRENT_DATE, $2, $2, 0, $3)
           ON CONFLICT (provider, date) DO UPDATE SET
             total_calls = provider_metrics.total_calls + $2,
             success = provider_metrics.success + $2,
-            avg_latency = (provider_metrics.avg_latency * provider_metrics.total_calls + $3 * $2) / (provider_metrics.total_calls + $2)
-        `, [provider, agg.calls, avgLatency]);
+            total_latency = provider_metrics.total_latency + $3
+        `, [provider, agg.calls, agg.totalLatency]);
       }
 
       await client.query('COMMIT');
@@ -138,15 +139,13 @@ export async function eventRoutes(app: FastifyInstance): Promise<void> {
         });
       }
 
-      // WebSocket 批量广播（合并为单次推送）
+      // WebSocket 批量广播（单次推送，避免逐条发送）
       const broadcastPayload = events.map((e) => ({
         instanceId,
         type: e.type,
         feature: e.payload.feature,
       }));
-      for (const item of broadcastPayload) {
-        await broadcastEvent(item);
-      }
+      await broadcastEvents(broadcastPayload);
 
       return reply.status(204).send();
     } catch (err) {

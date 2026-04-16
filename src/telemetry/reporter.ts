@@ -125,13 +125,20 @@ export class TelemetryReporter {
       return;
     }
 
+    const ingestApiKey = await this.getIngestApiKey();
+
     try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'X-Instance-Id': this.instanceId,
+      };
+      if (ingestApiKey) {
+        headers['Authorization'] = `Bearer ${ingestApiKey}`;
+      }
+
       const res = await fetch(`${serverUrl}/api/v1/events`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Instance-Id': this.instanceId,
-        },
+        headers,
         body: JSON.stringify({ events }),
       });
 
@@ -180,6 +187,15 @@ export class TelemetryReporter {
     try {
       const { getSetting } = await import('@main/database');
       return getSetting('serverUrl') || null;
+    } catch {
+      return null;
+    }
+  }
+
+  private async getIngestApiKey(): Promise<string | null> {
+    try {
+      const { getSetting } = await import('@main/database');
+      return getSetting('ingestApiKey') || null;
     } catch {
       return null;
     }

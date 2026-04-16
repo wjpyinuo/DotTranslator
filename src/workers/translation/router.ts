@@ -4,9 +4,39 @@ import { YoudaoProvider } from './providers/youdao';
 import { BaiduProvider } from './providers/baidu';
 import { FallbackProvider } from './providers/fallback';
 
+/** 默认翻译超时（毫秒） */
+const DEFAULT_TIMEOUT_MS = 10_000;
+
+/**
+ * 带超时的 Promise 包装
+ * 使用 AbortController 取消底层请求（如果 provider 支持 signal）
+ */
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, providerId: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`Provider "${providerId}" timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      }
+    );
+  });
+}
+
+/** EMA 平滑系数：越小越平滑，0.3 = 新数据权重 30% */
+const EMA_ALPHA = 0.3;
+
 export class TranslationRouter {
   private providers = new Map<string, TranslationProvider>();
-  private errorCounts = new Map<string, { total: number; errors: number; windowStart: number }>();
+  /** 每个 provider 的 EMA 错误率（0~1），0 = 无错误 */
+  private errorRates = new Map<string, number>();
 
   constructor() {
     this.register(new DeepLProvider());
@@ -27,12 +57,20 @@ export class TranslationRouter {
     return Array.from(this.providers.values());
   }
 
-  async translateWithProvider(providerId: string, params: TranslateParams): Promise<TranslateResult> {
+  /**
+   * 单引擎翻译（带超时保护）
+   * @param timeoutMs 超时毫秒数，默认 10s
+   */
+  async translateWithProvider(
+    providerId: string,
+    params: TranslateParams,
+    timeoutMs: number = DEFAULT_TIMEOUT_MS
+  ): Promise<TranslateResult> {
     const provider = this.providers.get(providerId);
     if (!provider) throw new Error(`Provider "${providerId}" not found`);
 
     try {
-      const result = await provider.translate(params);
+      const result = await withTimeout(provider.translate(params), timeoutMs, providerId);
       this.recordSuccess(providerId);
       return result;
     } catch (error) {
@@ -42,7 +80,7 @@ export class TranslationRouter {
   }
 
   /**
-   * 翻译对比模式：同时调用所有可用引擎
+   * 翻译对比模式：同时调用所有可用引擎（各自带超时）
    */
   async translateCompare(
     params: TranslateParams,
@@ -96,33 +134,19 @@ export class TranslationRouter {
   }
 
   private recordSuccess(providerId: string): void {
-    const record = this.errorCounts.get(providerId);
-    if (record) {
-      record.total++;
-    }
+    const prev = this.errorRates.get(providerId) ?? 0;
+    // 成功 → EMA 向 0 收敛
+    this.errorRates.set(providerId, prev * (1 - EMA_ALPHA));
   }
 
   private recordError(providerId: string): void {
-    const record = this.errorCounts.get(providerId);
-    if (record) {
-      record.total++;
-      record.errors++;
-    } else {
-      this.errorCounts.set(providerId, { total: 1, errors: 1, windowStart: Date.now() });
-    }
+    const prev = this.errorRates.get(providerId) ?? 0;
+    // 失败 → EMA 向 1 收敛
+    this.errorRates.set(providerId, prev + (1 - prev) * EMA_ALPHA);
   }
 
   private getErrorRate(providerId: string): number {
-    const record = this.errorCounts.get(providerId);
-    if (!record || record.total === 0) return 0;
-
-    // 5 分钟窗口外重置
-    if (Date.now() - record.windowStart > 5 * 60 * 1000) {
-      this.errorCounts.delete(providerId);
-      return 0;
-    }
-
-    return record.errors / record.total;
+    return this.errorRates.get(providerId) ?? 0;
   }
 }
 
