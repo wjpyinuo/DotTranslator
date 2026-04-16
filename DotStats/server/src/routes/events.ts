@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { getPool } from '../db/pool';
 import { setOnline, addToDAU, addToWAU, incrementFeature, updateVersion, pushEventStream } from '../services/redis';
-import { broadcastEvent } from '../services/websocket';
+import { broadcastEvents } from '../services/websocket';
 import { eventAuth } from '../middleware/auth';
 
 const eventSchema = z.object({
@@ -140,15 +140,13 @@ export async function eventRoutes(app: FastifyInstance): Promise<void> {
         });
       }
 
-      // WebSocket 批量广播（合并为单次推送）
+      // WebSocket 批量广播（单次推送，避免逐条发送）
       const broadcastPayload = events.map((e) => ({
         instanceId,
         type: e.type,
         feature: e.payload.feature,
       }));
-      for (const item of broadcastPayload) {
-        await broadcastEvent(item);
-      }
+      await broadcastEvents(broadcastPayload);
 
       return reply.status(204).send();
     } catch (err) {
