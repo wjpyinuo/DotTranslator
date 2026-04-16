@@ -96,8 +96,23 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   // 内部辅助窗口用（悬浮球/迷你卡片/PiP）
+  // 仅允许白名单 channel，防止渲染进程向任意 channel 发送消息
   _internal: {
-    send: (channel: string, ...args: unknown[]) => ipcRenderer.send(channel, ...args),
+    send: (() => {
+      const ALLOWED_CHANNELS = new Set([
+        'mini-card:update',
+        'mini-card:auto-hide',
+        'pip:update',
+        'theme:changed',
+      ]);
+      return (channel: string, ...args: unknown[]) => {
+        if (!ALLOWED_CHANNELS.has(channel)) {
+          console.warn(`[IPC] Blocked internal send to channel: ${channel}`);
+          return;
+        }
+        ipcRenderer.send(channel, ...args);
+      };
+    })(),
     on: (channel: string, callback: (...args: unknown[]) => void) => {
       ipcRenderer.on(channel, (_event, ...args) => callback(...args));
     },
