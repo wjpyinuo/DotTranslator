@@ -1,6 +1,6 @@
 {
   "name": "dotstats",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "DotStats - 数据看板桌面端",
   "main": "dist-electron/main.js",
   "author": "wjpyinuo",

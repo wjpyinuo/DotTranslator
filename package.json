@@ -1,6 +1,6 @@
 {
   "name": "dot-translator",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "DotTranslator - 即时翻译桌面工具",
   "main": "dist-electron/main.js",
   "author": "wjpyinuo",
@@ -74,7 +74,10 @@
       "icon": "assets/icon.icns"
     },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": [
+        "AppImage",
+        "deb"
+      ],
       "icon": "assets/icon.png"
     },
     "nsis": {

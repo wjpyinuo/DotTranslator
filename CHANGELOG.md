@@ -1,5 +1,43 @@
 # Changelog
 
+## v0.3.3 (2026-04-17)
+
+### 🔐 安全
+- **Webhook URL 校验** — 告警通知目标 URL 强制 HTTPS + 拒绝 localhost/127.* 内网地址，防止 SSRF
+- **Stats 端点警告** — 未配置 `STATS_VIEW_KEY` 时启动日志打印安全警告，提醒生产环境开启认证
+
+### 🐛 修复
+- **主题持久化** — 修复 `currentTheme` 硬编码为 'light' 的 bug，现从 SQLite 加载上次选择的主题，IPC 变更时自动持久化
+- **health.ts 类型错误** — 修复 Redis `ping()` 方法的 TypeScript 联合类型报错（TS2339）
+- **SettingsPage 测试** — 修正测试断言文本与实际组件不匹配（3 个失败用例）
+
+### ⚡ 性能
+- **留存 SQL 优化** — 周留存计算从 LEFT JOIN 全表扫描改为 CTE + 按窗口范围子查询，利用 `received_at` 索引
+
+### 🏗️ 工程
+- **SQLite 迁移系统** — 新增 `_migrations` 跟踪表，迁移可追溯、幂等执行，替代 ad-hoc try/catch
+- **公告白名单常量化** — `ANNOUNCEMENT_ALLOWED_HOSTS` 从函数局部变量提取为模块级常量
+- **IPC 导入统一** — `ipc-handlers.ts` 中 `.then()` 链全部改为 `async/await` 风格
+- **移除未使用 import** — 清理 `main.ts` 中 `ipcMain` 的 eslint-disable 注释
+
+### 🧪 测试
+- **新增 4 个测试文件**（676 行）：
+  - `ipc-validator.test.ts` — 30+ 用例覆盖全部验证函数
+  - `fallback.test.ts` — 免费翻译引擎 API 集成 + 错误处理
+  - `baidu.test.ts` — 百度翻译凭据检查 + 错误码 + 成功流程
+  - `secure-storage.test.ts` — JSON 序列化往返 + Key 删除
+- DotStats 前端测试从 13/16 提升至 **16/16 全通过**
+- DotStats Server 测试 **17/17 全通过**
+- DotTranslator 测试 **48/48 全通过**
+- **总计 81 测试全部通过**
+
+### 📦 版本
+- DotTranslator: 0.3.2 → **0.3.3**
+- DotStats: 0.2.1 → **0.2.2**
+- DotStats Server: 0.2.0 → **0.2.1**
+
+---
+
 ## v0.3.1 (2026-04-16)
 
 ### 🔐 安全修复
