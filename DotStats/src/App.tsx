@@ -58,7 +58,7 @@ function TitleBar() {
           <text x="7" y="14" fontSize="10" fontWeight="bold" fill="white" fontFamily="Arial,sans-serif">📊</text>
           <text x="9" y="26" fontSize="8" fontWeight="bold" fill="rgba(255,255,255,0.85)" fontFamily="Arial,sans-serif">DS</text>
         </svg>
-        <span className="dotstats-titlebar-text">DotStats v0.3.0</span>
+        <span className="dotstats-titlebar-text">DotStats v0.2.1</span>
       </div>
       <div className="dotstats-titlebar-controls">
         <button onClick={() => (window as any).electronAPI?.window?.minimize()} className="dotstats-tb-btn" title="最小化">─</button>

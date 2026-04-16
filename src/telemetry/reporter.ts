@@ -158,7 +158,7 @@ export class TelemetryReporter {
       timestamp: Date.now(),
       payload: {
         instanceId: this.instanceId,
-        version: '0.3.0',
+        version: '0.3.1',
         os: process.platform,
         osVersion: process.version,
         arch: process.arch,
@@ -177,7 +177,7 @@ export class TelemetryReporter {
       timestamp: Date.now(),
       payload: {
         instanceId: this.instanceId,
-        version: '0.3.0',
+        version: '0.3.1',
         feature,
         metadata,
       },

@@ -61,7 +61,7 @@ export function AnnouncementBar() {
 
       if (!text) {
         // 无内容时显示默认公告
-        text = '欢迎使用 DotTranslator v0.3.0 — 多引擎翻译 · 亮/暗主题 · TM 缓存';
+        text = '欢迎使用 DotTranslator v0.3.1 — 多引擎翻译 · 亮/暗主题 · TM 缓存';
         usedSource = null;
       }
 
@@ -76,7 +76,7 @@ export function AnnouncementBar() {
       }
     } catch {
       // 公告获取失败不阻塞主流程，显示默认公告
-      const defaultContent = '欢迎使用 DotTranslator v0.3.0 — 多引擎翻译 · 亮/暗主题 · TM 缓存';
+      const defaultContent = '欢迎使用 DotTranslator v0.3.1 — 多引擎翻译 · 亮/暗主题 · TM 缓存';
       const id = 'default-v020';
       const dismissedId = localStorage.getItem('dot_announcement_dismissed');
       if (dismissedId !== id) {

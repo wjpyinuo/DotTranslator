@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.3.1 (2026-04-16)
+
+### 🔐 安全修复
+- **时序攻击防护** — 管理员认证从 `!==` 改为 `crypto.timingSafeEqual`，防止时序侧信道攻击
+- **SSRF 防护** — 公告栏远程 URL 请求限制为 HTTPS + 白名单域名（GitHub、jsDelivr、unpkg）
+- **告警冷却机制** — 新增 `cooldown_minutes` 字段（默认 60 分钟），防止告警规则重复触发刷屏
+
+### 🐛 修复
+- **provider_metrics Schema 一致** — `init.sql` 和 `pool.ts` 的 `provider_metrics` 表统一包含 `total_latency` + `avg_latency` 两列
+- **WebSocket 广播稳定性** — 新增连续错误计数退避（5 次后静默跳过）+ 客户端 `error` 事件处理
+- **留存数据清理** — 月度归档任务新增 16 周以上留存快照清理
+- **Schema 同步** — `init.sql` 与 `pool.ts` 所有表结构完全一致
+
 ## v0.3.0 (2026-04-16)
 
 ### 🎉 新功能

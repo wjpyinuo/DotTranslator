@@ -38,7 +38,7 @@ export function startLocalApiServer(): void {
     try {
       if (pathname === '/api/health' && req.method === 'GET') {
         res.writeHead(200);
-        res.end(JSON.stringify({ status: 'ok', version: '0.3.0', uptime: process.uptime() }));
+        res.end(JSON.stringify({ status: 'ok', version: '0.3.1', uptime: process.uptime() }));
       } else if (pathname === '/api/languages' && req.method === 'GET') {
         const { SUPPORTED_LANGUAGES } = await import('../src/shared/constants');
         res.writeHead(200);

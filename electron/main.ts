@@ -159,7 +159,7 @@ function createTray(): void {
     },
   ]);
 
-  tray.setToolTip('DotTranslator v0.3.0 - 即时翻译');
+  tray.setToolTip('DotTranslator v0.3.1 - 即时翻译');
   tray.setContextMenu(contextMenu);
   tray.on('click', () => {
     mainWindow?.show();

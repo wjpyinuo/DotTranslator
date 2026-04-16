@@ -20,7 +20,7 @@ export function AboutPanel() {
           <path d="M12 20 L7 23.5 L12 27" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
         <h2>DotTranslator</h2>
-        <span className="about-version">v0.3.0</span>
+        <span className="about-version">v0.3.1</span>
       </div>
 
       <p className="about-desc">
