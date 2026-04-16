@@ -3,7 +3,10 @@
   "version": "0.3.3",
   "description": "DotTranslator - 即时翻译桌面工具",
   "main": "dist-electron/main.js",
-  "author": "wjpyinuo",
+  "author": {
+    "name": "wjpyinuo",
+    "email": "wjpyinuo@users.noreply.github.com"
+  },
   "license": "MIT",
   "scripts": {
     "dev": "vite",

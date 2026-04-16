@@ -3,7 +3,10 @@
   "version": "0.2.2",
   "description": "DotStats - 数据看板桌面端",
   "main": "dist-electron/main.js",
-  "author": "wjpyinuo",
+  "author": {
+    "name": "wjpyinuo",
+    "email": "wjpyinuo@users.noreply.github.com"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
