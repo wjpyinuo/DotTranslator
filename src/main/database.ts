@@ -112,14 +112,45 @@ function initSchema(database: Database.Database): void {
       total_latency REAL DEFAULT 0,
       PRIMARY KEY (provider, date)
     );
-    -- 兼容旧表：如果存在 avg_latency 列但缺少 total_latency，添加之
-    -- SQLite 不支持 ALTER TABLE ADD COLUMN IF NOT EXISTS，用 try/catch 忽略重复列错误
+
+    -- 迁移记录表（轻量 migration tracker）
+    CREATE TABLE IF NOT EXISTS _migrations (
+      id        TEXT PRIMARY KEY,
+      applied   INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+    );
   `);
 
-  // 迁移：旧表只有 avg_latency → 添加 total_latency 列
-  try { database.exec('ALTER TABLE provider_metrics ADD COLUMN total_latency REAL DEFAULT 0'); } catch { /* 列已存在 */ }
-  database.exec(`
-  `);
+  // 运行增量迁移
+  runMigrations(database);
+}
+
+/**
+ * 轻量迁移系统：按顺序检查并执行未应用的迁移
+ * 每个迁移用 try/catch 容错（ALTER TABLE 列已存在时忽略）
+ */
+function runMigrations(database: Database.Database): void {
+  const migrations: Array<{ id: string; sql: string }> = [
+    // 001: provider_metrics 添加 total_latency 列（兼容旧表）
+    {
+      id: '001_add_total_latency',
+      sql: 'ALTER TABLE provider_metrics ADD COLUMN total_latency REAL DEFAULT 0',
+    },
+  ];
+
+  for (const m of migrations) {
+    const applied = database.prepare('SELECT 1 FROM _migrations WHERE id = ?').get(m.id);
+    if (applied) continue;
+
+    try {
+      database.exec(m.sql);
+      database.prepare('INSERT INTO _migrations (id) VALUES (?)').run(m.id);
+      console.log(`[DB] Migration ${m.id} applied`);
+    } catch {
+      // 列已存在等可忽略错误，标记为已应用
+      database.prepare('INSERT OR IGNORE INTO _migrations (id) VALUES (?)').run(m.id);
+      console.log(`[DB] Migration ${m.id} skipped (already applied)`);
+    }
+  }
 }
 
 // ==================== History ====================
