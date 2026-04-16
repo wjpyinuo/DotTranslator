@@ -111,20 +111,28 @@ export function startLocalApiServer(): void {
     }
   });
 
-  // 从 18000 开始尝试绑定
+  // 从 18000 开始尝试绑定（最多尝试 101 次）
   let port = 18000;
+  const MAX_PORT = 18100;
+
+  const onError = (err: any) => {
+    if (err.code === 'EADDRINUSE' && port < MAX_PORT) {
+      server.removeListener('error', onError);
+      port++;
+      tryBind();
+    } else {
+      console.error(`[LocalAPI] Failed to bind:`, err);
+    }
+  };
+
   const tryBind = () => {
+    server.on('error', onError);
     server.listen(port, '127.0.0.1', () => {
+      server.removeListener('error', onError);
       console.log(`[LocalAPI] Listening on http://127.0.0.1:${port}`);
     });
-    server.on('error', (err: any) => {
-      if (err.code === 'EADDRINUSE' && port < 18100) {
-        port++;
-        server.close();
-        tryBind();
-      }
-    });
   };
+
   tryBind();
 }
 
