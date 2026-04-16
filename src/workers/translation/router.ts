@@ -3,6 +3,9 @@ import { DeepLProvider } from './providers/deepl';
 import { YoudaoProvider } from './providers/youdao';
 import { BaiduProvider } from './providers/baidu';
 import { FallbackProvider } from './providers/fallback';
+import { createLogger } from '@shared/logger';
+
+const log = createLogger('Router');
 
 /** 错误分类：帮助 UI 和熔断器做出更智能的决策 */
 export type ErrorCategory =
@@ -315,7 +318,7 @@ export class TranslationRouter {
     if (circuit.failures >= this.cbFailureThreshold && circuit.state === 'closed') {
       circuit.state = 'open';
       circuit.openedAt = Date.now();
-      console.warn(`[CircuitBreaker] Provider "${providerId}" OPENED (${circuit.failures} consecutive failures)`);
+      log.warn(`[CircuitBreaker] Provider "${providerId}" OPENED (${circuit.failures} consecutive failures)`);
     }
   }
 
@@ -337,7 +340,7 @@ export class TranslationRouter {
       const elapsed = Date.now() - circuit.openedAt;
       if (elapsed >= this.cbCooldownMs) {
         circuit.state = 'half-open';
-        console.info(`[CircuitBreaker] Provider "${providerId}" HALF-OPEN (cooldown elapsed)`);
+        log.info(`[CircuitBreaker] Provider "${providerId}" HALF-OPEN (cooldown elapsed)`);
         return false;
       }
       return true;
@@ -401,7 +404,7 @@ export class TranslationRouter {
       this.errorRates.set(s.providerId, s.errorRate);
     }
     if (states.length > 0) {
-      console.info(`[CircuitBreaker] Restored state for ${states.length} provider(s)`);
+      log.info(`[CircuitBreaker] Restored state for ${states.length} provider(s)`);
     }
   }
 }

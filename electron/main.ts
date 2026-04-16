@@ -7,6 +7,9 @@ import { startLocalApiServer, registerLocalApiIPC } from './local-api';
 import { registerAllIPC } from './ipc-handlers';
 import { APP_VERSION } from '../src/shared/constants';
 import { initAutoUpdater } from './auto-updater';
+import { createLogger } from '../src/shared/logger';
+
+const log = createLogger('Main');
 
 // ========== 窗口引用 ==========
 let mainWindow: BrowserWindow | null = null;
@@ -91,14 +94,14 @@ function createMainWindow(): BrowserWindow {
       }
     });
     if (!isAllowed) {
-      console.warn(`[Security] Blocked navigation to: ${url}`);
+      log.warn(`[Security] Blocked navigation to: ${url}`);
       event.preventDefault();
     }
   });
 
   // 拦截新窗口
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    console.warn(`[Security] Blocked window.open to: ${url}`);
+    log.warn(`[Security] Blocked window.open to: ${url}`);
     return { action: 'deny' };
   });
 
