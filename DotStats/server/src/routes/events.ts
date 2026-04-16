@@ -26,7 +26,16 @@ const eventSchema = z.object({
 
 export async function eventRoutes(app: FastifyInstance): Promise<void> {
   // POST /api/v1/events - 数据接收（需 INGEST_API_KEY 认证）
-  app.post('/events', { preHandler: eventAuth }, async (request, reply) => {
+  // 写入端点独立限流：30 次/分钟（比全局 100 次/分钟更严格，防止异常客户端刷写）
+  app.post('/events', {
+    preHandler: eventAuth,
+    config: {
+      rateLimit: {
+        max: 30,
+        timeWindow: '1 minute',
+      },
+    },
+  }, async (request, reply) => {
     const parsed = eventSchema.safeParse(request.body);
     if (!parsed.success) {
       return sendError(reply, 400, 'Invalid payload', parsed.error.issues);
