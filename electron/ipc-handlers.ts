@@ -6,6 +6,26 @@ import path from 'path';
 import { translationRouter } from '../src/workers/translation/router';
 import { telemetry } from '../src/telemetry/reporter';
 import { getDecryptedKeys } from './secure-storage';
+import {
+  ValidationError,
+  assertString,
+  validateTranslationParams,
+  validateHistoryEntry,
+  validateId,
+  validateIdArray,
+  validateResizeParams,
+  validateTheme,
+  validateStorageKey,
+  validateStorageValue,
+  validateSearchParams,
+  validateLimit,
+  validateOcrBase64,
+  validateFilename,
+  validateContent,
+  validateTmParams,
+  validateTmInsertParams,
+  validateLanguageDetectText,
+} from './ipc-validator';
 
 interface WindowRefs {
   mainWindow: BrowserWindow | null;
@@ -59,20 +79,28 @@ export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
     return refs.mainWindow?.isMaximized() ?? false;
   });
 
-  ipcMain.on('window:resize', (_event, { width, height }: { width: number; height: number }) => {
-    if (!refs.mainWindow || refs.mainWindow.isDestroyed()) return;
-    // 横向固定为初始宽度，只允许纵向调整
-    const fixedW = 420;
-    const clampedH = Math.max(400, Math.min(height, 900));
-    if (!refs.mainWindow.isMaximized()) {
-      refs.mainWindow.setSize(fixedW, clampedH);
+  ipcMain.on('window:resize', (_event, raw) => {
+    try {
+      const { height } = validateResizeParams(raw);
+      if (!refs.mainWindow || refs.mainWindow.isDestroyed()) return;
+      const fixedW = 420;
+      const clampedH = Math.max(400, Math.min(height, 900));
+      if (!refs.mainWindow.isMaximized()) {
+        refs.mainWindow.setSize(fixedW, clampedH);
+      }
+    } catch (err) {
+      if (err instanceof ValidationError) console.warn('[IPC:resize] Validation error:', err.message);
     }
   });
 
   // ========== 主题同步 ==========
-  ipcMain.on('theme:changed', (_event, theme: string) => {
-    const currentTheme = theme || 'light';
-    refs.pipWindow?.webContents.send('theme:changed', currentTheme);
+  ipcMain.on('theme:changed', (_event, raw) => {
+    try {
+      const currentTheme = validateTheme(raw);
+      refs.pipWindow?.webContents.send('theme:changed', currentTheme);
+    } catch (err) {
+      if (err instanceof ValidationError) console.warn('[IPC:theme] Validation error:', err.message);
+    }
   });
 
   // ========== 应用退出 ==========
@@ -114,33 +142,42 @@ export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
     }
   }
 
-  ipcMain.handle('translation:translate', async (_event, params) => {
-    await loadProviderCredentials();
-    const enabled = params.enabledProviders || ['fallback'];
-    const results = await translationRouter.translateCompare(params, enabled);
+  ipcMain.handle('translation:translate', async (_event, raw) => {
     try {
-      const { recordProviderMetric } = await import('../src/main/database');
-      const succeeded = new Set(results.map((r: any) => r.provider));
-      for (const r of results) {
-        recordProviderMetric(r.provider, true, r.latencyMs);
-        telemetry.recordTranslation({
-          provider: r.provider,
-          sourceLang: params.sourceLang,
-          targetLang: params.targetLang,
-          charCount: params.text?.length || 0,
-          latencyMs: r.latencyMs,
-          tmHit: false,
-        });
-      }
-      for (const id of enabled) {
-        if (!succeeded.has(id)) {
-          recordProviderMetric(id, false, 0);
+      const params = validateTranslationParams(raw);
+      await loadProviderCredentials();
+      const enabled = params.enabledProviders || ['fallback'];
+      const results = await translationRouter.translateCompare(params, enabled);
+      try {
+        const { recordProviderMetric } = await import('../src/main/database');
+        const succeeded = new Set(results.map((r: any) => r.provider));
+        for (const r of results) {
+          recordProviderMetric(r.provider, true, r.latencyMs);
+          telemetry.recordTranslation({
+            provider: r.provider,
+            sourceLang: params.sourceLang,
+            targetLang: params.targetLang,
+            charCount: params.text?.length || 0,
+            latencyMs: r.latencyMs,
+            tmHit: false,
+          });
         }
+        for (const id of enabled) {
+          if (!succeeded.has(id)) {
+            recordProviderMetric(id, false, 0);
+          }
+        }
+      } catch {
+        /* 静默 */
       }
-    } catch {
-      /* 静默 */
+      return results;
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        console.warn('[IPC:translate] Validation error:', err.message);
+        throw new Error(`Invalid translation params: ${err.message}`);
+      }
+      throw err;
     }
-    return results;
   });
 
   ipcMain.handle('translation:getProviders', () => {
@@ -151,17 +188,26 @@ export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
     }));
   });
 
-  ipcMain.handle('translation:detectLanguage', async (_event, text: string) => {
-    const providers = translationRouter.getAllProviders();
-    for (const p of providers) {
-      try {
-        const available = await p.isAvailable();
-        if (available) return p.detectLanguage(text);
-      } catch {
-        /* try next */
+  ipcMain.handle('translation:detectLanguage', async (_event, raw) => {
+    try {
+      const text = validateLanguageDetectText(raw);
+      const providers = translationRouter.getAllProviders();
+      for (const p of providers) {
+        try {
+          const available = await p.isAvailable();
+          if (available) return p.detectLanguage(text);
+        } catch {
+          /* try next */
+        }
       }
+      throw new Error('No available provider for language detection');
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        console.warn('[IPC:detectLanguage] Validation error:', err.message);
+        throw new Error(`Invalid params: ${err.message}`);
+      }
+      throw err;
     }
-    throw new Error('No available provider for language detection');
   });
 
   // ========== PiP 窗口 ==========
@@ -245,10 +291,10 @@ export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
     'unpkg.com',
   ]);
 
-  ipcMain.handle('announcement:fetch', async (_event, url: string) => {
+  ipcMain.handle('announcement:fetch', async (_event, raw) => {
     try {
+      const url = assertString(raw, 'url', { maxLen: 2048 });
       const parsed = new URL(url);
-      // 仅允许 HTTPS + 白名单域名
       if (parsed.protocol !== 'https:') {
         console.warn('[Announcement] Blocked non-HTTPS URL:', url);
         return '';
@@ -259,17 +305,19 @@ export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
       }
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.text();
+      const text = await res.text();
+      return text.slice(0, 100_000); // 限制公告大小
     } catch (err) {
       console.error('[Announcement] fetch failed:', err);
       return '';
     }
   });
 
-  ipcMain.handle('announcement:readLocal', async (_event, filename: string) => {
-    const fs = require('fs');
-    const localPath = path.join(app.getPath('userData'), filename);
+  ipcMain.handle('announcement:readLocal', async (_event, raw) => {
     try {
+      const filename = validateFilename(raw);
+      const fs = require('fs');
+      const localPath = path.join(app.getPath('userData'), filename);
       if (fs.existsSync(localPath)) {
         return fs.readFileSync(localPath, 'utf-8');
       }
@@ -279,100 +327,156 @@ export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
       }
       return '';
     } catch (err) {
-      console.error('[Announcement] local read failed:', err);
+      if (err instanceof ValidationError) console.warn('[IPC:readLocal] Validation error:', err.message);
       return '';
     }
   });
 
-  ipcMain.handle('announcement:writeLocal', async (_event, filename: string, content: string) => {
-    const fs = require('fs');
-    const localPath = path.join(app.getPath('userData'), filename);
+  ipcMain.handle('announcement:writeLocal', async (_event, rawFilename, rawContent) => {
     try {
+      const filename = validateFilename(rawFilename);
+      const content = validateContent(rawContent);
+      const fs = require('fs');
+      const localPath = path.join(app.getPath('userData'), filename);
       fs.writeFileSync(localPath, content, 'utf-8');
       return true;
     } catch (err) {
-      console.error('[Announcement] local write failed:', err);
+      if (err instanceof ValidationError) console.warn('[IPC:writeLocal] Validation error:', err.message);
+      else console.error('[Announcement] local write failed:', err);
       return false;
     }
   });
 
   // ========== TM 精确匹配 ==========
-  ipcMain.handle('tm:lookup', async (_event, text: string, sourceLang: string, targetLang: string) => {
-    const { tmLookup } = await import('../src/main/database');
-    return tmLookup(sourceLang, targetLang, text);
+  ipcMain.handle('tm:lookup', async (_event, ...raw) => {
+    try {
+      const { text, sourceLang, targetLang } = validateTmParams(raw);
+      const { tmLookup } = await import('../src/main/database');
+      return tmLookup(sourceLang, targetLang, text);
+    } catch (err) {
+      if (err instanceof ValidationError) { console.warn('[IPC:tm:lookup] Validation error:', err.message); return null; }
+      throw err;
+    }
   });
 
-  ipcMain.handle(
-    'tm:insert',
-    async (_event, text: string, targetText: string, sourceLang: string, targetLang: string) => {
+  ipcMain.handle('tm:insert', async (_event, ...raw) => {
+    try {
+      const { text, targetText, sourceLang, targetLang } = validateTmInsertParams(raw);
       const { tmInsert } = await import('../src/main/database');
       tmInsert({ sourceLang, targetLang, sourceText: text, targetText, usageCount: 1 });
+    } catch (err) {
+      if (err instanceof ValidationError) console.warn('[IPC:tm:insert] Validation error:', err.message);
     }
-  );
+  });
 
   // ========== 通用存储 ==========
-  ipcMain.handle('storage:get', async (_event, key: string) => {
-    const { getSetting } = await import('../src/main/database');
-    return getSetting(key);
+  ipcMain.handle('storage:get', async (_event, raw) => {
+    try {
+      const key = validateStorageKey(raw);
+      const { getSetting } = await import('../src/main/database');
+      return getSetting(key);
+    } catch (err) {
+      if (err instanceof ValidationError) { console.warn('[IPC:storage:get] Validation error:', err.message); return null; }
+      throw err;
+    }
   });
 
-  ipcMain.handle('storage:set', async (_event, key: string, value: unknown) => {
-    const { setSetting } = await import('../src/main/database');
-    setSetting(key, JSON.stringify(value));
+  ipcMain.handle('storage:set', async (_event, rawKey, rawValue) => {
+    try {
+      const key = validateStorageKey(rawKey);
+      const value = validateStorageValue(rawValue);
+      const { setSetting } = await import('../src/main/database');
+      setSetting(key, JSON.stringify(value));
+    } catch (err) {
+      if (err instanceof ValidationError) console.warn('[IPC:storage:set] Validation error:', err.message);
+    }
   });
 
-  ipcMain.handle('storage:delete', async (_event, key: string) => {
-    const { setSetting } = await import('../src/main/database');
-    setSetting(key, '');
+  ipcMain.handle('storage:delete', async (_event, raw) => {
+    try {
+      const key = validateStorageKey(raw);
+      const { setSetting } = await import('../src/main/database');
+      setSetting(key, '');
+    } catch (err) {
+      if (err instanceof ValidationError) console.warn('[IPC:storage:delete] Validation error:', err.message);
+    }
   });
 
   // ========== 翻译历史 ==========
-  ipcMain.handle('history:getAll', async (_event, limit?: number) => {
-    const { getHistory } = await import('../src/main/database');
-    return getHistory(limit || 100);
+  ipcMain.handle('history:getAll', async (_event, raw) => {
+    try {
+      const limit = validateLimit(raw);
+      const { getHistory } = await import('../src/main/database');
+      return getHistory(limit || 100);
+    } catch (err) {
+      if (err instanceof ValidationError) { console.warn('[IPC:history:getAll] Validation error:', err.message); return []; }
+      throw err;
+    }
   });
 
-  ipcMain.handle(
-    'history:add',
-    async (
-      _event,
-      entry: {
-        sourceText: string;
-        targetText: string;
-        sourceLang: string;
-        targetLang: string;
-        provider: string;
-        isFavorite?: boolean;
-      }
-    ) => {
+  ipcMain.handle('history:add', async (_event, raw) => {
+    try {
+      const entry = validateHistoryEntry(raw);
       const { addHistory } = await import('../src/main/database');
       return addHistory({ ...entry, isFavorite: entry.isFavorite ?? false });
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        console.warn('[IPC:history:add] Validation error:', err.message);
+        throw new Error(`Invalid history entry: ${err.message}`);
+      }
+      throw err;
     }
-  );
-
-  ipcMain.handle('history:search', async (_event, query: string) => {
-    const { searchHistory } = await import('../src/main/database');
-    return searchHistory(query);
   });
 
-  ipcMain.handle('history:addFavorite', async (_event, id: string) => {
-    const { toggleFavorite } = await import('../src/main/database');
-    toggleFavorite(id, true);
+  ipcMain.handle('history:search', async (_event, raw) => {
+    try {
+      const query = validateSearchParams(raw);
+      const { searchHistory } = await import('../src/main/database');
+      return searchHistory(query);
+    } catch (err) {
+      if (err instanceof ValidationError) { console.warn('[IPC:history:search] Validation error:', err.message); return []; }
+      throw err;
+    }
   });
 
-  ipcMain.handle('history:removeFavorite', async (_event, id: string) => {
-    const { toggleFavorite } = await import('../src/main/database');
-    toggleFavorite(id, false);
+  ipcMain.handle('history:addFavorite', async (_event, raw) => {
+    try {
+      const id = validateId(raw);
+      const { toggleFavorite } = await import('../src/main/database');
+      toggleFavorite(id, true);
+    } catch (err) {
+      if (err instanceof ValidationError) console.warn('[IPC:history:addFavorite] Validation error:', err.message);
+    }
   });
 
-  ipcMain.handle('history:delete', async (_event, id: string) => {
-    const { deleteHistory } = await import('../src/main/database');
-    deleteHistory(id);
+  ipcMain.handle('history:removeFavorite', async (_event, raw) => {
+    try {
+      const id = validateId(raw);
+      const { toggleFavorite } = await import('../src/main/database');
+      toggleFavorite(id, false);
+    } catch (err) {
+      if (err instanceof ValidationError) console.warn('[IPC:history:removeFavorite] Validation error:', err.message);
+    }
   });
 
-  ipcMain.handle('history:deleteBatch', async (_event, ids: string[]) => {
-    const { deleteHistoryBatch } = await import('../src/main/database');
-    deleteHistoryBatch(ids);
+  ipcMain.handle('history:delete', async (_event, raw) => {
+    try {
+      const id = validateId(raw);
+      const { deleteHistory } = await import('../src/main/database');
+      deleteHistory(id);
+    } catch (err) {
+      if (err instanceof ValidationError) console.warn('[IPC:history:delete] Validation error:', err.message);
+    }
+  });
+
+  ipcMain.handle('history:deleteBatch', async (_event, raw) => {
+    try {
+      const ids = validateIdArray(raw);
+      const { deleteHistoryBatch } = await import('../src/main/database');
+      deleteHistoryBatch(ids);
+    } catch (err) {
+      if (err instanceof ValidationError) console.warn('[IPC:history:deleteBatch] Validation error:', err.message);
+    }
   });
 
   ipcMain.handle('history:clearAll', async () => {
@@ -386,9 +490,18 @@ export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
   });
 
   // ========== OCR 识别（复用 worker，避免每次初始化开销）==========
-  ipcMain.handle('ocr:recognize', async (_event, imageBase64: string) => {
-    const { recognize } = await import('./ocr-worker');
-    return recognize(imageBase64);
+  ipcMain.handle('ocr:recognize', async (_event, raw) => {
+    try {
+      const imageBase64 = validateOcrBase64(raw);
+      const { recognize } = await import('./ocr-worker');
+      return recognize(imageBase64);
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        console.warn('[IPC:ocr] Validation error:', err.message);
+        throw new Error(`Invalid OCR input: ${err.message}`);
+      }
+      throw err;
+    }
   });
 
   // ========== 本地统计 ==========
