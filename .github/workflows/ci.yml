@@ -142,7 +142,7 @@ jobs:
         with:
           name: DotTranslator-${{ matrix.artifact }}
           path: |
-            dist/*
+            dist/**
           retention-days: 30
 
       - name: Upload DotStats artifact
@@ -150,7 +150,7 @@ jobs:
         with:
           name: DotStats-${{ matrix.artifact }}
           path: |
-            DotStats/dist/*
+            DotStats/dist/**
           retention-days: 30
 
       - name: Create GitHub Release
@@ -160,7 +160,7 @@ jobs:
           generate_release_notes: true
           draft: false
           files: |
-            dist/*
-            DotStats/dist/*
+            dist/**
+            DotStats/dist/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
