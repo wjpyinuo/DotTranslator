@@ -84,14 +84,17 @@ export function AboutPanel() {
       </div>
 
       <div className="about-footer">
-        <a
-          href="https://github.com/wjpyinuo/DotTranslator"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="about-btn"
+        <button
+          className="about-btn about-donate-btn"
+          onClick={() => {
+            useAppStore.setState({} as never);
+            // 触发跳转到打赏页面
+            const event = new CustomEvent('navigate-tab', { detail: 'donate' });
+            window.dispatchEvent(event);
+          }}
         >
-          📖 源码
-        </a>
+          ☕ 打赏支持
+        </button>
       </div>
     </div>
   );

@@ -159,6 +159,16 @@ export function App() {
     return () => { observer.disconnect(); mutObserver.disconnect(); };
   }, [handleResize]);
 
+  // 内部导航事件（关于→打赏）
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const tab = (e as CustomEvent).detail;
+      if (tab) setActiveTab(tab);
+    };
+    window.addEventListener('navigate-tab', handler);
+    return () => window.removeEventListener('navigate-tab', handler);
+  }, []);
+
   // 设置持久化：从 SQLite 加载
   useEffect(() => {
     const api = window.electronAPI;
