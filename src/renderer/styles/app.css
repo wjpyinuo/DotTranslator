@@ -132,10 +132,25 @@ html, body, #root {
 }
 
 .title {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--accent);
   letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.title-name {
+  font-weight: 700;
+}
+
+.title-version {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  margin-left: 6px;
+  opacity: 0.75;
 }
 
 .titlebar-controls {
@@ -185,11 +200,11 @@ html, body, #root {
 
 .tab-btn {
   flex: 1;
-  padding: 7px 8px;
+  padding: 8px 10px;
   border: none;
   background: transparent;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 500;
   cursor: pointer;
   border-radius: var(--radius-sm);
@@ -253,7 +268,7 @@ html, body, #root {
   border-radius: var(--radius-sm);
   background: var(--bg-secondary);
   color: var(--text-primary);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   outline: none;
   cursor: pointer;
@@ -355,13 +370,13 @@ html, body, #root {
 /* Translate Button */
 .translate-btn {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   margin-top: 10px;
   border: none;
   border-radius: var(--radius-sm);
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
   color: white;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.25s ease;
@@ -523,12 +538,12 @@ html, body, #root {
 }
 
 .action-btn {
-  padding: 5px 12px;
+  padding: 6px 14px;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xs);
   background: transparent;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 16px;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -615,12 +630,12 @@ html, body, #root {
 }
 
 .history-toolbar-btn {
-  padding: 5px 10px;
+  padding: 6px 12px;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xs);
   background: transparent;
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: 18px;
   cursor: pointer;
   transition: all 0.2s ease;
   line-height: 1;
