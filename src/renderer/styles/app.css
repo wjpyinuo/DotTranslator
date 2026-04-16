@@ -94,6 +94,8 @@ html, body, #root {
     -8px -8px 20px rgba(255, 255, 255, 0.95),
     inset 0 0 0 1px rgba(255, 255, 255, 0.4);
   border-radius: var(--radius);
+  overflow: hidden;
+  clip-path: inset(0 round var(--radius));
 }
 
 /* 暗色毛玻璃 */
@@ -106,6 +108,8 @@ html, body, #root {
     0 8px 32px rgba(0, 0, 0, 0.5),
     inset 0 0 0 1px rgba(255, 255, 255, 0.04);
   border-radius: var(--radius);
+  overflow: hidden;
+  clip-path: inset(0 round var(--radius));
 }
 
 /* ==================== Toast ==================== */
