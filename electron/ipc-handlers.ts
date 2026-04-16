@@ -186,11 +186,21 @@ export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
             charCount: params.text?.length || 0,
             latencyMs: r.latencyMs,
             tmHit: false,
+            success: true,
           });
         }
         for (const id of enabled) {
           if (!succeeded.has(id)) {
             recordProviderMetric(id, false, 0);
+            telemetry.recordTranslation({
+              provider: id,
+              sourceLang: params.sourceLang,
+              targetLang: params.targetLang,
+              charCount: params.text?.length || 0,
+              latencyMs: 0,
+              tmHit: false,
+              success: false,
+            });
           }
         }
         // 持久化熔断器状态

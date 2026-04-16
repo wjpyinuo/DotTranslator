@@ -15,6 +15,7 @@ interface TranslationDetail {
   charCount: number;
   latencyMs: number;
   tmHit: boolean;
+  success?: boolean;
 }
 
 export class TelemetryReporter {
@@ -121,6 +122,7 @@ export class TelemetryReporter {
     this.trackFeature('translate_manual', {
       provider: detail.provider,
       charCountBucket: bucketCharCount(detail.charCount),
+      success: detail.success !== undefined ? (detail.success ? 1 : 0) : 1,
     });
   }
 

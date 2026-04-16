@@ -19,7 +19,7 @@ const eventSchema = z.object({
       locale: z.string().optional(),
       theme: z.string().optional(),
       feature: z.string().optional(),
-      metadata: z.record(z.union([z.string(), z.number()])).optional(),
+      metadata: z.record(z.union([z.string(), z.number(), z.boolean()])).optional(),
     }),
   })).max(50),
 });
@@ -97,26 +97,37 @@ export async function eventRoutes(app: FastifyInstance): Promise<void> {
         }
       }
 
-      // 聚合 provider_metrics（按 provider 分组，一次性更新）
-      const providerAgg: Record<string, { calls: number; totalLatency: number }> = {};
+      // 聚合 provider_metrics（按 provider 分组，区分成功/失败）
+      const providerAgg: Record<string, { calls: number; success: number; fail: number; totalLatency: number }> = {};
       for (const event of events) {
         if (event.type === 'feature' && event.payload.metadata?.provider) {
           const p = event.payload.metadata.provider as string;
-          if (!providerAgg[p]) providerAgg[p] = { calls: 0, totalLatency: 0 };
+          if (!providerAgg[p]) providerAgg[p] = { calls: 0, success: 0, fail: 0, totalLatency: 0 };
           providerAgg[p].calls++;
-          providerAgg[p].totalLatency += (event.payload.metadata.latencyMs as number) || 0;
+          const isSuccess = event.payload.metadata.success !== undefined
+            ? Boolean(event.payload.metadata.success)
+            : true; // 未携带 success 字段时向后兼容，视为成功
+          if (isSuccess) {
+            providerAgg[p].success++;
+            providerAgg[p].totalLatency += (event.payload.metadata.latencyMs as number) || 0;
+          } else {
+            providerAgg[p].fail++;
+          }
         }
       }
       for (const [provider, agg] of Object.entries(providerAgg)) {
         await client.query(`
           INSERT INTO provider_metrics (provider, date, total_calls, success, fail, total_latency, avg_latency)
-          VALUES ($1, CURRENT_DATE, $2, $2, 0, $3, $3::float / $2)
+          VALUES ($1, CURRENT_DATE, $2, $3, $4, $5, CASE WHEN $3 > 0 THEN $5::float / $3 ELSE 0 END)
           ON CONFLICT (provider, date) DO UPDATE SET
             total_calls = provider_metrics.total_calls + $2,
-            success = provider_metrics.success + $2,
-            total_latency = provider_metrics.total_latency + $3,
-            avg_latency = (provider_metrics.total_latency + $3) / (provider_metrics.total_calls + $2)
-        `, [provider, agg.calls, agg.totalLatency]);
+            success = provider_metrics.success + $3,
+            fail = provider_metrics.fail + $4,
+            total_latency = provider_metrics.total_latency + $5,
+            avg_latency = CASE WHEN (provider_metrics.success + $3) > 0
+              THEN (provider_metrics.total_latency + $5)::float / (provider_metrics.success + $3)
+              ELSE 0 END
+        `, [provider, agg.calls, agg.success, agg.fail, agg.totalLatency]);
       }
 
       await client.query('COMMIT');
