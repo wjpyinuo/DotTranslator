@@ -1,5 +1,8 @@
 import { useState } from 'react';
 
+// QR 码远程读取地址（生产环境从服务器获取）
+const QR_BASE = 'https://raw.githubusercontent.com/wjpyinuo/DotTranslator/main/assets';
+
 export function DonatePanel() {
   const [showWechat, setShowWechat] = useState(true);
 
@@ -30,43 +33,23 @@ export function DonatePanel() {
       </div>
 
       <div className="donate-code-wrapper">
-        {showWechat ? (
-          <div className="donate-code-card">
-            <img
-              src="https://raw.githubusercontent.com/wjpyinuo/DotTranslator/main/assets/wechat-qr.png"
-              alt="微信收款码"
-              className="donate-code-img"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-                const fallback = (e.target as HTMLImageElement).nextElementSibling;
-                if (fallback) (fallback as HTMLElement).style.display = 'flex';
-              }}
-            />
-            <div className="donate-code-fallback" style={{ display: 'none' }}>
-              <span>💚</span>
-              <span>请将收款码放置于<br />assets/wechat-qr.png</span>
-            </div>
-            <span className="donate-label">微信支付</span>
+        <div className="donate-code-card">
+          <img
+            src={showWechat ? `${QR_BASE}/wechat-qr.png` : `${QR_BASE}/alipay-qr.png`}
+            alt={showWechat ? '微信收款码' : '支付宝收款码'}
+            className="donate-code-img"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+              const fallback = (e.target as HTMLImageElement).nextElementSibling;
+              if (fallback) (fallback as HTMLElement).style.display = 'flex';
+            }}
+          />
+          <div className="donate-code-fallback" style={{ display: 'none' }}>
+            <span>{showWechat ? '💚' : '💙'}</span>
+            <span>收款码加载中，请稍后重试</span>
           </div>
-        ) : (
-          <div className="donate-code-card">
-            <img
-              src="https://raw.githubusercontent.com/wjpyinuo/DotTranslator/main/assets/alipay-qr.png"
-              alt="支付宝收款码"
-              className="donate-code-img"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-                const fallback = (e.target as HTMLImageElement).nextElementSibling;
-                if (fallback) (fallback as HTMLElement).style.display = 'flex';
-              }}
-            />
-            <div className="donate-code-fallback" style={{ display: 'none' }}>
-              <span>💙</span>
-              <span>请将收款码放置于<br />assets/alipay-qr.png</span>
-            </div>
-            <span className="donate-label">支付宝</span>
-          </div>
-        )}
+          <span className="donate-label">{showWechat ? '微信支付' : '支付宝'}</span>
+        </div>
       </div>
 
       <p className="donate-thanks">感谢你的支持 ❤️</p>

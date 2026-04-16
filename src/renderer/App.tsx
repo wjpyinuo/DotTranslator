@@ -10,7 +10,7 @@ import { DonatePanel } from './components/DonatePanel/DonatePanel';
 import { useAppStore } from './stores/appStore';
 import './styles/app.css';
 
-type Tab = 'translate' | 'history' | 'donate' | 'about';
+type Tab = 'translate' | 'history' | 'donate' | 'settings' | 'about';
 
 interface StatsData {
   totalTranslations: number;
@@ -30,9 +30,13 @@ const PROVIDER_NAMES: Record<string, string> = {
 function InlineStats() {
   const [stats, setStats] = useState<StatsData | null>(null);
   const [expanded, setExpanded] = useState(false);
+  const privacyMode = useAppStore((s) => s.privacyMode);
 
+  // 实时刷新统计
   useEffect(() => {
     let cancelled = false;
+    let interval: ReturnType<typeof setInterval> | undefined;
+
     async function load() {
       try {
         const api = window.electronAPI;
@@ -52,11 +56,14 @@ function InlineStats() {
         });
       }
     }
+
     load();
-    return () => { cancelled = true; };
+    // 每 5 秒刷新一次（实时统计）
+    interval = setInterval(load, 5000);
+    return () => { cancelled = true; if (interval) clearInterval(interval); };
   }, []);
 
-  if (!stats) return null;
+  if (!stats || privacyMode) return null;
 
   return (
     <div className="stats-inline">
@@ -82,7 +89,7 @@ function InlineStats() {
 
           {Object.keys(stats.providerDistribution).length > 0 && (
             <div className="stats-section">
-              <h3 style={{ fontSize: 12, marginTop: 8 }}>引擎分布</h3>
+              <h3 style={{ fontSize: 13, marginTop: 8 }}>引擎分布</h3>
               <div className="provider-bars">
                 {Object.entries(stats.providerDistribution).map(([provider, count]) => {
                   const maxCount = Math.max(...Object.values(stats.providerDistribution), 1);
@@ -102,7 +109,7 @@ function InlineStats() {
 
           {stats.topLanguagePairs.length > 0 && (
             <div className="stats-section">
-              <h3 style={{ fontSize: 12, marginTop: 8 }}>热门语言对</h3>
+              <h3 style={{ fontSize: 13, marginTop: 8 }}>热门语言对</h3>
               {stats.topLanguagePairs.map((item) => (
                 <div key={item.pair} className="lang-pair-item">
                   <span>{item.pair}</span>
@@ -118,11 +125,11 @@ function InlineStats() {
 }
 
 export function App() {
-  const { toggleSettings, settings, setInputText } = useAppStore();
+  const { settings, setInputText } = useAppStore();
   const [activeTab, setActiveTab] = useState<Tab>('translate');
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // 窗口自动调整纵向尺寸（仅在内容高度变化时调整，横向保持不变）
+  // 窗口自动调整纵向尺寸（仅在内容展开/收起时调整，横向保持不变）
   const resizeTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const lastHeightRef = useRef<number>(0);
   const handleResize = useCallback(() => {
@@ -131,13 +138,10 @@ export function App() {
       const el = containerRef.current;
       if (!el || !window.electronAPI?.window?.resize) return;
       const scrollH = el.scrollHeight;
-      // 仅在高度实际变化时才调整，避免无意义的 resize 抖动
       if (Math.abs(scrollH - lastHeightRef.current) < 3) return;
       lastHeightRef.current = scrollH;
-      // 横向固定为初始宽度（420），只调整纵向
-      const fixedWidth = 420;
-      window.electronAPI.window.resize(fixedWidth, scrollH + 2);
-    }, 200);
+      window.electronAPI.window.resize(420, scrollH + 2);
+    }, 150);
   }, []);
 
   useEffect(() => {
@@ -166,13 +170,12 @@ export function App() {
           }
         } catch { /* 静默 */ }
       }
-      // 加载后同步主题到辅助窗口
       const theme = useAppStore.getState().settings.theme;
       window.electronAPI?._internal?.send('theme:changed', theme);
     })();
   }, []);
 
-  // 设置变更时持久化到 SQLite（防抖 500ms）
+  // 设置变更时持久化
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
@@ -191,17 +194,13 @@ export function App() {
   }, [settings.theme, settings.enabledProviders, settings.clipboardMonitor,
       settings.telemetryEnabled, settings.privacyMode]);
 
-  // 剪贴板监听 → 自动填入并翻译
+  // 剪贴板监听
   useEffect(() => {
     const api = window.electronAPI;
     if (!api?.clipboard) return;
-
-    // 同步剪贴板监听开关到主进程
     api.clipboard.setMonitor(settings.clipboardMonitor && !settings.privacyMode);
-
     if (!api.clipboard.onClipboardChange) return;
     api.clipboard.onClipboardChange((text: string) => {
-      // 无痕模式或关闭监听 → 不处理
       if (!settings.clipboardMonitor || settings.privacyMode) return;
       if (text && text.trim()) {
         setInputText(text.trim());
@@ -209,16 +208,13 @@ export function App() {
     });
   }, [settings.clipboardMonitor, settings.privacyMode, setInputText]);
 
-  // 截图 OCR 快捷键监听
+  // 截图 OCR
   useEffect(() => {
     const api = window.electronAPI;
     if (!api?.ocr?.onTrigger) return;
-
     api.ocr.onTrigger(async () => {
       try {
         const screenshot = await api.ocr.screenshot();
-        console.log('[OCR] Screenshot captured:', screenshot.width, 'x', screenshot.height);
-        // OCR 识别截图文字
         const ocrResult = await api.ocr.recognize(screenshot.imageBase64);
         if (ocrResult && typeof ocrResult === 'object' && 'text' in ocrResult && (ocrResult as { text: string }).text) {
           setInputText((ocrResult as { text: string }).text.trim());
@@ -233,37 +229,69 @@ export function App() {
     <div className={`app-container ${settings.theme}`} ref={containerRef}>
       <TitleBar />
 
+      {/* 主题切换快捷按钮 */}
+      <div className="theme-quick-toggle">
+        <button
+          className={`theme-quick-btn ${settings.theme === 'light' ? 'active' : ''}`}
+          onClick={() => {
+            useAppStore.getState().updateSettings({ theme: 'light' });
+            window.electronAPI?._internal?.send('theme:changed', 'light');
+          }}
+          title="亮色模式"
+        >
+          ☀️
+        </button>
+        <button
+          className={`theme-quick-btn ${settings.theme === 'dark' ? 'active' : ''}`}
+          onClick={() => {
+            useAppStore.getState().updateSettings({ theme: 'dark' });
+            window.electronAPI?._internal?.send('theme:changed', 'dark');
+          }}
+          title="暗色模式"
+        >
+          🌙
+        </button>
+      </div>
+
       <nav className="tab-bar">
+        <button
+          className={`tab-btn donate-tab ${activeTab === 'donate' ? 'active' : ''}`}
+          onClick={() => setActiveTab('donate')}
+        >
+          <span className="tab-icon">☕</span>
+          <span className="tab-label">打赏</span>
+        </button>
+        <span className="tab-sep" />
         <button
           className={`tab-btn ${activeTab === 'translate' ? 'active' : ''}`}
           onClick={() => setActiveTab('translate')}
         >
-          🌐 翻译
+          <span className="tab-icon">🌐</span>
+          <span className="tab-label">翻译</span>
         </button>
         <span className="tab-sep" />
         <button
           className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
           onClick={() => setActiveTab('history')}
         >
-          📜 历史
+          <span className="tab-icon">📜</span>
+          <span className="tab-label">历史</span>
         </button>
         <span className="tab-sep" />
         <button
-          className={`tab-btn donate-tab ${activeTab === 'donate' ? 'active' : ''}`}
-          onClick={() => setActiveTab('donate')}
+          className={`tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
+          onClick={() => setActiveTab('settings')}
         >
-          ☕ 打赏
-        </button>
-        <span className="tab-sep" />
-        <button className="tab-btn settings-tab" onClick={toggleSettings}>
-          ⚙️ 设置
+          <span className="tab-icon">⚙️</span>
+          <span className="tab-label">设置</span>
         </button>
         <span className="tab-sep" />
         <button
           className={`tab-btn ${activeTab === 'about' ? 'active' : ''}`}
           onClick={() => setActiveTab('about')}
         >
-          ℹ️ 关于
+          <span className="tab-icon">ℹ️</span>
+          <span className="tab-label">关于</span>
         </button>
       </nav>
 
@@ -274,19 +302,18 @@ export function App() {
           <>
             <InputArea />
             <TranslationPanel />
-            {!settings.privacyMode && <InlineStats />}
+            <InlineStats />
           </>
         )}
         {activeTab === 'history' && <HistoryList />}
         {activeTab === 'donate' && <DonatePanel />}
+        {activeTab === 'settings' && <SettingsPanel />}
         {activeTab === 'about' && <AboutPanel />}
       </main>
 
       {settings.privacyMode && (
         <div className="privacy-badge">🔒 无痕模式</div>
       )}
-
-      <SettingsPanel />
     </div>
   );
 }

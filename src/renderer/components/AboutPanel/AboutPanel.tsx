@@ -1,11 +1,13 @@
+import { useAppStore } from '@renderer/stores/appStore';
 import { APP_VERSION } from '@shared/constants';
 
 export function AboutPanel() {
+  const setActiveTab = useAppStore.setState;
 
   return (
     <div className="about-panel">
       <div className="about-hero">
-        <svg width="48" height="48" viewBox="0 0 32 32">
+        <svg width="56" height="56" viewBox="0 0 32 32">
           <defs>
             <linearGradient id="aboutGrad" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0%" stopColor="#818cf8"/>
@@ -23,7 +25,7 @@ export function AboutPanel() {
       </div>
 
       <p className="about-desc">
-        即时翻译桌面工具，支持多引擎对比翻译、剪贴板监听、悬浮球、翻译记忆等强大功能。
+        即时翻译桌面工具，支持多引擎对比翻译、剪贴板监听、翻译记忆等强大功能。
       </p>
 
       <div className="about-features">
@@ -65,13 +67,6 @@ export function AboutPanel() {
             </div>
           </div>
           <div className="feature-item">
-            <span className="feature-icon">🪟</span>
-            <div>
-              <strong>PiP 窗口</strong>
-              <span>画中画窗口随时查看翻译结果</span>
-            </div>
-          </div>
-          <div className="feature-item">
             <span className="feature-icon">🎨</span>
             <div>
               <strong>亮暗双主题</strong>
@@ -89,9 +84,14 @@ export function AboutPanel() {
       </div>
 
       <div className="about-footer">
-        <button className="about-btn donate-btn about-donate-full" onClick={() => window.open('')}>
-          <span className="donate-icon">☕</span> 打赏支持
-        </button>
+        <a
+          href="https://github.com/wjpyinuo/DotTranslator"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="about-btn"
+        >
+          📖 源码
+        </a>
       </div>
     </div>
   );

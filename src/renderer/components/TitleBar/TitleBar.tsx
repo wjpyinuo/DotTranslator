@@ -21,7 +21,7 @@ export function TitleBar() {
     <div className="titlebar">
       <div className="titlebar-drag">
         <span className="title">
-          <svg width="20" height="20" viewBox="0 0 32 32" style={{ verticalAlign: 'middle', marginRight: 6, display: 'inline' }}>
+          <svg className="title-icon" width="20" height="20" viewBox="0 0 32 32" style={{ display: 'inline' }}>
             <defs>
               <linearGradient id="titleIconGrad" x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0%" stopColor="#818cf8"/>
