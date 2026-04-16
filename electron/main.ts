@@ -77,7 +77,15 @@ function createMainWindow(): BrowserWindow {
         'Content-Security-Policy': [
           isDev
             ? "default-src 'self' 'unsafe-inline' 'unsafe-eval' ws: http://localhost:*; img-src 'self' data:; font-src 'self' data:;"
-            : "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;",
+            : [
+                "default-src 'self'",
+                "script-src 'self'",
+                "style-src 'self'", // 移除 unsafe-inline - 如因内联样式报错，检查是否有 style= 属性或 <style> 标签需要改为 CSS 类
+                "img-src 'self' data:",
+                "font-src 'self' data:",
+                "connect-src 'self'",
+                "frame-ancestors 'none'",
+              ].join('; '),
         ],
       },
     });
