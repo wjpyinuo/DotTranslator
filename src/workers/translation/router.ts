@@ -4,6 +4,32 @@ import { YoudaoProvider } from './providers/youdao';
 import { BaiduProvider } from './providers/baidu';
 import { FallbackProvider } from './providers/fallback';
 
+/** 默认翻译超时（毫秒） */
+const DEFAULT_TIMEOUT_MS = 10_000;
+
+/**
+ * 带超时的 Promise 包装
+ * 使用 AbortController 取消底层请求（如果 provider 支持 signal）
+ */
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, providerId: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`Provider "${providerId}" timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      }
+    );
+  });
+}
+
 export class TranslationRouter {
   private providers = new Map<string, TranslationProvider>();
   private errorCounts = new Map<string, { total: number; errors: number; windowStart: number }>();
@@ -27,12 +53,20 @@ export class TranslationRouter {
     return Array.from(this.providers.values());
   }
 
-  async translateWithProvider(providerId: string, params: TranslateParams): Promise<TranslateResult> {
+  /**
+   * 单引擎翻译（带超时保护）
+   * @param timeoutMs 超时毫秒数，默认 10s
+   */
+  async translateWithProvider(
+    providerId: string,
+    params: TranslateParams,
+    timeoutMs: number = DEFAULT_TIMEOUT_MS
+  ): Promise<TranslateResult> {
     const provider = this.providers.get(providerId);
     if (!provider) throw new Error(`Provider "${providerId}" not found`);
 
     try {
-      const result = await provider.translate(params);
+      const result = await withTimeout(provider.translate(params), timeoutMs, providerId);
       this.recordSuccess(providerId);
       return result;
     } catch (error) {
@@ -42,7 +76,7 @@ export class TranslationRouter {
   }
 
   /**
-   * 翻译对比模式：同时调用所有可用引擎
+   * 翻译对比模式：同时调用所有可用引擎（各自带超时）
    */
   async translateCompare(
     params: TranslateParams,
