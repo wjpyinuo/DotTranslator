@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { getPool } from '../db/pool';
 import { setOnline, addToDAU, addToWAU, incrementFeature, updateVersion, pushEventStream } from '../services/redis';
 import { broadcastEvent } from '../services/websocket';
+import { eventAuth } from '../middleware/auth';
 
 const eventSchema = z.object({
   events: z.array(z.object({
@@ -23,8 +24,8 @@ const eventSchema = z.object({
 });
 
 export async function eventRoutes(app: FastifyInstance): Promise<void> {
-  // POST /api/v1/events - 数据接收
-  app.post('/events', async (request, reply) => {
+  // POST /api/v1/events - 数据接收（需 INGEST_API_KEY 认证）
+  app.post('/events', { preHandler: eventAuth }, async (request, reply) => {
     const parsed = eventSchema.safeParse(request.body);
     if (!parsed.success) {
       return reply.status(400).send({ error: 'Invalid payload', details: parsed.error.issues });
