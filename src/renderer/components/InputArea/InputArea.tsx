@@ -3,11 +3,6 @@ import { useAppStore } from '@renderer/stores/appStore';
 import { useCallback, useRef } from 'react';
 import type { TranslateResult } from '@shared/types';
 
-// 检测文本是否包含中文字符
-function containsChinese(text: string): boolean {
-  return /[\u4e00-\u9fa5]/.test(text);
-}
-
 // 检测文本是否主要为英文
 function isEnglish(text: string): boolean {
   const cleaned = text.replace(/[^a-zA-Z\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/g, '');
