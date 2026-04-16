@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.3.4 (2026-04-17)
+
+### 🐛 修复
+- **provider_metrics 成功率统计** — 遥测事件现区分成功/失败调用，服务端聚合时分别计数，avg_latency 仅基于成功调用计算（修复前所有调用均被计为成功）
+- **events 端点独立限流** — `/api/v1/events` 添加 route-level rate limit (30 req/min)，比全局 100 req/min 更严格，防止异常客户端刷写数据库
+- **macOS 窗口关闭行为** — `window-all-closed` 不再无条件退出应用，macOS 上保留 dock 图标；新增 `activate` 事件，点击 dock 图标可恢复/创建窗口
+
+### 🔐 安全
+- **CSP 加固** — 生产模式 CSP 改为分指令显式声明：
+  - 新增 `script-src 'self'`（不再依赖 default-src 兜底）
+  - 移除 `style-src 'unsafe-inline'`（如有内联样式报错需排查改为 CSS 类）
+  - 新增 `connect-src 'self'`（限制 fetch/XHR 目标）
+  - 新增 `frame-ancestors 'none'`（禁止被 iframe 嵌入）
+
+### 📦 版本
+- DotTranslator: 0.3.3 → **0.3.4**
+- DotStats Server: 0.2.1 → **0.2.2**
+
+---
+
 ## v0.3.3 (2026-04-17)
 
 ### 🔐 安全
