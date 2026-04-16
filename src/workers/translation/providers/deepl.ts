@@ -101,14 +101,19 @@ export class DeepLProvider implements TranslationProvider {
 
   async getUsageStats(): Promise<UsageStats> {
     if (!this.apiKey) throw new Error('API key not set');
-    const res = await fetch(`${this.baseUrl}/usage`, {
-      headers: { Authorization: `DeepL-Auth-Key ${this.apiKey}` },
-    });
-    const data = await res.json();
-    return {
-      totalCalls: 0,
-      totalChars: data.character_count,
-      remainingQuota: data.character_limit - data.character_count,
-    };
+    try {
+      const res = await fetch(`${this.baseUrl}/usage`, {
+        headers: { Authorization: `DeepL-Auth-Key ${this.apiKey}` },
+      });
+      if (!res.ok) throw new Error(`DeepL usage API error: ${res.status}`);
+      const data = await res.json();
+      return {
+        totalCalls: 0,
+        totalChars: data.character_count,
+        remainingQuota: data.character_limit - data.character_count,
+      };
+    } catch (err) {
+      return { totalCalls: 0, totalChars: 0 };
+    }
   }
 }

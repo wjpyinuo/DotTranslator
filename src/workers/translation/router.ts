@@ -204,6 +204,14 @@ export class TranslationRouter {
     const provider = this.providers.get(providerId);
     if (!provider) throw new Error(`Provider "${providerId}" not found`);
 
+    // 文本长度校验（在调用 API 前拦截，避免无意义请求）
+    if (!params.text?.trim()) {
+      throw new Error('Translation text is empty');
+    }
+    if (params.text.length > provider.maxTextLength) {
+      throw new Error(`Text too long (${params.text.length} chars, max ${provider.maxTextLength})`);
+    }
+
     // 熔断器检查
     if (this.isCircuitOpen(providerId)) {
       throw new Error(`Provider "${providerId}" is circuit-broken (too many recent failures)`);
