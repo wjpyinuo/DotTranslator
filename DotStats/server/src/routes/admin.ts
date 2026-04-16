@@ -75,6 +75,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     notify_channel: z.enum(['webhook']).default('webhook'),
     notify_target: z.string().optional().default(''),
     is_enabled: z.boolean().default(true),
+    cooldown_minutes: z.number().int().positive().default(60),
   });
 
   // GET /api/v1/admin/alerts
@@ -95,8 +96,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     const pool = getPool();
 
     await pool.query(`
-      INSERT INTO alert_rules (id, name, metric, operator, threshold, window_hours, notify_channel, notify_target, is_enabled)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      INSERT INTO alert_rules (id, name, metric, operator, threshold, window_hours, notify_channel, notify_target, is_enabled, cooldown_minutes)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       ON CONFLICT (id) DO UPDATE SET
         name = EXCLUDED.name,
         metric = EXCLUDED.metric,
@@ -105,8 +106,9 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         window_hours = EXCLUDED.window_hours,
         notify_channel = EXCLUDED.notify_channel,
         notify_target = EXCLUDED.notify_target,
-        is_enabled = EXCLUDED.is_enabled
-    `, [id, rule.name, rule.metric, rule.operator, rule.threshold, rule.window_hours, rule.notify_channel, rule.notify_target, rule.is_enabled]);
+        is_enabled = EXCLUDED.is_enabled,
+        cooldown_minutes = EXCLUDED.cooldown_minutes
+    `, [id, rule.name, rule.metric, rule.operator, rule.threshold, rule.window_hours, rule.notify_channel, rule.notify_target, rule.is_enabled, rule.cooldown_minutes]);
 
     return { success: true, id };
   });
@@ -122,7 +124,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     let idx = 1;
 
     for (const [key, val] of Object.entries(body)) {
-      if (['name', 'metric', 'operator', 'threshold', 'window_hours', 'notify_channel', 'notify_target', 'is_enabled'].includes(key)) {
+      if (['name', 'metric', 'operator', 'threshold', 'window_hours', 'notify_channel', 'notify_target', 'is_enabled', 'cooldown_minutes'].includes(key)) {
         fields.push(`${key} = $${idx++}`);
         values.push(val);
       }

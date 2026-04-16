@@ -83,5 +83,6 @@ CREATE TABLE IF NOT EXISTS alert_rules (
   notify_channel  TEXT DEFAULT 'webhook',
   notify_target   TEXT,
   is_enabled      BOOLEAN DEFAULT TRUE,
-  last_triggered  TIMESTAMPTZ
+  last_triggered  TIMESTAMPTZ,
+  cooldown_minutes INTEGER DEFAULT 60
 );

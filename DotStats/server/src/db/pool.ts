@@ -107,7 +107,8 @@ async function initSchema(): Promise<void> {
       notify_channel  TEXT DEFAULT 'webhook',
       notify_target   TEXT,
       is_enabled      BOOLEAN DEFAULT TRUE,
-      last_triggered  TIMESTAMPTZ
+      last_triggered  TIMESTAMPTZ,
+      cooldown_minutes INTEGER DEFAULT 60
     );
 
     CREATE TABLE IF NOT EXISTS provider_metrics (
