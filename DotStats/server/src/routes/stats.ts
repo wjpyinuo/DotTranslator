@@ -157,15 +157,16 @@ export async function statsRoutes(app: FastifyInstance): Promise<void> {
   app.get('/stats/providers/metrics', async (request, reply) => {
     const { period = '30d' } = request.query as { period?: string };
     const days = parseInt(period) || 30;
+    const since = new Date(Date.now() - days * 86400000).toISOString().split('T')[0];
 
     const pool = getPool();
     const result = await pool.query(`
       SELECT provider, date, total_calls, success, fail,
         CASE WHEN total_calls > 0 THEN total_latency / total_calls ELSE 0 END AS avg_latency
       FROM provider_metrics
-      WHERE date >= CURRENT_DATE - INTERVAL $1::int || ' days'
+      WHERE date >= $1
       ORDER BY date DESC, total_calls DESC
-    `, [days]);
+    `, [since]);
     return { data: result.rows };
   });
 }
