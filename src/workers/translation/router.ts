@@ -37,10 +37,26 @@ function withTimeout<T>(promiseFactory: (signal: AbortSignal) => Promise<T>, tim
 /** EMA 平滑系数：越小越平滑，0.3 = 新数据权重 30% */
 const EMA_ALPHA = 0.3;
 
+/** 熔断器配置 */
+const CIRCUIT_BREAKER = {
+  /** 连续失败 N 次后熔断 */
+  failureThreshold: 5,
+  /** 熔断后冷却时间（毫秒），冷却后进入半开状态允许试探 */
+  cooldownMs: 30_000,
+};
+
+interface CircuitState {
+  failures: number;
+  state: 'closed' | 'open' | 'half-open';
+  openedAt: number;
+}
+
 export class TranslationRouter {
   private providers = new Map<string, TranslationProvider>();
   /** 每个 provider 的 EMA 错误率（0~1），0 = 无错误 */
   private errorRates = new Map<string, number>();
+  /** 熔断器状态 */
+  private circuits = new Map<string, CircuitState>();
 
   constructor() {
     this.register(new DeepLProvider());
@@ -72,6 +88,11 @@ export class TranslationRouter {
   ): Promise<TranslateResult> {
     const provider = this.providers.get(providerId);
     if (!provider) throw new Error(`Provider "${providerId}" not found`);
+
+    // 熔断器检查
+    if (this.isCircuitOpen(providerId)) {
+      throw new Error(`Provider "${providerId}" is circuit-broken (too many recent failures)`);
+    }
 
     try {
       const result = await withTimeout(
@@ -122,6 +143,9 @@ export class TranslationRouter {
       const provider = this.providers.get(id);
       if (!provider) continue;
 
+      // 跳过熔断中的 provider
+      if (this.isCircuitOpen(id)) continue;
+
       const available = await provider.isAvailable();
       if (!available) continue;
 
@@ -145,16 +169,59 @@ export class TranslationRouter {
     const prev = this.errorRates.get(providerId) ?? 0;
     // 成功 → EMA 向 0 收敛
     this.errorRates.set(providerId, prev * (1 - EMA_ALPHA));
+    // 成功 → 重置连续失败计数，关闭熔断
+    const circuit = this.circuits.get(providerId);
+    if (circuit) {
+      circuit.failures = 0;
+      circuit.state = 'closed';
+    }
   }
 
   private recordError(providerId: string): void {
     const prev = this.errorRates.get(providerId) ?? 0;
     // 失败 → EMA 向 1 收敛
     this.errorRates.set(providerId, prev + (1 - prev) * EMA_ALPHA);
+    // 熔断器：累计连续失败
+    let circuit = this.circuits.get(providerId);
+    if (!circuit) {
+      circuit = { failures: 0, state: 'closed', openedAt: 0 };
+      this.circuits.set(providerId, circuit);
+    }
+    circuit.failures++;
+    if (circuit.failures >= CIRCUIT_BREAKER.failureThreshold && circuit.state === 'closed') {
+      circuit.state = 'open';
+      circuit.openedAt = Date.now();
+      console.warn(`[CircuitBreaker] Provider "${providerId}" OPENED (${circuit.failures} consecutive failures)`);
+    }
   }
 
   private getErrorRate(providerId: string): number {
     return this.errorRates.get(providerId) ?? 0;
+  }
+
+  /**
+   * 检查熔断器是否处于打开状态
+   * - closed: 正常放行
+   * - open: 超过冷却时间后自动进入 half-open（允许一次试探）
+   * - half-open: 放行，由 translateWithProvider 的 success/error 回调决定后续状态
+   */
+  private isCircuitOpen(providerId: string): boolean {
+    const circuit = this.circuits.get(providerId);
+    if (!circuit || circuit.state === 'closed') return false;
+
+    if (circuit.state === 'open') {
+      const elapsed = Date.now() - circuit.openedAt;
+      if (elapsed >= CIRCUIT_BREAKER.cooldownMs) {
+        // 冷却结束，进入半开状态允许试探
+        circuit.state = 'half-open';
+        console.info(`[CircuitBreaker] Provider "${providerId}" HALF-OPEN (cooldown elapsed)`);
+        return false;
+      }
+      return true;
+    }
+
+    // half-open: 放行试探请求
+    return false;
   }
 }
 
