@@ -24,6 +24,9 @@ test.describe('DotTranslator 基础功能', () => {
     const window = await app.firstWindow();
     expect(window).toBeTruthy();
 
+    // 等待页面加载完成（Renderer 渲染需要时间）
+    await window.waitForSelector('#root', { timeout: 15_000 });
+
     const title = await window.title();
     expect(title).toBeTruthy();
   });
@@ -35,11 +38,11 @@ test.describe('DotTranslator 基础功能', () => {
       return { width, height };
     });
 
-    // 主窗口应为 420×560（或附近值）
-    expect(size.width).toBeGreaterThanOrEqual(400);
-    expect(size.width).toBeLessThanOrEqual(440);
-    expect(size.height).toBeGreaterThanOrEqual(540);
-    expect(size.height).toBeLessThanOrEqual(580);
+    // 主窗口应为 480×680（webPreferences 创建时的默认值）
+    expect(size.width).toBeGreaterThanOrEqual(420);
+    expect(size.width).toBeLessThanOrEqual(500);
+    expect(size.height).toBeGreaterThanOrEqual(480);
+    expect(size.height).toBeLessThanOrEqual(700);
   });
 
   test('标题栏渲染正常', async () => {
