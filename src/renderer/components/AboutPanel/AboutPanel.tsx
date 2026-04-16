@@ -69,8 +69,8 @@ export function AboutPanel() {
           <div className="feature-item">
             <span className="feature-icon">🪟</span>
             <div>
-              <strong>悬浮球 · PiP</strong>
-              <span>悬浮球常驻桌面，画中画窗口随时查看结果</span>
+              <strong>PiP 窗口</strong>
+              <span>画中画窗口随时查看翻译结果</span>
             </div>
           </div>
           <div className="feature-item">

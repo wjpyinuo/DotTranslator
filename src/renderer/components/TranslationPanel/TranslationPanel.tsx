@@ -152,13 +152,6 @@ export function TranslationPanel() {
                 >
                   {copiedIdx === i ? '✓ 已复制' : '📋 复制'}
                 </button>
-                <button
-                  className="action-btn"
-                  onClick={() => handlePip(result.text)}
-                  title="发送到悬浮球"
-                >
-                  🪟 悬浮球
-                </button>
                 {isComparison && (
                   <button
                     className={`action-btn adopt-btn ${adoptedIdx === i ? 'adopted' : ''}`}

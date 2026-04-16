@@ -11,7 +11,6 @@ import { initAutoUpdater } from './auto-updater';
 // ========== 窗口引用 ==========
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
-let floatingBall: BrowserWindow | null = null;
 let pipWindow: BrowserWindow | null = null;
 let isQuitting = false;
 let currentTheme = 'light';
@@ -169,73 +168,20 @@ function createTray(): void {
   });
 }
 
-// ========== 悬浮球 48×48 常驻圆形 ==========
-function createFloatingBall(): void {
-  const { screen } = require('electron');
-  const primaryDisplay = screen.getPrimaryDisplay();
-  const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
-
-  floatingBall = new BrowserWindow({
-    width: 48,
-    height: 48,
-    x: screenWidth - 80,
-    y: screenHeight / 2 - 24,
-    frame: false,
-    transparent: true,
-    resizable: false,
-    alwaysOnTop: true,
-    skipTaskbar: true,
-    hasShadow: false,
-    roundedCorners: true,
-    backgroundColor: '#00000000',
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: true,
-    },
-  });
-
-  floatingBall.on('closed', () => {
-    floatingBall = null;
-  });
-
-  floatingBall.loadFile(path.join(__dirname, 'aux-windows', 'floating-ball.html'));
-
-  // 设置圆形窗口形状（Windows/Linux 需要显式 setShape）
-  floatingBall.webContents.once('did-finish-load', () => {
-    const r = 24;
-    const shapes = [];
-    for (let y = 0; y < 48; y++) {
-      const dy = y - r;
-      const halfWidth = Math.floor(Math.sqrt(Math.max(0, r * r - dy * dy)));
-      if (halfWidth > 0) {
-        shapes.push({ x: r - halfWidth, y, width: halfWidth * 2, height: 1 });
-      }
-    }
-    floatingBall?.setShape(shapes);
-    floatingBall?.webContents.send('theme:changed', currentTheme);
-  });
-}
-
 // ========== 应用启动 ==========
 app.whenReady().then(() => {
   createMainWindow();
   createTray();
-  createFloatingBall();
 
   // 启动遥测
   telemetry.start();
 
   // 注册 IPC 处理器（来自独立模块）
   registerAllIPC(
-    { mainWindow, floatingBall, pipWindow, miniCard: null },
+    { mainWindow, pipWindow, miniCard: null },
     {
       setMainWindow: (win) => {
         mainWindow = win;
-      },
-      setFloatingBall: (win) => {
-        floatingBall = win;
       },
       setPipWindow: (win) => {
         pipWindow = win;
@@ -270,7 +216,6 @@ app.on('before-quit', () => {
   stopClipboardMonitor();
   // 异步清理 OCR worker（尽力而为）
   import('./ocr-worker').then((m) => m.destroyOcrWorker()).catch(() => {});
-  if (floatingBall && !floatingBall.isDestroyed()) floatingBall.destroy();
   if (pipWindow && !pipWindow.isDestroyed()) pipWindow.destroy();
   if (tray && !tray.isDestroyed()) tray.destroy();
 });

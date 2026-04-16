@@ -9,14 +9,12 @@ import { getDecryptedKeys } from './secure-storage';
 
 interface WindowRefs {
   mainWindow: BrowserWindow | null;
-  floatingBall: BrowserWindow | null;
   pipWindow: BrowserWindow | null;
   miniCard: BrowserWindow | null;
 }
 
 interface Setters {
   setMainWindow: (win: BrowserWindow | null) => void;
-  setFloatingBall: (win: BrowserWindow | null) => void;
   setPipWindow: (win: BrowserWindow | null) => void;
   setMiniCard: (win: BrowserWindow | null) => void;
   setIsQuitting: (v: boolean) => void;
@@ -45,7 +43,6 @@ export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
 
   ipcMain.on('window:close', () => {
     setters.setIsQuitting(true);
-    if (refs.floatingBall && !refs.floatingBall.isDestroyed()) refs.floatingBall.destroy();
     if (refs.pipWindow && !refs.pipWindow.isDestroyed()) refs.pipWindow.destroy();
     refs.mainWindow?.close();
   });
@@ -71,71 +68,9 @@ export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
     }
   });
 
-  // ========== 悬浮球事件 ==========
-  ipcMain.on('floating:click', () => {
-    if (refs.mainWindow?.isVisible()) {
-      refs.mainWindow.hide();
-    } else {
-      refs.mainWindow?.show();
-      refs.mainWindow?.focus();
-    }
-  });
-
-  ipcMain.on('floating:double-click', () => {
-    refs.mainWindow?.webContents.send('floating:request-last-result');
-  });
-
-  ipcMain.on('floating:update', (_event, text: string) => {
-    refs.floatingBall?.webContents.send('floating:update-icon', text ? text.slice(0, 1) : '✦');
-  });
-
-  ipcMain.on('floating:hide', () => refs.floatingBall?.hide());
-  ipcMain.on('floating:show', () => refs.floatingBall?.show());
-
-  ipcMain.on('floating:close', () => {
-    refs.floatingBall?.close();
-    refs.floatingBall = null;
-  });
-
-  ipcMain.on('floating:move', (_event, x: number, y: number) => {
-    if (refs.floatingBall && !refs.floatingBall.isDestroyed()) {
-      refs.floatingBall.setPosition(Math.round(x), Math.round(y));
-    }
-  });
-
-  ipcMain.on('floating:menu', (_event, action: string) => {
-    switch (action) {
-      case 'toggle':
-        if (refs.mainWindow?.isVisible()) refs.mainWindow.hide();
-        else {
-          refs.mainWindow?.show();
-          refs.mainWindow?.focus();
-        }
-        break;
-      case 'pip':
-        refs.mainWindow?.webContents.send('floating:request-last-result');
-        break;
-      case 'screenshot':
-        refs.mainWindow?.webContents.send('ocr:trigger');
-        refs.mainWindow?.show();
-        break;
-      case 'copy-last':
-        refs.mainWindow?.webContents.send('floating:request-last-result');
-        break;
-      case 'hide':
-        refs.floatingBall?.hide();
-        break;
-      case 'close':
-        refs.floatingBall?.close();
-        refs.floatingBall = null;
-        break;
-    }
-  });
-
   // ========== 主题同步 ==========
   ipcMain.on('theme:changed', (_event, theme: string) => {
     const currentTheme = theme || 'light';
-    refs.floatingBall?.webContents.send('theme:changed', currentTheme);
     refs.pipWindow?.webContents.send('theme:changed', currentTheme);
   });
 

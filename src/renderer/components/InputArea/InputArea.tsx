@@ -77,11 +77,6 @@ export function InputArea() {
         }
       }
 
-      // 更新悬浮球图标为翻译结果首字
-      if (results.length > 0) {
-        window.electronAPI?.floating.update((results as TranslateResult[])[0].text);
-      }
-
       // 非无痕模式 → 写入历史 + TM 缓存
       if (!settings.privacyMode && results.length > 0) {
         const best = (results as TranslateResult[])[0];
