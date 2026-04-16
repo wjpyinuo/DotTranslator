@@ -8,9 +8,11 @@
  *  - 发现更新时通知主窗口，用户可选择立即安装或稍后
  *  - 下载进度通过 IPC 推送
  */
-import { BrowserWindow, ipcMain } from 'electron';
+import type { BrowserWindow} from 'electron';
+import { ipcMain } from 'electron';
 
 let autoUpdater: any = null;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let mainWindowRef: BrowserWindow | null = null;
 let updateCheckInProgress = false;
 
@@ -27,7 +29,7 @@ export function initAutoUpdater(getMainWindow: () => BrowserWindow | null): void
 
   try {
     // electron-updater 是 electron-builder 的一部分
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const { autoUpdater: updater } = require('electron-updater');
     autoUpdater = updater;
   } catch {

@@ -40,9 +40,9 @@ function TitleBar() {
   useEffect(() => {
     const api = window.electronAPI;
     if (!api?.window) return;
-    api.window.isMaximized().then(setIsMaximized);
+    void api.window.isMaximized().then(setIsMaximized);
     if (api.window.onMaximizeChanged) {
-      api.window.onMaximizeChanged(setIsMaximized);
+      void api.window.onMaximizeChanged(setIsMaximized);
     }
   }, []);
 

@@ -1,7 +1,8 @@
 /**
  * IPC 处理器模块 - 注册所有渲染进程 ↔ 主进程通信
  */
-import { ipcMain, globalShortcut, app, BrowserWindow, desktopCapturer } from 'electron';
+import type { BrowserWindow} from 'electron';
+import { ipcMain, globalShortcut, app, desktopCapturer } from 'electron';
 import path from 'path';
 import { translationRouter } from '../src/workers/translation/router';
 import { telemetry } from '../src/telemetry/reporter';

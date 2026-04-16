@@ -1,7 +1,8 @@
 /**
  * 剪贴板监听模块 - 自动检测剪贴板变化并过滤敏感内容
  */
-import { ipcMain, clipboard, BrowserWindow } from 'electron';
+import type { BrowserWindow } from 'electron';
+import { ipcMain, clipboard } from 'electron';
 
 // ========== 敏感内容过滤 ==========
 

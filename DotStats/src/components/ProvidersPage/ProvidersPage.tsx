@@ -39,7 +39,7 @@ export function ProvidersPage() {
     setLoading(false);
   }, [serverUrl, period]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { void fetchData(); }, [fetchData]);
 
   const providerNames: Record<string, string> = { deepl: 'DeepL', youdao: '有道翻译', baidu: '百度翻译' };
   const providerColors: Record<string, string> = { deepl: '#10b981', youdao: '#3b82f6', baidu: '#f59e0b' };

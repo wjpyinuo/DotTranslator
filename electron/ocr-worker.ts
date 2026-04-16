@@ -22,9 +22,11 @@ async function getWorker(): Promise<TesseractWorker> {
   if (initFailed) throw new Error('OCR worker failed to initialize previously');
   if (!initPromise) {
     initPromise = (async () => {
-      let createWorker: typeof import('tesseract.js').createWorker;
+      let createWorker: // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+      typeof import('tesseract.js').createWorker;
       try {
-        const tesseract = await import('tesseract.js');
+        const tesseract: // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+      typeof import('tesseract.js') = await import('tesseract.js');
         createWorker = tesseract.createWorker;
       } catch {
         throw new Error('tesseract.js not installed (optional dependency). Run: npm install tesseract.js');

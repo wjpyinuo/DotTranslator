@@ -112,7 +112,7 @@ export class DeepLProvider implements TranslationProvider {
         totalChars: data.character_count,
         remainingQuota: data.character_limit - data.character_count,
       };
-    } catch (err) {
+    } catch {
       return { totalCalls: 0, totalChars: 0 };
     }
   }

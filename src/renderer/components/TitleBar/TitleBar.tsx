@@ -12,11 +12,11 @@ export function TitleBar() {
     if (!api?.window) return;
 
     // 获取初始最大化状态
-    api.window.isMaximized().then(setIsMaximized);
+    void api.window.isMaximized().then(setIsMaximized);
 
     // 监听最大化状态变化
     if (api.window.onMaximizeChanged) {
-      api.window.onMaximizeChanged(setIsMaximized);
+      void api.window.onMaximizeChanged(setIsMaximized);
     }
   }, []);
 

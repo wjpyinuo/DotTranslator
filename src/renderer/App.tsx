@@ -41,24 +41,25 @@ function InlineStats() {
       try {
         const api = window.electronAPI;
         if (!api) {
-          if (!cancelled) setStats({
+          if (!cancelled) {setStats({
             totalTranslations: 0, totalChars: 0, avgLatency: 0,
             providerDistribution: {}, topLanguagePairs: [], tmHitRate: 0,
-          });
+          });}
           return;
         }
         const data = await api.stats.get();
         if (!cancelled) setStats(data);
       } catch {
-        if (!cancelled) setStats({
+        if (!cancelled) {setStats({
           totalTranslations: 0, totalChars: 0, avgLatency: 0,
           providerDistribution: {}, topLanguagePairs: [], tmHitRate: 0,
-        });
+        });}
       }
     }
 
-    load();
+    void load();
     // 每 3 秒刷新一次（实时统计）
+    // eslint-disable-next-line prefer-const
     interval = setInterval(load, 3000);
     return () => { cancelled = true; if (interval) clearInterval(interval); };
   }, []);
@@ -175,7 +176,7 @@ export function App() {
     if (!api?.storage) return;
     const keys = ['theme', 'defaultSourceLang', 'defaultTargetLang', 'enabledProviders',
       'clipboardMonitor', 'telemetryEnabled', 'privacyMode'];
-    (async () => {
+    void (async () => {
       for (const key of keys) {
         try {
           const val = await api.storage.get(key);
@@ -204,7 +205,7 @@ export function App() {
         'clipboardMonitor', 'telemetryEnabled', 'privacyMode'];
       for (const key of persistKeys) {
         try {
-          api.storage.set(key, (s as unknown as Record<string, unknown>)[key]);
+          void api.storage.set(key, (s as unknown as Record<string, unknown>)[key]);
         } catch { /* 静默 */ }
       }
     }, 500);
@@ -215,9 +216,9 @@ export function App() {
   useEffect(() => {
     const api = window.electronAPI;
     if (!api?.clipboard) return;
-    api.clipboard.setMonitor(settings.clipboardMonitor && !settings.privacyMode);
+    void api.clipboard.setMonitor(settings.clipboardMonitor && !settings.privacyMode);
     if (!api.clipboard.onClipboardChange) return;
-    api.clipboard.onClipboardChange((text: string) => {
+    void api.clipboard.onClipboardChange((text: string) => {
       if (!settings.clipboardMonitor || settings.privacyMode) return;
       if (text && text.trim()) {
         setInputText(text.trim());
@@ -229,7 +230,7 @@ export function App() {
   useEffect(() => {
     const api = window.electronAPI;
     if (!api?.ocr?.onTrigger) return;
-    api.ocr.onTrigger(async () => {
+    void api.ocr.onTrigger(async () => {
       try {
         const screenshot = await api.ocr.screenshot();
         const ocrResult = await api.ocr.recognize(screenshot.imageBase64);

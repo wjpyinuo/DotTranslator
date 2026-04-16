@@ -91,7 +91,7 @@ async function sendWeCom(target: string, payload: AlertPayload): Promise<NotifyR
     markdown: {
       content: [
         `## 🚨 ${payload.alert}`,
-        `> 指标：<font color=\"warning\">${payload.metric}</font>`,
+        `> 指标：<font color="warning">${payload.metric}</font>`,
         `> 当前值：**${payload.value}**`,
         `> 阈值：${payload.operator} ${payload.threshold}`,
         `> 时间：${payload.triggeredAt}`,
@@ -160,7 +160,7 @@ async function hmacSha256Base64(data: string, secret: string): Promise<string> {
  * 验证通知目标 URL，防止 SSRF
  * 仅允许 HTTPS（webhook/dingtalk 允许 HTTP 用于内网部署场景）
  */
-function validateNotifyTarget(target: string, channel: NotifyChannel): string | null {
+function validateNotifyTarget(target: string, _channel: NotifyChannel): string | null {
   try {
     const url = new URL(target);
     // 仅允许 HTTP/HTTPS
@@ -186,7 +186,7 @@ function validateNotifyTarget(target: string, channel: NotifyChannel): string | 
  * 统一发送入口
  */
 export async function sendNotification(
-  channel: NotifyChannel,
+  _channel: NotifyChannel,  // eslint-disable-line @typescript-eslint/no-unused-vars
   target: string,
   payload: AlertPayload,
 ): Promise<NotifyResult> {

@@ -22,7 +22,7 @@ export function VersionsPage() {
     setLoading(false);
   }, [serverUrl]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { void fetchData(); }, [fetchData]);
 
   const entries = Object.entries(data).sort(([, a], [, b]) => b - a);
   const total = entries.reduce((s, [, v]) => s + v, 0);

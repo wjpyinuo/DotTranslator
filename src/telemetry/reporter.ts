@@ -64,21 +64,21 @@ export class TelemetryReporter {
     if (!this.enabled) return;
 
     // 确保 instanceId 已持久化
-    this.ensureInstanceId();
+    void this.ensureInstanceId();
 
     this.heartbeatTimer = setInterval(() => {
       this.enqueue(this.buildHeartbeat());
     }, HEARTBEAT_MS);
 
     this.flushTimer = setInterval(() => {
-      this.flush();
+      void this.flush();
     }, FLUSH_MS);
   }
 
   stop(): void {
     if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
     if (this.flushTimer) clearInterval(this.flushTimer);
-    this.flush();
+    void this.flush();
   }
 
   setEnabled(enabled: boolean): void {

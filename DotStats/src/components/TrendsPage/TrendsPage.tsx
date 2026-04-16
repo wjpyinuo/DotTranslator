@@ -30,7 +30,7 @@ export function TrendsPage() {
     setLoading(false);
   }, [serverUrl, granularity, period]);
 
-  useEffect(() => { fetchTrends(); }, [fetchTrends]);
+  useEffect(() => { void fetchTrends(); }, [fetchTrends]);
 
   const dates = data.map((d) => {
     const p = d.period;

@@ -43,7 +43,8 @@ export function getPool() {
         try {
           const rows = database.prepare(normalized.sql).all(...normalized.params) as T[];
           return { rows, rowCount: rows.length };
-        } catch {
+        
+} catch {
           return { rows: [], rowCount: 0 };
         }
       }
@@ -51,7 +52,8 @@ export function getPool() {
       try {
         const result = database.prepare(normalized.sql).run(...normalized.params);
         return { rows: [], rowCount: result.changes };
-      } catch {
+      
+} catch {
         return { rows: [], rowCount: 0 };
       }
     },
@@ -80,7 +82,7 @@ function normalizeSQL(sql: string, params?: unknown[]): { sql: string; params: u
   const normalizedParams = params ? [...params] : [];
 
   // $1 → ?
-  normalized = normalized.replace(/\$(\d+)/g, (_, n) => '?');
+  normalized = normalized.replace(/\$(\d+)/g, (_match, _n) => '?');
 
   // INTERVAL $1::int || ' days' → 简化处理
   normalized = normalized.replace(/INTERVAL\s+\?\s*\|\|\s*' days'/i, '? || " days"');
@@ -284,7 +286,7 @@ export function calculateRetention(): void {
   }
 
   // 计算留存
-  const now = new Date();
+  const _now = new Date();
   for (const [cohortWeek, cohortInstances] of cohorts) {
     const cs = weekStart(cohortWeek);
     const retentionWeeks = [1, 2, 4, 8, 12];

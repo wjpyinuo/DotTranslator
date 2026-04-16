@@ -23,7 +23,7 @@ export function GeoPage() {
     setLoading(false);
   }, [serverUrl]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { void fetchData(); }, [fetchData]);
 
   const localeNames: Record<string, string> = {
     'zh-CN': '简体中文', 'zh-TW': '繁體中文', 'en-US': 'English (US)', 'en-GB': 'English (UK)',

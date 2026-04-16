@@ -30,7 +30,7 @@ export function RetentionPage() {
     setLoading(false);
   }, [serverUrl]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { void fetchData(); }, [fetchData]);
 
   const getColor = (rate: number) => {
     if (rate >= 50) return 'rgba(16, 185, 129, 0.4)';

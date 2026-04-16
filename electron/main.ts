@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, session } from 'electron';
+import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, session } from 'electron'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import path from 'path';
 import { telemetry } from '../src/telemetry/reporter';
 import { registerSecureStorageIPC } from './secure-storage';
@@ -15,7 +15,7 @@ const log = createLogger('Main');
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let isQuitting = false;
-let currentTheme = 'light';
+const currentTheme = 'light';
 
 const isDev = !app.isPackaged;
 const ALLOWED_ORIGINS = isDev ? ['http://localhost:5173'] : ['file://'];

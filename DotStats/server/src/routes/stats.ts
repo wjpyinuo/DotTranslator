@@ -8,7 +8,7 @@ import {
 
 export async function statsRoutes(app: FastifyInstance): Promise<void> {
   // GET /api/v1/stats/realtime
-  app.get('/stats/realtime', async (_request, reply) => {
+  app.get('/stats/realtime', async (_request, _reply) => {
     const [onlineNow, todayActive, weekActive, topFeatures, versionDistribution, osDistribution, recentEvents] =
       await Promise.all([
         getOnlineCount(),
@@ -32,7 +32,7 @@ export async function statsRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // GET /api/v1/stats/trend?from=2026-01-01&to=2026-04-15&granularity=day&metrics=dau,feature_calls
-  app.get('/stats/trend', async (request, reply) => {
+  app.get('/stats/trend', async (_request, _reply) => {
     const { from, to, granularity = 'day', metrics = 'dau' } = request.query as {
       from?: string; to?: string; granularity?: string; metrics?: string;
     };
@@ -87,7 +87,7 @@ export async function statsRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // GET /api/v1/stats/features?period=30d&sort=total&limit=20
-  app.get('/stats/features', async (request, reply) => {
+  app.get('/stats/features', async (_request, _reply) => {
     const { period = '30d', sort = 'total', limit = '20' } = request.query as {
       period?: string; sort?: string; limit?: string;
     };
@@ -116,7 +116,7 @@ export async function statsRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // GET /api/v1/stats/retention?weeks=12
-  app.get('/stats/retention', async (request, reply) => {
+  app.get('/stats/retention', async (_request, _reply) => {
     const pool = getPool();
     const result = await pool.query(`
       SELECT * FROM retention_weekly ORDER BY cohort_week DESC LIMIT 12
@@ -125,7 +125,7 @@ export async function statsRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // GET /api/v1/stats/geo
-  app.get('/stats/geo', async (_request, reply) => {
+  app.get('/stats/geo', async (_request, _reply) => {
     const pool = getPool();
     const result = await pool.query(`
       SELECT locale, COUNT(*) as count FROM instances GROUP BY locale ORDER BY count DESC
@@ -134,13 +134,13 @@ export async function statsRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // GET /api/v1/stats/versions?period=30d
-  app.get('/stats/versions', async (_request, reply) => {
+  app.get('/stats/versions', async (_request, _reply) => {
     const distribution = await getVersionDistribution();
     return { data: distribution };
   });
 
   // GET /api/v1/stats/providers
-  app.get('/stats/providers', async (_request, reply) => {
+  app.get('/stats/providers', async (_request, _reply) => {
     const pool = getPool();
     const result = await pool.query(`
       SELECT metadata->>'provider' as provider, COUNT(*) as count
@@ -152,7 +152,7 @@ export async function statsRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // GET /api/v1/stats/privacy
-  app.get('/stats/privacy', async (_request, reply) => {
+  app.get('/stats/privacy', async (_request, _reply) => {
     const pool = getPool();
     const result = await pool.query(`
       SELECT COUNT(*) as privacy_on FROM events WHERE feature = 'privacy_mode_on'
@@ -161,7 +161,7 @@ export async function statsRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // GET /api/v1/stats/providers/metrics?period=30d
-  app.get('/stats/providers/metrics', async (request, reply) => {
+  app.get('/stats/providers/metrics', async (_request, _reply) => {
     const { period = '30d' } = request.query as { period?: string };
     const days = parseInt(period) || 30;
     const since = new Date(Date.now() - days * 86400000).toISOString().split('T')[0];

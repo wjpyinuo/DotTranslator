@@ -56,7 +56,7 @@ export function AlertsPage() {
     setLoading(false);
   }, [serverUrl, adminKey]);
 
-  useEffect(() => { fetchRules(); }, [fetchRules]);
+  useEffect(() => { void fetchRules(); }, [fetchRules]);
 
   const handleSave = async () => {
     if (!editing) return;
@@ -71,7 +71,7 @@ export function AlertsPage() {
         body: JSON.stringify(rule),
       });
       setEditing(null);
-      fetchRules();
+      void fetchRules();
     } catch { /* 静默 */ }
   };
 
@@ -81,7 +81,7 @@ export function AlertsPage() {
         method: 'DELETE',
         headers: headers(),
       });
-      fetchRules();
+      void fetchRules();
     } catch { /* 静默 */ }
   };
 
@@ -92,7 +92,7 @@ export function AlertsPage() {
         headers: headers(),
         body: JSON.stringify({ is_enabled: !rule.is_enabled }),
       });
-      fetchRules();
+      void fetchRules();
     } catch { /* 静默 */ }
   };
 

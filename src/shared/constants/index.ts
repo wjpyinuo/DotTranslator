@@ -1,10 +1,12 @@
 // 应用版本号（单一来源，避免硬编码分散）
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+ 
 export const APP_VERSION: string = (() => {
   try {
     // electron 主进程：从项目根 package.json 读取
-    const pkgPath = require('path').join(__dirname, '..', 'package.json');
-    return JSON.parse(require('fs').readFileSync(pkgPath, 'utf-8')).version;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+const pkgPath = require('path').join(__dirname, '..', 'package.json');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+      return JSON.parse(require('fs').readFileSync(pkgPath, 'utf-8')).version;
   } catch {
     // 兜底：手动同步（每次发版更新）
     return '0.3.1';

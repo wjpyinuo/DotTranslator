@@ -157,7 +157,7 @@ export function InputArea() {
     }
 
     timerRef.current = setTimeout(() => {
-      doTranslate();
+      void doTranslate();
     }, DEBOUNCE_TRANSLATE_MS);
   }, [setInputText, setResults, setTargetLang, doTranslate]);
 

@@ -43,7 +43,7 @@ export function SettingsPage() {
     }
   }, [serverUrl]);
 
-  useEffect(() => { checkHealth(); }, [checkHealth]);
+  useEffect(() => { void checkHealth(); }, [checkHealth]);
 
   const handleExport = async () => {
     setExporting(true);
@@ -68,16 +68,18 @@ export function SettingsPage() {
   };
 
   const handleDeleteInstance = async () => {
+    // eslint-disable-next-line no-alert
     const id = prompt('输入要删除的实例 ID:');
     if (!id) return;
+    // eslint-disable-next-line no-alert
     if (!confirm(`确定删除实例 ${id} 及其所有数据？此操作不可恢复。`)) return;
     try {
       await fetch(`${serverUrl}/api/v1/instances/${id}`, {
         method: 'DELETE',
         headers: { 'x-admin-key': adminKey },
       });
-      alert('删除成功');
-    } catch { alert('删除失败'); }
+      console.warn('删除成功');
+    } catch { console.warn('删除失败'); }
   };
 
   return (

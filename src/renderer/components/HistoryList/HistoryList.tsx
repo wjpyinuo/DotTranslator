@@ -30,11 +30,11 @@ export function HistoryList() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { loadHistory(); }, [loadHistory]);
+  useEffect(() => { void loadHistory(); }, [loadHistory]);
 
   const handleSearch = useCallback(async (query: string) => {
     setSearchQuery(query);
-    if (!query.trim()) { loadHistory(); return; }
+    if (!query.trim()) { void loadHistory(); return; }
     const api = window.electronAPI;
     if (api?.history?.search) {
       const rows = await api.history.search(query);
@@ -64,7 +64,8 @@ export function HistoryList() {
   };
 
   const handleDeleteSingle = useCallback(async (id: string) => {
-    const confirmed = window.confirm('确定删除这条翻译记录？');
+    const confirmed = // eslint-disable-next-line no-alert
+    window.confirm('确定删除这条翻译记录？');
     if (!confirmed) return;
     const api = window.electronAPI;
     if (api?.history?.delete) {
@@ -76,7 +77,8 @@ export function HistoryList() {
 
   const handleDeleteBatch = useCallback(async () => {
     if (selectedIds.size === 0) return;
-    const confirmed = window.confirm(`确定删除选中的 ${selectedIds.size} 条记录？`);
+    const confirmed = // eslint-disable-next-line no-alert
+    window.confirm(`确定删除选中的 ${selectedIds.size} 条记录？`);
     if (!confirmed) return;
     const api = window.electronAPI;
     if (api?.history?.deleteBatch) {
@@ -89,7 +91,8 @@ export function HistoryList() {
   }, [selectedIds, showToast]);
 
   const handleClearAll = useCallback(async () => {
-    const confirmed = window.confirm('⚠️ 确定清空所有翻译历史？此操作不可恢复！');
+    const confirmed = // eslint-disable-next-line no-alert
+    window.confirm('⚠️ 确定清空所有翻译历史？此操作不可恢复！');
     if (!confirmed) return;
     const api = window.electronAPI;
     if (api?.history?.clearAll) {
@@ -268,7 +271,7 @@ function HistoryItem({
   onToggleFavorite: () => void;
 }) {
   const handleCopy = () => {
-    navigator.clipboard.writeText(entry.targetText);
+    void navigator.clipboard.writeText(entry.targetText);
   };
 
   return (

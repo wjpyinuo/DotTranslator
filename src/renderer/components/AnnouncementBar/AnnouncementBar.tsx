@@ -78,7 +78,7 @@ export function AnnouncementBar() {
   }, []);
 
   useEffect(() => {
-    fetchAnnouncement();
+    void fetchAnnouncement();
     // 每 30 分钟刷新公告
     const interval = setInterval(fetchAnnouncement, 30 * 60 * 1000);
     return () => clearInterval(interval);

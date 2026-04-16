@@ -36,7 +36,7 @@ export function SettingsPanel() {
   useEffect(() => {
     const api = window.electronAPI;
     if (!api?.secureStorage) return;
-    (async () => {
+    void (async () => {
       const deepl = await api.secureStorage.get('deeplApiKey') || '';
       const youdaoId = await api.secureStorage.get('youdaoAppId') || '';
       const youdaoKey = await api.secureStorage.get('youdaoAppSecret') || '';
@@ -96,7 +96,7 @@ export function SettingsPanel() {
   const handleBlur = useCallback((key: string, value: string) => {
     if (value && KEY_VALIDATORS[key] && !KEY_VALIDATORS[key](value)) {
       // 格式不正确 → 自动清空
-      saveApiKey(key, '');
+      void saveApiKey(key, '');
     }
   }, [saveApiKey]);
 

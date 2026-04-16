@@ -24,7 +24,7 @@ export function FeaturesPage() {
     setLoading(false);
   }, [serverUrl, sort, period]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { void fetchData(); }, [fetchData]);
 
   const featureNames: Record<string, string> = {
     translate_manual: '手动翻译',

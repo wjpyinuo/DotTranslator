@@ -10,7 +10,7 @@ function createMockProvider(id: string, name: string, shouldFail = false): Trans
     maxTextLength: 5000,
     requiresApiKey: false,
     supportedLanguages: [{ source: 'en', target: 'zh' }],
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     translate: vi.fn(async (_params: TranslateParams): Promise<TranslateResult> => {
       if (shouldFail) throw new Error(`${id} failed`);
       return {

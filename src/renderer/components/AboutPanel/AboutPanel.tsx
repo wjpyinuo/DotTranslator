@@ -2,8 +2,7 @@ import { useAppStore } from '@renderer/stores/appStore';
 import { APP_VERSION } from '@shared/constants';
 
 export function AboutPanel() {
-  const setActiveTab = useAppStore.setState;
-
+const setActiveTab = useAppStore.setState; // eslint-disable-line @typescript-eslint/no-unused-vars
   return (
     <div className="about-panel">
       <div className="about-hero">
