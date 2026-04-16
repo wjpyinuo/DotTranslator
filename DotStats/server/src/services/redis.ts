@@ -31,7 +31,7 @@ export async function initRedis(): Promise<RedisClientType | void> {
   return redis;
 }
 
-export async function getRedis() {
+export async function getRedis(): Promise<RedisClientType | { quit: () => Promise<void> }> {
   if (process.env.LITE_MODE === '1') return (await getLiteModule()).getRedis();
   if (!redis) throw new Error('Redis not initialized');
   return redis;
@@ -39,59 +39,59 @@ export async function getRedis() {
 
 export async function setOnline(instanceId: string): Promise<void> {
   if (process.env.LITE_MODE === '1') return (await getLiteModule()).setOnline(instanceId);
-  const r = await getRedis();
+  const r = (await getRedis()) as RedisClientType;
   await r.zAdd('online:instances', { score: Date.now(), value: instanceId });
 }
 
 export async function getOnlineCount(windowMs = 5 * 60 * 1000): Promise<number> {
   if (process.env.LITE_MODE === '1') return (await getLiteModule()).getOnlineCount(windowMs);
-  const r = await getRedis();
+  const r = (await getRedis()) as RedisClientType;
   return r.zCount('online:instances', Date.now() - windowMs, '+inf');
 }
 
 export async function cleanExpiredOnline(): Promise<void> {
   if (process.env.LITE_MODE === '1') return (await getLiteModule()).cleanExpiredOnline();
-  const r = await getRedis();
+  const r = (await getRedis()) as RedisClientType;
   await r.zRemRangeByScore('online:instances', 0, Date.now() - 10 * 60 * 1000);
 }
 
 export async function addToDAU(instanceId: string): Promise<void> {
   if (process.env.LITE_MODE === '1') return (await getLiteModule()).addToDAU(instanceId);
-  const r = await getRedis();
+  const r = (await getRedis()) as RedisClientType;
   const today = new Date().toISOString().split('T')[0];
   await r.pfAdd(`dau:${today}`, instanceId);
 }
 
 export async function getDAU(date?: string): Promise<number> {
   if (process.env.LITE_MODE === '1') return (await getLiteModule()).getDAU(date);
-  const r = await getRedis();
+  const r = (await getRedis()) as RedisClientType;
   const d = date || new Date().toISOString().split('T')[0];
   return r.pfCount(`dau:${d}`);
 }
 
 export async function addToWAU(instanceId: string): Promise<void> {
   if (process.env.LITE_MODE === '1') return (await getLiteModule()).addToWAU(instanceId);
-  const r = await getRedis();
+  const r = (await getRedis()) as RedisClientType;
   const week = getWeekKey();
   await r.pfAdd(`wau:${week}`, instanceId);
 }
 
 export async function getWAU(): Promise<number> {
   if (process.env.LITE_MODE === '1') return (await getLiteModule()).getWAU();
-  const r = await getRedis();
+  const r = (await getRedis()) as RedisClientType;
   return r.pfCount(`wau:${getWeekKey()}`);
 }
 
 export async function incrementFeature(feature: string): Promise<void> {
   if (process.env.LITE_MODE === '1') return (await getLiteModule()).incrementFeature(feature);
-  const r = await getRedis();
+  const r = (await getRedis()) as RedisClientType;
   const today = new Date().toISOString().split('T')[0];
   await r.hIncrBy(`features:${today}`, feature, 1);
 }
 
 export async function getFeatureCounts(date?: string): Promise<Record<string, number>> {
   if (process.env.LITE_MODE === '1') return (await getLiteModule()).getFeatureCounts(date);
-  const r = await getRedis();
+  const r = (await getRedis()) as RedisClientType;
   const d = date || new Date().toISOString().split('T')[0];
   const data = await r.hGetAll(`features:${d}`) as Record<string, string>;
   const result: Record<string, number> = {};
@@ -103,7 +103,7 @@ export async function getFeatureCounts(date?: string): Promise<Record<string, nu
 
 export async function updateVersion(instanceId: string, version: string): Promise<void> {
   if (process.env.LITE_MODE === '1') return (await getLiteModule()).updateVersion(instanceId, version);
-  const r = await getRedis();
+  const r = (await getRedis()) as RedisClientType;
   const prevVersion = await r.hGet('versions:instances', instanceId);
   if (prevVersion === version) return;
   await r.hSet('versions:instances', instanceId, version);
@@ -113,7 +113,7 @@ export async function updateVersion(instanceId: string, version: string): Promis
 
 export async function getVersionDistribution(): Promise<Record<string, number>> {
   if (process.env.LITE_MODE === '1') return (await getLiteModule()).getVersionDistribution();
-  const r = await getRedis();
+  const r = (await getRedis()) as RedisClientType;
   const data = await r.hGetAll('versions:counts') as Record<string, string>;
   const result: Record<string, number> = {};
   for (const [k, v] of Object.entries(data)) {
@@ -125,7 +125,7 @@ export async function getVersionDistribution(): Promise<Record<string, number>> 
 
 export async function getOSDistribution(): Promise<Record<string, number>> {
   if (process.env.LITE_MODE === '1') return (await getLiteModule()).getOSDistribution();
-  const r = await getRedis();
+  const r = (await getRedis()) as RedisClientType;
   const data = await r.hGetAll('os:counts') as Record<string, string>;
   const result: Record<string, number> = {};
   for (const [k, v] of Object.entries(data)) {
@@ -136,14 +136,14 @@ export async function getOSDistribution(): Promise<Record<string, number>> {
 
 export async function pushEventStream(event: Record<string, unknown>): Promise<void> {
   if (process.env.LITE_MODE === '1') return (await getLiteModule()).pushEventStream(event);
-  const r = await getRedis();
+  const r = (await getRedis()) as RedisClientType;
   await r.lPush('events:stream', JSON.stringify(event));
   await r.lTrim('events:stream', 0, 999);
 }
 
 export async function getEventStream(limit = 20): Promise<Record<string, unknown>[]> {
   if (process.env.LITE_MODE === '1') return (await getLiteModule()).getEventStream(limit);
-  const r = await getRedis();
+  const r = (await getRedis()) as RedisClientType;
   const items = await r.lRange('events:stream', 0, limit - 1);
   return items.map((item: string) => JSON.parse(item));
 }
