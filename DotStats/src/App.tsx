@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useStatsStore } from './stores/statsStore';
 import { useWebSocket } from './components/WebSocket/useWebSocket';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { Overview } from './components/Overview/Overview';
 import { TrendsPage } from './components/TrendsPage/TrendsPage';
 import { FeaturesPage } from './components/FeaturesPage/FeaturesPage';
@@ -99,6 +100,20 @@ export function App() {
     return () => window.removeEventListener('hashchange', onHashChange);
   }, [setActivePage]);
 
+  const [loading, setLoading] = useState(false);
+  const [pageKey, setPageKey] = useState(activePage);
+
+  // 页面切换时短暂显示加载状态
+  const handlePageChange = useCallback((id: string) => {
+    setActivePage(id);
+    setLoading(true);
+    // 下一帧解除加载状态，让 React 完成渲染
+    requestAnimationFrame(() => {
+      setPageKey(id);
+      setLoading(false);
+    });
+  }, [setActivePage]);
+
   const activeDef = PAGES.find((p) => p.id === activePage);
   const ActiveComponent = activeDef?.component || Overview;
 
@@ -120,7 +135,7 @@ export function App() {
               <button
                 key={page.id}
                 className={`nav-item ${activePage === page.id ? 'active' : ''}`}
-                onClick={() => setActivePage(page.id)}
+                onClick={() => handlePageChange(page.id)}
               >
                 {page.label}
               </button>
@@ -139,7 +154,22 @@ export function App() {
 
         {/* Main Content */}
         <main className="main-panel">
-          <ActiveComponent />
+          <ErrorBoundary key={pageKey}>
+            {loading ? (
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                height: '100%', color: '#94a3b8',
+              }}>
+                <div className="spinner" style={{
+                  width: 24, height: 24, border: '3px solid #334155',
+                  borderTopColor: '#818cf8', borderRadius: '50%',
+                  animation: 'spin 0.8s linear infinite',
+                }} />
+              </div>
+            ) : (
+              <ActiveComponent />
+            )}
+          </ErrorBoundary>
         </main>
       </div>
     </div>
