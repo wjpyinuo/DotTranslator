@@ -96,12 +96,19 @@ export async function statsRoutes(app: FastifyInstance): Promise<void> {
     const days = parseInt(period) || 30;
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
+    // 白名单：ORDER BY 列名映射（防止 SQL 注入）
+    const SORT_COLUMNS: Record<string, string> = {
+      total: 'total_calls',
+      users: 'unique_users',
+    };
+    const orderCol = SORT_COLUMNS[sort!] || SORT_COLUMNS['total'];
+
     const result = await pool.query(`
       SELECT feature, COUNT(*) as total_calls, COUNT(DISTINCT instance_id) as unique_users
       FROM events
       WHERE event_type = 'feature' AND received_at >= $1 AND feature IS NOT NULL
       GROUP BY feature
-      ORDER BY ${sort === 'total' ? 'total_calls' : 'unique_users'} DESC
+      ORDER BY ${orderCol} DESC
       LIMIT $2
     `, [since, parseInt(limit)]);
 
