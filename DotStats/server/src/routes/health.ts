@@ -16,18 +16,22 @@ export async function healthRoutes(app: FastifyInstance): Promise<void> {
       checks.database = 'error';
     }
 
-    // Redis 连通性
-    try {
-      const redis = getRedis();
-      if (typeof redis.ping === 'function') {
-        await redis.ping();
+    // Redis 连通性（lite 模式跳过）
+    if (isLite) {
+      checks.cache = 'skipped (lite mode)';
+    } else {
+      try {
+        const redis = getRedis();
+        if (typeof redis.ping === 'function') {
+          await redis.ping();
+        }
+        checks.cache = 'ok';
+      } catch {
+        checks.cache = 'error';
       }
-      checks.cache = 'ok';
-    } catch {
-      checks.cache = 'error';
     }
 
-    const healthy = Object.values(checks).every((v) => v === 'ok');
+    const healthy = Object.values(checks).every((v) => v === 'ok' || v.startsWith('skipped'));
 
     return reply.status(healthy ? 200 : 503).send({
       status: healthy ? 'healthy' : 'degraded',
