@@ -72,6 +72,18 @@ async function initSchema(): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_events_received ON events(received_at);
     CREATE INDEX IF NOT EXISTS idx_events_feature ON events(feature, received_at);
 
+    CREATE TABLE IF NOT EXISTS events_archive (
+      id            BIGSERIAL,
+      instance_id   TEXT NOT NULL,
+      event_type    TEXT NOT NULL,
+      feature       TEXT,
+      metadata      JSONB DEFAULT '{}',
+      received_at   TIMESTAMPTZ NOT NULL,
+      client_ts     BIGINT NOT NULL,
+      archived_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_events_archive_received ON events_archive(received_at);
+
     CREATE TABLE IF NOT EXISTS daily_metrics (
       date                   DATE NOT NULL PRIMARY KEY,
       dau                    INTEGER NOT NULL,
