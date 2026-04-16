@@ -1,11 +1,17 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useStatsStore } from '../../stores/statsStore';
 
+/** 最大退避延迟（毫秒） */
+const MAX_RECONNECT_DELAY_MS = 30000;
+/** 基础退避延迟（毫秒） */
+const BASE_RECONNECT_DELAY_MS = 1000;
+
 export function useWebSocket() {
   const { serverUrl, wsConnected, setWsConnected, setRealtimeData } = useStatsStore();
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const serverUrlRef = useRef(serverUrl);
+  const retryCountRef = useRef(0);
 
   // 保持 ref 同步，避免 reconnect 闭包捕获旧值
   serverUrlRef.current = serverUrl;
@@ -20,6 +26,7 @@ export function useWebSocket() {
 
       wsRef.current.onopen = () => {
         setWsConnected(true);
+        retryCountRef.current = 0; // 连接成功，重置退避计数
       };
 
       wsRef.current.onmessage = (event) => {
@@ -28,8 +35,6 @@ export function useWebSocket() {
           if (data.type === 'realtime') {
             setRealtimeData(data.data);
           }
-          // 即时事件也触发 realtime 更新（LiveFeedPage 依赖）
-          // realtime 数据已包含 recentEvents
         } catch {
           // ignore parse errors
         }
@@ -37,8 +42,12 @@ export function useWebSocket() {
 
       wsRef.current.onclose = () => {
         setWsConnected(false);
-        // 无限重连，指数退避 1s → 2s → 4s → ... max 30s
-        const delay = Math.min(1000 * Math.pow(2, 0), 30000); // 每次 1s 基础延迟
+        // 指数退避: 1s → 2s → 4s → 8s → 16s → 30s (max)
+        const delay = Math.min(
+          BASE_RECONNECT_DELAY_MS * Math.pow(2, retryCountRef.current),
+          MAX_RECONNECT_DELAY_MS
+        );
+        retryCountRef.current++;
         reconnectTimer.current = setTimeout(connect, delay);
       };
 
@@ -46,8 +55,13 @@ export function useWebSocket() {
         wsRef.current?.close();
       };
     } catch {
-      // connection failed, retry
-      reconnectTimer.current = setTimeout(connect, 5000);
+      // connection failed, retry with exponential backoff
+      const delay = Math.min(
+        BASE_RECONNECT_DELAY_MS * Math.pow(2, retryCountRef.current),
+        MAX_RECONNECT_DELAY_MS
+      );
+      retryCountRef.current++;
+      reconnectTimer.current = setTimeout(connect, delay);
     }
   }, [setWsConnected, setRealtimeData]);
 
