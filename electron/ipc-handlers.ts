@@ -36,6 +36,7 @@ interface Setters {
   setMainWindow: (win: BrowserWindow | null) => void;
   setIsQuitting: (v: boolean) => void;
   getCurrentTheme: () => string;
+  setCurrentTheme: (t: string) => void;
 }
 
 export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
@@ -103,9 +104,15 @@ export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
   });
 
   // ========== 主题同步 ==========
-  ipcMain.on('theme:changed', (_event, raw) => {
+  ipcMain.on('theme:changed', async (_event, raw) => {
     try {
-      validateTheme(raw);
+      const theme = validateTheme(raw);
+      setters.setCurrentTheme(theme);
+      // 持久化到数据库
+      const { setSetting } = await import('../src/main/database');
+      setSetting('theme', theme);
+      // 同步到遥测
+      telemetry.setState({ theme });
     } catch (err) {
       if (err instanceof ValidationError) console.warn('[IPC:theme] Validation error:', err.message);
     }

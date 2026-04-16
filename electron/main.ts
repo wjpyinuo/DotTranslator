@@ -15,7 +15,7 @@ const log = createLogger('Main');
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let isQuitting = false;
-const currentTheme = 'light';
+let currentTheme = 'light';
 
 const isDev = !app.isPackaged;
 const ALLOWED_ORIGINS = isDev ? ['http://localhost:5173'] : ['file://'];
@@ -165,7 +165,17 @@ function createTray(): void {
 }
 
 // ========== 应用启动 ==========
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  // 从数据库加载上次保存的主题（默认 light）
+  try {
+    const { getSetting } = await import('../src/main/database');
+    const savedTheme = getSetting('theme');
+    if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'system') {
+      currentTheme = savedTheme;
+      log.info(`Loaded saved theme: ${currentTheme}`);
+    }
+  } catch { /* 首次启动无数据 */ }
+
   createMainWindow();
   createTray();
 
@@ -183,6 +193,9 @@ app.whenReady().then(() => {
         isQuitting = v;
       },
       getCurrentTheme: () => currentTheme,
+      setCurrentTheme: (t: string) => {
+        currentTheme = t;
+      },
     }
   );
 
