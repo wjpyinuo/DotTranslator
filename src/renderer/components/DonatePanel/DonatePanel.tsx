@@ -1,10 +1,16 @@
 import { useState } from 'react';
 
-// QR 码远程读取地址（生产环境从服务器获取）
-const QR_BASE = 'https://raw.githubusercontent.com/wjpyinuo/DotTranslator/main/assets';
+// QR 码从服务器动态获取（加密传输）
+const QR_ENDPOINTS = {
+  wechat: 'https://raw.githubusercontent.com/wjpyinuo/DotTranslator/main/assets/wechat-qr.png',
+  alipay: 'https://raw.githubusercontent.com/wjpyinuo/DotTranslator/main/assets/alipay-qr.png',
+};
 
 export function DonatePanel() {
   const [showWechat, setShowWechat] = useState(true);
+  const [imgError, setImgError] = useState(false);
+
+  const currentQR = showWechat ? QR_ENDPOINTS.wechat : QR_ENDPOINTS.alipay;
 
   return (
     <div className="donate-page">
@@ -20,13 +26,13 @@ export function DonatePanel() {
       <div className="donate-tabs">
         <button
           className={`donate-tab-btn ${showWechat ? 'active' : ''}`}
-          onClick={() => setShowWechat(true)}
+          onClick={() => { setShowWechat(true); setImgError(false); }}
         >
           💚 微信支付
         </button>
         <button
           className={`donate-tab-btn ${!showWechat ? 'active' : ''}`}
-          onClick={() => setShowWechat(false)}
+          onClick={() => { setShowWechat(false); setImgError(false); }}
         >
           💙 支付宝
         </button>
@@ -34,20 +40,20 @@ export function DonatePanel() {
 
       <div className="donate-code-wrapper">
         <div className="donate-code-card">
-          <img
-            src={showWechat ? `${QR_BASE}/wechat-qr.png` : `${QR_BASE}/alipay-qr.png`}
-            alt={showWechat ? '微信收款码' : '支付宝收款码'}
-            className="donate-code-img"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = 'none';
-              const fallback = (e.target as HTMLImageElement).nextElementSibling;
-              if (fallback) (fallback as HTMLElement).style.display = 'flex';
-            }}
-          />
-          <div className="donate-code-fallback" style={{ display: 'none' }}>
-            <span>{showWechat ? '💚' : '💙'}</span>
-            <span>收款码加载中，请稍后重试</span>
-          </div>
+          {!imgError ? (
+            <img
+              key={currentQR}
+              src={currentQR}
+              alt={showWechat ? '微信收款码' : '支付宝收款码'}
+              className="donate-code-img"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <div className="donate-code-fallback">
+              <span>{showWechat ? '💚' : '💙'}</span>
+              <span>收款码加载失败，请稍后重试</span>
+            </div>
+          )}
           <span className="donate-label">{showWechat ? '微信支付' : '支付宝'}</span>
         </div>
       </div>
