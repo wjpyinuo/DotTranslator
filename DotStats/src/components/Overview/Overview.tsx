@@ -1,67 +1,60 @@
 import { useStatsStore } from '../../stores/statsStore';
 import ReactECharts from 'echarts-for-react';
+import { chartTheme } from '../../styles/chartTheme';
+
+const { tooltip, axis, pie, palette, seriesColors } = chartTheme;
 
 export function Overview() {
   const { realtimeData } = useStatsStore();
 
   const featureChartOption = {
-    backgroundColor: 'transparent',
-    tooltip: { trigger: 'axis', backgroundColor: '#1e293b', borderColor: '#334155', textStyle: { color: '#e2e8f0' } },
+    backgroundColor: chartTheme.bg,
+    tooltip: { trigger: 'axis' as const, ...tooltip },
     xAxis: {
-      type: 'category',
+      type: 'category' as const,
       data: Object.keys(realtimeData.topFeatures),
-      axisLabel: { color: '#94a3b8', fontSize: 10 },
-      axisLine: { lineStyle: { color: '#2a2d3a' } },
+      axisLabel: { ...axis.label, fontSize: 10 },
+      axisLine: { lineStyle: { color: axis.line.color } },
     },
     yAxis: {
-      type: 'value',
-      axisLabel: { color: '#94a3b8' },
-      splitLine: { lineStyle: { color: '#1e293b' } },
+      type: 'value' as const,
+      axisLabel: axis.label,
+      splitLine: { lineStyle: { color: axis.splitLine.color } },
     },
     series: [{
-      type: 'bar',
+      type: 'bar' as const,
       data: Object.values(realtimeData.topFeatures),
-      itemStyle: { color: '#3b82f6', borderRadius: [4, 4, 0, 0] },
+      itemStyle: { color: palette.primary, borderRadius: [4, 4, 0, 0] },
     }],
   };
 
-  const versionChartOption = {
-    backgroundColor: 'transparent',
-    tooltip: { trigger: 'item', backgroundColor: '#1e293b', borderColor: '#334155', textStyle: { color: '#e2e8f0' } },
+  const makePieOption = (data: Record<string, number>) => ({
+    backgroundColor: chartTheme.bg,
+    tooltip: { trigger: 'item' as const, ...tooltip },
     series: [{
-      type: 'pie',
+      type: 'pie' as const,
       radius: ['40%', '70%'],
-      label: { color: '#94a3b8', fontSize: 11 },
-      data: Object.entries(realtimeData.versionDistribution).map(([name, value]) => ({ name, value })),
-      itemStyle: { borderColor: '#1a1d27', borderWidth: 2 },
+      label: pie,
+      data: Object.entries(data).map(([name, value]) => ({ name, value })),
+      itemStyle: { borderColor: pie.borderColor, borderWidth: pie.borderWidth },
+      color: seriesColors,
     }],
-  };
+  });
 
-  const osChartOption = {
-    backgroundColor: 'transparent',
-    tooltip: { trigger: 'item', backgroundColor: '#1e293b', borderColor: '#334155', textStyle: { color: '#e2e8f0' } },
-    series: [{
-      type: 'pie',
-      radius: ['40%', '70%'],
-      label: { color: '#94a3b8', fontSize: 11 },
-      data: Object.entries(realtimeData.osDistribution).map(([name, value]) => ({ name, value })),
-      itemStyle: { borderColor: '#1a1d27', borderWidth: 2 },
-    }],
-  };
+  const versionChartOption = makePieOption(realtimeData.versionDistribution);
+  const osChartOption = makePieOption(realtimeData.osDistribution);
 
   return (
     <div className="overview">
       <h2 className="page-title">📊 总览</h2>
 
-      {/* 实时指标卡片 */}
       <div className="metric-cards">
-        <MetricCard label="在线实例" value={realtimeData.onlineNow} color="#3b82f6" icon="🟢" />
-        <MetricCard label="今日活跃" value={realtimeData.todayActive} color="#10b981" icon="📈" />
-        <MetricCard label="本周活跃" value={realtimeData.weekActive} color="#f59e0b" icon="📅" />
-        <MetricCard label="最近事件" value={realtimeData.recentEvents.length} color="#8b5cf6" icon="⚡" />
+        <MetricCard label="在线实例" value={realtimeData.onlineNow} color={palette.primary} icon="🟢" />
+        <MetricCard label="今日活跃" value={realtimeData.todayActive} color={palette.success} icon="📈" />
+        <MetricCard label="本周活跃" value={realtimeData.weekActive} color={palette.warning} icon="📅" />
+        <MetricCard label="最近事件" value={realtimeData.recentEvents.length} color={palette.accent} icon="⚡" />
       </div>
 
-      {/* 图表区域 */}
       <div className="chart-grid">
         <div className="chart-card">
           <h3>功能使用排行</h3>
