@@ -7,6 +7,41 @@ import { FallbackProvider } from './providers/fallback';
 /** 默认翻译超时（毫秒） */
 const DEFAULT_TIMEOUT_MS = 10_000;
 
+/** EMA 平滑系数：越小越平滑，0.3 = 新数据权重 30% */
+const EMA_ALPHA = 0.3;
+
+/** 熔断器配置 */
+const CIRCUIT_BREAKER = {
+  /** 连续失败 N 次后熔断 */
+  failureThreshold: 5,
+  /** 熔断后冷却时间（毫秒），冷却后进入半开状态允许试探 */
+  cooldownMs: 30_000,
+};
+
+/**
+ * 智能路由评分权重配置
+ * 三项权重之和应为 1.0
+ */
+export interface ScoringWeights {
+  /** 错误率权重 (0~1)，越高越倾向于选择低错误率引擎 */
+  errorRate: number;
+  /** 成本权重 (0~1)，免费引擎得分更高 */
+  cost: number;
+  /** 基础可用性权重 (0~1)，available 的引擎保底得分 */
+  availability: number;
+}
+
+const DEFAULT_SCORING_WEIGHTS: ScoringWeights = {
+  errorRate: 0.5,
+  cost: 0.3,
+  availability: 0.2,
+};
+
+/** 免费引擎的成本得分 */
+const FREE_PROVIDER_COST_SCORE = 1.0;
+/** 付费引擎的成本得分 */
+const PAID_PROVIDER_COST_SCORE = 0.7;
+
 /**
  * 带超时的 Promise 包装
  * 使用 AbortController 取消底层请求，超时后真正中断网络连接
@@ -34,16 +69,19 @@ function withTimeout<T>(promiseFactory: (signal: AbortSignal) => Promise<T>, tim
   );
 }
 
-/** EMA 平滑系数：越小越平滑，0.3 = 新数据权重 30% */
-const EMA_ALPHA = 0.3;
-
-/** 熔断器配置 */
-const CIRCUIT_BREAKER = {
-  /** 连续失败 N 次后熔断 */
-  failureThreshold: 5,
-  /** 熔断后冷却时间（毫秒），冷却后进入半开状态允许试探 */
-  cooldownMs: 30_000,
-};
+export interface RouterConfig {
+  /** 翻译超时（毫秒） */
+  timeoutMs?: number;
+  /** EMA 平滑系数 */
+  emaAlpha?: number;
+  /** 熔断器配置 */
+  circuitBreaker?: {
+    failureThreshold?: number;
+    cooldownMs?: number;
+  };
+  /** 智能路由评分权重 */
+  scoringWeights?: Partial<ScoringWeights>;
+}
 
 interface CircuitState {
   failures: number;
@@ -58,7 +96,23 @@ export class TranslationRouter {
   /** 熔断器状态 */
   private circuits = new Map<string, CircuitState>();
 
-  constructor() {
+  // 可配置参数
+  private readonly timeoutMs: number;
+  private readonly emaAlpha: number;
+  private readonly cbFailureThreshold: number;
+  private readonly cbCooldownMs: number;
+  private readonly weights: ScoringWeights;
+
+  constructor(config?: RouterConfig) {
+    this.timeoutMs = config?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+    this.emaAlpha = config?.emaAlpha ?? EMA_ALPHA;
+    this.cbFailureThreshold = config?.circuitBreaker?.failureThreshold ?? CIRCUIT_BREAKER.failureThreshold;
+    this.cbCooldownMs = config?.circuitBreaker?.cooldownMs ?? CIRCUIT_BREAKER.cooldownMs;
+    this.weights = {
+      ...DEFAULT_SCORING_WEIGHTS,
+      ...config?.scoringWeights,
+    };
+
     this.register(new DeepLProvider());
     this.register(new YoudaoProvider());
     this.register(new BaiduProvider());
@@ -84,7 +138,7 @@ export class TranslationRouter {
   async translateWithProvider(
     providerId: string,
     params: TranslateParams,
-    timeoutMs: number = DEFAULT_TIMEOUT_MS
+    timeoutMs: number = this.timeoutMs
   ): Promise<TranslateResult> {
     const provider = this.providers.get(providerId);
     if (!provider) throw new Error(`Provider "${providerId}" not found`);
@@ -138,6 +192,7 @@ export class TranslationRouter {
    */
   async smartRoute(params: TranslateParams, enabledProviders: string[]): Promise<TranslateResult> {
     const scores = new Map<string, number>();
+    const { errorRate: wError, cost: wCost, availability: wAvail } = this.weights;
 
     for (const id of enabledProviders) {
       const provider = this.providers.get(id);
@@ -150,8 +205,8 @@ export class TranslationRouter {
       if (!available) continue;
 
       const errorRate = this.getErrorRate(id);
-      const costScore = provider.requiresApiKey ? 0.7 : 1.0;
-      const score = 0.5 * (1 - errorRate) + 0.3 * costScore + 0.2;
+      const costScore = provider.requiresApiKey ? PAID_PROVIDER_COST_SCORE : FREE_PROVIDER_COST_SCORE;
+      const score = wError * (1 - errorRate) + wCost * costScore + wAvail;
       scores.set(id, score);
     }
 
@@ -167,9 +222,7 @@ export class TranslationRouter {
 
   private recordSuccess(providerId: string): void {
     const prev = this.errorRates.get(providerId) ?? 0;
-    // 成功 → EMA 向 0 收敛
-    this.errorRates.set(providerId, prev * (1 - EMA_ALPHA));
-    // 成功 → 重置连续失败计数，关闭熔断
+    this.errorRates.set(providerId, prev * (1 - this.emaAlpha));
     const circuit = this.circuits.get(providerId);
     if (circuit) {
       circuit.failures = 0;
@@ -179,16 +232,14 @@ export class TranslationRouter {
 
   private recordError(providerId: string): void {
     const prev = this.errorRates.get(providerId) ?? 0;
-    // 失败 → EMA 向 1 收敛
-    this.errorRates.set(providerId, prev + (1 - prev) * EMA_ALPHA);
-    // 熔断器：累计连续失败
+    this.errorRates.set(providerId, prev + (1 - prev) * this.emaAlpha);
     let circuit = this.circuits.get(providerId);
     if (!circuit) {
       circuit = { failures: 0, state: 'closed', openedAt: 0 };
       this.circuits.set(providerId, circuit);
     }
     circuit.failures++;
-    if (circuit.failures >= CIRCUIT_BREAKER.failureThreshold && circuit.state === 'closed') {
+    if (circuit.failures >= this.cbFailureThreshold && circuit.state === 'closed') {
       circuit.state = 'open';
       circuit.openedAt = Date.now();
       console.warn(`[CircuitBreaker] Provider "${providerId}" OPENED (${circuit.failures} consecutive failures)`);
@@ -211,8 +262,7 @@ export class TranslationRouter {
 
     if (circuit.state === 'open') {
       const elapsed = Date.now() - circuit.openedAt;
-      if (elapsed >= CIRCUIT_BREAKER.cooldownMs) {
-        // 冷却结束，进入半开状态允许试探
+      if (elapsed >= this.cbCooldownMs) {
         circuit.state = 'half-open';
         console.info(`[CircuitBreaker] Provider "${providerId}" HALF-OPEN (cooldown elapsed)`);
         return false;
@@ -220,7 +270,6 @@ export class TranslationRouter {
       return true;
     }
 
-    // half-open: 放行试探请求
     return false;
   }
 }
