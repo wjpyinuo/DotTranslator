@@ -27,13 +27,34 @@ export class TelemetryReporter {
   private enabled: boolean;
 
   constructor(instanceId?: string, enabled = true) {
-    this.instanceId = instanceId || uuidv4();
+    this.instanceId = instanceId || '';
     this.enabled = enabled;
     this.sessionStart = Date.now();
   }
 
+  /** 从数据库加载或生成持久化 instanceId */
+  private async ensureInstanceId(): Promise<string> {
+    if (this.instanceId) return this.instanceId;
+    try {
+      const { getSetting, setSetting } = await import('@main/database');
+      const saved = getSetting('instanceId');
+      if (saved) {
+        this.instanceId = saved;
+      } else {
+        this.instanceId = uuidv4();
+        setSetting('instanceId', this.instanceId);
+      }
+    } catch {
+      this.instanceId = uuidv4();
+    }
+    return this.instanceId;
+  }
+
   start(): void {
     if (!this.enabled) return;
+
+    // 确保 instanceId 已持久化
+    this.ensureInstanceId();
 
     this.heartbeatTimer = setInterval(() => {
       this.enqueue(this.buildHeartbeat());
