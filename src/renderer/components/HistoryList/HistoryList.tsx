@@ -11,6 +11,7 @@ export function HistoryList() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   const showToast = useCallback((msg: string) => {
@@ -47,9 +48,13 @@ export function HistoryList() {
     if (!sessionIds.has(entry.id)) merged.push(entry);
   }
 
-  const filtered = searchQuery.trim()
+  let filtered = searchQuery.trim()
     ? merged.filter((e) => e.sourceText.includes(searchQuery) || e.targetText.includes(searchQuery))
     : merged;
+
+  if (showFavoritesOnly) {
+    filtered = filtered.filter((e) => e.isFavorite);
+  }
 
   const toggleSelectMode = () => { setSelectMode(!selectMode); setSelectedIds(new Set()); };
 
@@ -186,6 +191,13 @@ export function HistoryList() {
               <button onClick={() => handleExport('csv')}>📊 导出 CSV</button>
             </div>
           </div>
+          <button
+            className={`history-toolbar-btn ${showFavoritesOnly ? 'active' : ''}`}
+            onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+            title={showFavoritesOnly ? '显示全部' : '仅看收藏'}
+          >
+            {showFavoritesOnly ? '⭐' : '☆'}
+          </button>
           <button
             className={`history-toolbar-btn ${selectMode ? 'active' : ''}`}
             onClick={toggleSelectMode}
