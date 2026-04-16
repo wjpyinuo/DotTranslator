@@ -5,6 +5,9 @@ import { sendNotification, type NotifyChannel, type AlertPayload } from '../serv
 // 默认告警冷却时间（分钟），防止重复告警刷屏
 const DEFAULT_COOLDOWN_MINUTES = parseInt(process.env.ALERT_COOLDOWN_MINUTES || '60', 10);
 
+// 防重入锁：防止上次检查未完成时触发新检查
+let checking = false;
+
 interface AlertRule {
   id: string;
   name: string;
@@ -20,6 +23,20 @@ interface AlertRule {
 }
 
 export async function checkAlerts(): Promise<void> {
+  if (checking) {
+    console.log('[Alert] Previous check still running, skipping');
+    return;
+  }
+  checking = true;
+
+  try {
+    await doCheckAlerts();
+  } finally {
+    checking = false;
+  }
+}
+
+async function doCheckAlerts(): Promise<void> {
   const pool = getPool();
 
   const { rows: rules } = await pool.query(
@@ -92,7 +109,7 @@ async function getMetricValue(metric: string): Promise<number | null> {
         [today, yesterday]
       );
 
-      if (rows.length < 2) return null;
+      if (rows.length < 2 || rows[1].dau === 0) return null;
       const drop = ((rows[1].dau - rows[0].dau) / rows[1].dau) * 100;
       return drop;
     }
