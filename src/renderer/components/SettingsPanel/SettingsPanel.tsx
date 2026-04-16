@@ -1,11 +1,11 @@
 import { useAppStore } from '@renderer/stores/appStore';
 import { useState, useEffect, useCallback } from 'react';
 
-// API 申请链接（已验证可用）
+// API 申请链接
 const API_LINKS = {
-  deepl: 'https://www.deepl.com/pro-api?cta=free-product-page',
+  deepl: 'https://www.deepl.com/pro-api',
   youdao: 'https://ai.youdao.com/product-fanyi-text.s',
-  baidu: 'https://fanyi-api.com/developer/apply',
+  baidu: 'https://fanyi-api.com/',
 };
 
 // API Key 格式校验
@@ -142,7 +142,6 @@ export function SettingsPanel() {
             target="_blank"
             rel="noopener noreferrer"
             className="api-link"
-            onClick={(e) => e.stopPropagation()}
           >
             申请 API →
           </a>
