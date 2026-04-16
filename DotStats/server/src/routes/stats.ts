@@ -38,29 +38,37 @@ export async function statsRoutes(app: FastifyInstance): Promise<void> {
 
     const pool = getPool();
 
-    // 白名单校验：防止 SQL 注入
-    const ALLOWED_GRANULARITIES: Record<string, string> = {
-      day: 'date',
+    // 白名单：granularity → SQL 表达式（不允许外部拼接）
+    const GRANULARITY_EXPR: Record<string, string> = {
+      day: "date",
       week: "DATE_TRUNC('week', date)",
       month: "DATE_TRUNC('month', date)",
     };
-    const ALLOWED_METRICS = new Set([
-      'dau', 'new_instances', 'heartbeats', 'feature_calls',
-    ]);
 
-    const dateGroup = ALLOWED_GRANULARITIES[granularity || 'day']
-      || ALLOWED_GRANULARITIES['day'];
+    // 白名单：metric name → SQL column alias 映射（值完全内控，禁止外部拼接）
+    const METRIC_SELECTS: Record<string, string> = {
+      dau: 'AVG(dau) as dau',
+      new_instances: 'AVG(new_instances) as new_instances',
+      heartbeats: 'AVG(heartbeats) as heartbeats',
+      feature_calls: 'AVG(feature_calls) as feature_calls',
+    };
+
+    const ALLOWED_METRIC_NAMES = new Set(Object.keys(METRIC_SELECTS));
+
+    const dateGroup = GRANULARITY_EXPR[granularity!] || GRANULARITY_EXPR['day'];
 
     const metricList = (metrics || 'dau')
       .split(',')
       .map(m => m.trim())
-      .filter(m => ALLOWED_METRICS.has(m));
+      .filter(m => ALLOWED_METRIC_NAMES.has(m));
 
     if (metricList.length === 0) {
       return reply.status(400).send({ error: 'No valid metrics specified' });
     }
 
-    const selectCols = metricList.map((m) => `AVG(${m}) as ${m}`).join(', ');
+    // 使用预定义映射拼接 SELECT，不直接引用用户输入
+    const selectCols = metricList.map((m) => METRIC_SELECTS[m]).join(', ');
+
     const query = `
       SELECT ${dateGroup} as period, ${selectCols}
       FROM daily_metrics
