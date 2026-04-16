@@ -449,19 +449,10 @@ export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
     return exportHistory();
   });
 
-  // ========== OCR 识别 ==========
+  // ========== OCR 识别（复用 worker，避免每次初始化开销）==========
   ipcMain.handle('ocr:recognize', async (_event, imageBase64: string) => {
-    try {
-      const { createWorker } = await import('tesseract.js');
-      const worker = await createWorker('chi_sim+eng');
-      const buffer = Buffer.from(imageBase64, 'base64');
-      const { data } = await worker.recognize(buffer);
-      await worker.terminate();
-      return { text: data.text.trim(), confidence: data.confidence };
-    } catch (err: any) {
-      console.error('[OCR] Recognition failed:', err);
-      return { text: '', confidence: 0, error: err.message };
-    }
+    const { recognize } = await import('./ocr-worker');
+    return recognize(imageBase64);
   });
 
   // ========== 本地统计 ==========

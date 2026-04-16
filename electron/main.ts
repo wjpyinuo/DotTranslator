@@ -270,6 +270,8 @@ app.on('before-quit', () => {
   isQuitting = true;
   telemetry.stop();
   stopClipboardMonitor();
+  // 异步清理 OCR worker（尽力而为）
+  import('./ocr-worker').then((m) => m.destroyOcrWorker()).catch(() => {});
   if (floatingBall && !floatingBall.isDestroyed()) floatingBall.destroy();
   if (pipWindow && !pipWindow.isDestroyed()) pipWindow.destroy();
   if (tray && !tray.isDestroyed()) tray.destroy();
