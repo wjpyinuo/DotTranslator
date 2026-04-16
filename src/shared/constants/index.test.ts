@@ -8,6 +8,7 @@ import {
   PRIVACY_ALLOWED_KEYS,
   PRIVACY_BLOCKED_KEYS,
   CLIPBOARD_SENSITIVE_PATTERNS,
+  APP_VERSION,
 } from './index';
 
 describe('Constants', () => {
@@ -65,5 +66,19 @@ describe('Constants', () => {
     const idPattern = CLIPBOARD_SENSITIVE_PATTERNS[2];
     expect(idPattern.test('110101199003071234')).toBe(true);
     expect(idPattern.test('11010119900307123X')).toBe(true);
+  });
+
+  it('APP_VERSION should be a valid semver string', () => {
+    expect(APP_VERSION).toMatch(/^\d+\.\d+\.\d+/);
+    expect(APP_VERSION.length).toBeGreaterThan(0);
+  });
+
+  it('PRIVACY_BLOCKED_KEYS should block all text/secret variants', () => {
+    const blocked = Array.from(PRIVACY_BLOCKED_KEYS);
+    expect(blocked).toContain('text');
+    expect(blocked).toContain('apiKey');
+    expect(blocked).toContain('token');
+    expect(blocked).toContain('secret');
+    expect(blocked).toContain('password');
   });
 });

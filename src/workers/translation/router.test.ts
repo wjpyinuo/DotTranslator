@@ -121,4 +121,81 @@ describe('TranslationRouter', () => {
       )
     ).rejects.toThrow('No available translation providers');
   });
+
+  // ========== 熔断器测试 ==========
+  describe('Circuit Breaker', () => {
+    it('should trip circuit after 5 consecutive failures', async () => {
+      const failProvider = createMockProvider('fail', 'Fail', true);
+      router.register(failProvider);
+
+      // 连续失败 5 次
+      for (let i = 0; i < 5; i++) {
+        await expect(
+          router.translateWithProvider('fail', { text: 'hi', sourceLang: 'en', targetLang: 'zh' })
+        ).rejects.toThrow();
+      }
+
+      // 第 6 次应该被熔断
+      await expect(
+        router.translateWithProvider('fail', { text: 'hi', sourceLang: 'en', targetLang: 'zh' })
+      ).rejects.toThrow('circuit-broken');
+    });
+
+    it('should reset circuit on success', async () => {
+      let callCount = 0;
+      const flakyProvider: TranslationProvider = {
+        ...createMockProvider('flaky', 'Flaky'),
+        translate: vi.fn(async () => {
+          callCount++;
+          if (callCount <= 4) throw new Error('flaky error');
+          return { text: 'ok', provider: 'flaky', confidence: 0.9, latencyMs: 10 };
+        }),
+      };
+      router.register(flakyProvider);
+
+      // 4 次失败（未触发熔断）
+      for (let i = 0; i < 4; i++) {
+        await expect(
+          router.translateWithProvider('flaky', { text: 'hi', sourceLang: 'en', targetLang: 'zh' })
+        ).rejects.toThrow();
+      }
+
+      // 第 5 次成功 → 应重置
+      const result = await router.translateWithProvider('flaky', { text: 'hi', sourceLang: 'en', targetLang: 'zh' });
+      expect(result.text).toBe('ok');
+
+      // 连续失败计数已重置，再失败 4 次不触发熔断
+      for (let i = 0; i < 4; i++) {
+        const mock = vi.fn(async () => { throw new Error('fail again'); });
+        (flakyProvider as any).translate = mock;
+        await expect(
+          router.translateWithProvider('flaky', { text: 'hi', sourceLang: 'en', targetLang: 'zh' })
+        ).rejects.toThrow();
+      }
+      // 第 5 次失败才触发熔断
+      (flakyProvider as any).translate = vi.fn(async () => { throw new Error('fail again'); });
+      await expect(
+        router.translateWithProvider('flaky', { text: 'hi', sourceLang: 'en', targetLang: 'zh' })
+      ).rejects.toThrow('circuit-broken');
+    });
+
+    it('smartRoute should skip circuit-broken providers', async () => {
+      const bad = createMockProvider('bad', 'Bad', true);
+      const good = createMockProvider('good2', 'Good2');
+      router.register(bad);
+      router.register(good);
+
+      // trip circuit on bad
+      for (let i = 0; i < 5; i++) {
+        await router.translateWithProvider('bad', { text: 'hi', sourceLang: 'en', targetLang: 'zh' }).catch(() => {});
+      }
+
+      // smartRoute 应跳过 bad，选择 good2
+      const result = await router.smartRoute(
+        { text: 'hello', sourceLang: 'en', targetLang: 'zh' },
+        ['bad', 'good2']
+      );
+      expect(result.provider).toBe('good2');
+    });
+  });
 });
