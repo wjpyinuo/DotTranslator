@@ -25,11 +25,21 @@ export class TelemetryReporter {
   private sessionStart: number;
   private instanceId: string;
   private enabled: boolean;
+  private currentTheme: string = 'light';
+  private privacyMode: boolean = false;
+  private activeProviders: string[] = [];
 
   constructor(instanceId?: string, enabled = true) {
     this.instanceId = instanceId || '';
     this.enabled = enabled;
     this.sessionStart = Date.now();
+  }
+
+  /** 更新心跳中携带的动态状态 */
+  setState(state: { theme?: string; privacyMode?: boolean; activeProviders?: string[] }): void {
+    if (state.theme !== undefined) this.currentTheme = state.theme;
+    if (state.privacyMode !== undefined) this.privacyMode = state.privacyMode;
+    if (state.activeProviders !== undefined) this.activeProviders = state.activeProviders;
   }
 
   /** 从数据库加载或生成持久化 instanceId */
@@ -186,9 +196,9 @@ export class TelemetryReporter {
         osVersion: process.version,
         arch: process.arch,
         locale: Intl.DateTimeFormat().resolvedOptions().locale,
-        theme: 'dark',
-        activeProviders: [],
-        privacyMode: false,
+        theme: this.currentTheme,
+        activeProviders: this.activeProviders,
+        privacyMode: this.privacyMode,
         sessionDurationSec: Math.floor((Date.now() - this.sessionStart) / 1000),
       },
     };
