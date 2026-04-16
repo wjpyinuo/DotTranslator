@@ -6,10 +6,11 @@ import { HistoryList } from './components/HistoryList/HistoryList';
 import { SettingsPanel } from './components/SettingsPanel/SettingsPanel';
 import { AnnouncementBar } from './components/AnnouncementBar/AnnouncementBar';
 import { AboutPanel } from './components/AboutPanel/AboutPanel';
+import { DonatePanel } from './components/DonatePanel/DonatePanel';
 import { useAppStore } from './stores/appStore';
 import './styles/app.css';
 
-type Tab = 'translate' | 'history' | 'about';
+type Tab = 'translate' | 'history' | 'donate' | 'about';
 
 interface StatsData {
   totalTranslations: number;
@@ -248,14 +249,21 @@ export function App() {
         </button>
         <span className="tab-sep" />
         <button
-          className={`tab-btn ${activeTab === 'about' ? 'active' : ''}`}
-          onClick={() => setActiveTab('about')}
+          className={`tab-btn donate-tab ${activeTab === 'donate' ? 'active' : ''}`}
+          onClick={() => setActiveTab('donate')}
         >
-          ℹ️ 关于
+          ☕ 打赏
         </button>
         <span className="tab-sep" />
         <button className="tab-btn settings-tab" onClick={toggleSettings}>
           ⚙️ 设置
+        </button>
+        <span className="tab-sep" />
+        <button
+          className={`tab-btn ${activeTab === 'about' ? 'active' : ''}`}
+          onClick={() => setActiveTab('about')}
+        >
+          ℹ️ 关于
         </button>
       </nav>
 
@@ -270,6 +278,7 @@ export function App() {
           </>
         )}
         {activeTab === 'history' && <HistoryList />}
+        {activeTab === 'donate' && <DonatePanel />}
         {activeTab === 'about' && <AboutPanel />}
       </main>
 
