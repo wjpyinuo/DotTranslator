@@ -1,9 +1,10 @@
 import { createClient, type RedisClientType } from 'redis';
+import type * as LiteRedis from './lite-redis';
 
 let redis: RedisClientType | null = null;
 
 // 轻量模式：缓存动态导入的 lite 模块
-let liteModulePromise: Promise<typeof import('./lite-redis')> | null = null;
+let liteModulePromise: Promise<typeof LiteRedis> | null = null;
 
 async function getLiteModule() {
   if (!liteModulePromise) {
