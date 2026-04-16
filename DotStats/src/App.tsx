@@ -12,6 +12,7 @@ import { ProvidersPage } from './components/ProvidersPage/ProvidersPage';
 import { LiveFeedPage } from './components/LiveFeedPage/LiveFeedPage';
 import { AlertsPage } from './components/AlertsPage/AlertsPage';
 import { SettingsPage } from './components/SettingsPage/SettingsPage';
+import '../electron.d.ts';
 import './styles/dashboard.css';
 
 interface PageDef {
@@ -37,7 +38,7 @@ function TitleBar() {
   const [isMaximized, setIsMaximized] = useState(false);
 
   useEffect(() => {
-    const api = (window as any).electronAPI;
+    const api = window.electronAPI;
     if (!api?.window) return;
     api.window.isMaximized().then(setIsMaximized);
     if (api.window.onMaximizeChanged) {
@@ -62,11 +63,11 @@ function TitleBar() {
         <span className="dotstats-titlebar-text">DotStats v0.2.1</span>
       </div>
       <div className="dotstats-titlebar-controls">
-        <button onClick={() => (window as any).electronAPI?.window?.minimize()} className="dotstats-tb-btn" title="最小化">─</button>
-        <button onClick={() => (window as any).electronAPI?.window?.toggleMaximize()} className="dotstats-tb-btn" title={isMaximized ? '还原' : '最大化'}>
+        <button onClick={() => window.electronAPI?.window?.minimize()} className="dotstats-tb-btn" title="最小化">─</button>
+        <button onClick={() => window.electronAPI?.window?.toggleMaximize()} className="dotstats-tb-btn" title={isMaximized ? '还原' : '最大化'}>
           {isMaximized ? '⧉' : '▢'}
         </button>
-        <button onClick={() => (window as any).electronAPI?.window?.close()} className="dotstats-tb-btn close" title="关闭">✕</button>
+        <button onClick={() => window.electronAPI?.window?.close()} className="dotstats-tb-btn close" title="关闭">✕</button>
       </div>
     </div>
   );
