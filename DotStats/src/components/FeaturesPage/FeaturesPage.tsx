@@ -30,7 +30,6 @@ export function FeaturesPage() {
     translate_clipboard: '剪贴板翻译',
     translate_ocr: '截图 OCR',
     comparison_view: '对比视图',
-    pip_window: '悬浮球',
     tts_play: '语音朗读',
     api_called: 'API 调用',
     theme_switch: '主题切换',
