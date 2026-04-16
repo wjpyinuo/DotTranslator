@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { TranslationRouter } from './router';
+import { TranslationRouter, classifyError } from './router';
 import type { TranslationProvider, TranslateParams, TranslateResult } from '@shared/types';
 
 // Mock provider for testing
@@ -200,6 +200,62 @@ describe('TranslationRouter', () => {
         ['bad', 'good2']
       );
       expect(result.provider).toBe('good2');
+    });
+
+    it('rate-limited errors should NOT trip circuit breaker', async () => {
+      const rateLimitedProvider = createMockProvider('rl', 'RateLimited', true);
+      // Override to throw rate-limited error
+      (rateLimitedProvider as any).translate = vi.fn(async () => {
+        throw new Error('DeepL rate limited');
+      });
+      router.register(rateLimitedProvider);
+
+      // 连续 10 次 rate limited → 不应触发熔断
+      for (let i = 0; i < 10; i++) {
+        await expect(
+          router.translateWithProvider('rl', { text: 'hi', sourceLang: 'en', targetLang: 'zh' })
+        ).rejects.toThrow('rate limited');
+      }
+
+      // 不应被熔断 — 应能继续尝试（错误消息不含 circuit-broken）
+      await expect(
+        router.translateWithProvider('rl', { text: 'hi', sourceLang: 'en', targetLang: 'zh' })
+      ).rejects.toThrow('rate limited');
+    });
+  });
+
+  // ========== 错误分类测试 ==========
+  describe('Error Classification', () => {
+    it('should classify rate limit errors', () => {
+      expect(classifyError(new Error('DeepL rate limited'))).toBe('rate_limited');
+      expect(classifyError(new Error('Baidu rate limited'))).toBe('rate_limited');
+      expect(classifyError(new Error('HTTP 429 Too Many Requests'))).toBe('rate_limited');
+    });
+
+    it('should classify quota exceeded errors', () => {
+      expect(classifyError(new Error('DeepL quota exceeded'))).toBe('quota_exceeded');
+      expect(classifyError(new Error('免费翻译今日额度已用完'))).toBe('quota_exceeded');
+      expect(classifyError(new Error('HTTP 456'))).toBe('quota_exceeded');
+    });
+
+    it('should classify auth errors', () => {
+      expect(classifyError(new Error('DeepL API key not set'))).toBe('auth_failed');
+      expect(classifyError(new Error('有道翻译 credentials not set'))).toBe('auth_failed');
+      expect(classifyError(new Error('Baidu credentials not set'))).toBe('auth_failed');
+    });
+
+    it('should classify timeout errors', () => {
+      expect(classifyError(new Error('Provider "deepl" timed out after 10000ms'))).toBe('timeout');
+    });
+
+    it('should classify network errors', () => {
+      expect(classifyError(new Error('fetch failed'))).toBe('network');
+      expect(classifyError(new Error('ECONNREFUSED'))).toBe('network');
+    });
+
+    it('should classify unknown errors', () => {
+      expect(classifyError(new Error('some random error'))).toBe('unknown');
+      expect(classifyError(new Error('DeepL error: 500'))).toBe('unknown');
     });
   });
 });

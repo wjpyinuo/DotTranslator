@@ -4,10 +4,54 @@ import { YoudaoProvider } from './providers/youdao';
 import { BaiduProvider } from './providers/baidu';
 import { FallbackProvider } from './providers/fallback';
 
+/** 错误分类：帮助 UI 和熔断器做出更智能的决策 */
+export type ErrorCategory =
+  | 'rate_limited'    // API 限流（429），不应计入失败次数
+  | 'auth_failed'     // 凭据错误/未配置
+  | 'quota_exceeded'  // 配额用完
+  | 'network'         // 网络超时/连接失败
+  | 'timeout'         // 翻译超时（>10s）
+  | 'unknown';        // 其他错误
+
+/**
+ * 根据错误消息分类错误类型
+ * 不同类型决定不同的熔断策略：
+ * - rate_limited / quota_exceeded：不计入熔断失败计数
+ * - auth_failed：不计入熔断（配置问题，不是服务故障）
+ * - network / timeout / unknown：正常计入熔断失败计数
+ */
+export function classifyError(error: unknown): ErrorCategory {
+  const msg = error instanceof Error ? error.message : String(error);
+  const lower = msg.toLowerCase();
+
+  if (lower.includes('rate limit') || lower.includes('429') || lower.includes('too many')) {
+    return 'rate_limited';
+  }
+  if (lower.includes('quota') || lower.includes('额度') || lower.includes('456')) {
+    return 'quota_exceeded';
+  }
+  if (lower.includes('credentials') || lower.includes('not set') || lower.includes('api key')) {
+    return 'auth_failed';
+  }
+  if (lower.includes('timed out') || lower.includes('timeout')) {
+    return 'timeout';
+  }
+  if (lower.includes('fetch failed') || lower.includes('econnrefused') || lower.includes('enotfound') ||
+      lower.includes('network') || lower.includes('dns') || lower.includes('tls')) {
+    return 'network';
+  }
+  return 'unknown';
+}
+
+/** 不计入熔断失败的错误类别 */
+const NO_CIRCUIT_TRIP: ErrorCategory[] = ['rate_limited', 'quota_exceeded', 'auth_failed'];
+
 /** 对比翻译单个引擎的错误信息 */
 export interface CompareError {
   providerId: string;
   error: string;
+  /** 错误分类 */
+  category: ErrorCategory;
   /** 是否因熔断而跳过 */
   circuitBroken: boolean;
 }
@@ -171,7 +215,11 @@ export class TranslationRouter {
       this.recordSuccess(providerId);
       return result;
     } catch (error) {
-      this.recordError(providerId);
+      // 根据错误类型决定是否计入熔断失败
+      const category = classifyError(error);
+      if (!NO_CIRCUIT_TRIP.includes(category)) {
+        this.recordError(providerId);
+      }
       throw error;
     }
   }
@@ -196,6 +244,7 @@ export class TranslationRouter {
           errors.push({
             providerId: id,
             error: msg,
+            category: classifyError(error),
             circuitBroken: this.isCircuitOpen(id),
           });
           return null;

@@ -70,7 +70,8 @@ export function InputArea() {
 
       // 输出引擎错误到控制台（UI 可后续扩展为 toast 展示）
       for (const err of errors) {
-        console.warn(`[Translate] Provider "${err.providerId}" failed: ${err.error}`);
+        const icon = err.category === 'rate_limited' ? '⏳' : err.category === 'auth_failed' ? '🔑' : err.category === 'quota_exceeded' ? '🚫' : '❌';
+        console.warn(`[Translate] ${icon} Provider "${err.providerId}" [${err.category}]: ${err.error}`);
       }
 
       if (results.length > 0) {
