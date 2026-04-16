@@ -64,9 +64,10 @@ export async function eventRoutes(app: FastifyInstance): Promise<void> {
       if (events.length > 0) {
         if (process.env.LITE_MODE === '1') {
           // 轻量模式：逐条插入（SQLite 不支持 UNNEST）
+          // 注意：占位符统一使用 $1 风格，由 lite-pool normalizeSQL 转换为 ?
           for (const event of events) {
             await client.query(
-              'INSERT INTO events (instance_id, event_type, feature, metadata, client_ts) VALUES (?, ?, ?, ?, ?)',
+              'INSERT INTO events (instance_id, event_type, feature, metadata, client_ts) VALUES ($1, $2, $3, $4, $5)',
               [instanceId, event.type, event.payload.feature || null,
                 JSON.stringify(event.payload.metadata || {}), event.timestamp]
             );
