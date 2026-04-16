@@ -22,7 +22,7 @@ export async function healthRoutes(app: FastifyInstance): Promise<void> {
     } else {
       try {
         const redis = await getRedis();
-        if (typeof redis.ping === 'function') {
+        if ('ping' in redis && typeof redis.ping === 'function') {
           await redis.ping();
         }
         checks.cache = 'ok';

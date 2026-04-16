@@ -28,7 +28,7 @@ describe('SettingsPage', () => {
 
   it('should show health check button', () => {
     render(<SettingsPage />);
-    expect(screen.getByText('检查健康状态')).toBeInTheDocument();
+    expect(screen.getByText('检查')).toBeInTheDocument();
   });
 
   it('should perform health check on click', async () => {
@@ -42,11 +42,11 @@ describe('SettingsPage', () => {
     });
 
     render(<SettingsPage />);
-    fireEvent.click(screen.getByText('检查健康状态'));
+    fireEvent.click(screen.getByText('检查'));
 
     // Wait for async fetch
     await vi.waitFor(() => {
-      expect(screen.getByText('healthy')).toBeInTheDocument();
+      expect(screen.getByText('健康')).toBeInTheDocument();
     });
   });
 
@@ -54,10 +54,10 @@ describe('SettingsPage', () => {
     mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
     render(<SettingsPage />);
-    fireEvent.click(screen.getByText('检查健康状态'));
+    fireEvent.click(screen.getByText('检查'));
 
     await vi.waitFor(() => {
-      expect(screen.getByText(/unhealthy|连接失败/)).toBeInTheDocument();
+      expect(screen.getByText(/异常|连接失败/)).toBeInTheDocument();
     });
   });
 
