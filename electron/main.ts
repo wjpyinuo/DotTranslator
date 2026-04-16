@@ -31,24 +31,14 @@ if (!gotTheLock) {
   });
 }
 
-// ========== 创建托盘图标（程序化生成，无需外部文件）==========
+// ========== 创建托盘图标 ==========
 function createTrayIcon(): Electron.NativeImage {
-  const size = 32;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 32 32">
-    <defs>
-      <linearGradient id="tg" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#818cf8"/>
-        <stop offset="100%" stop-color="#6366f1"/>
-      </linearGradient>
-    </defs>
-    <rect x="1" y="1" width="30" height="30" rx="7" fill="url(#tg)"/>
-    <text x="9" y="14" font-size="11" font-weight="bold" fill="white" font-family="Arial, sans-serif">A</text>
-    <text x="17" y="25" font-size="11" font-weight="bold" fill="rgba(255,255,255,0.85)" font-family="Arial, sans-serif">文</text>
-    <path d="M14 5 L19 8.5 L14 12" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M12 20 L7 23.5 L12 27" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>`;
-  const buffer = Buffer.from(svg);
-  return nativeImage.createFromBuffer(buffer, { width: size, height: size });
+  const isDev = !app.isPackaged;
+  // 开发模式：从项目根 assets 读取；生产模式：从打包资源读取
+  const iconPath = isDev
+    ? path.join(app.getAppPath(), 'assets', 'tray-icon.png')
+    : path.join(process.resourcesPath, 'assets', 'tray-icon.png');
+  return nativeImage.createFromPath(iconPath);
 }
 
 // ========== 主窗口 ==========
@@ -139,6 +129,10 @@ function createTray(): void {
   if (tray && !tray.isDestroyed()) return;
 
   const icon = createTrayIcon();
+  // macOS 使用 template image 自动适配深色/浅色菜单栏
+  if (process.platform === 'darwin') {
+    icon.setTemplateImage(true);
+  }
   tray = new Tray(icon.resize({ width: 16, height: 16 }));
 
   const contextMenu = Menu.buildFromTemplate([
