@@ -261,13 +261,6 @@ app.whenReady().then(() => {
 
   // 启动自动更新（生产模式延迟 5s 检查）
   initAutoUpdater(() => mainWindow);
-
-  // ========== 主题变更广播 ==========
-  ipcMain.on('theme:changed', (_event, theme: string) => {
-    currentTheme = theme || 'light';
-    floatingBall?.webContents.send('theme:changed', currentTheme);
-    pipWindow?.webContents.send('theme:changed', currentTheme);
-  });
 });
 
 // ========== 生命周期 ==========
