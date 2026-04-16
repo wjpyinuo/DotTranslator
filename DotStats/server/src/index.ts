@@ -44,10 +44,20 @@ async function start(): Promise<void> {
     credentials: true,
   });
 
-  // Rate limiting - 防止 API 被刷
+  // Rate limiting - 全局默认限制
   await app.register(rateLimit, {
     max: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),
     timeWindow: process.env.RATE_LIMIT_WINDOW || '1 minute',
+    // 健康检查路由豁免限流
+    routeConfig: {
+      health: { rateLimit: false },
+    },
+    // 使用 API Key + IP 组合作为限流 key（已认证用户按 key 限流，未认证按 IP）
+    keyGenerator: (request) => {
+      const apiKey = (request.headers['x-admin-key'] || request.headers['authorization'] || '') as string;
+      if (apiKey) return apiKey.slice(0, 32); // 前 32 字符作为 key
+      return request.ip;
+    },
     errorResponseBuilder: (_req, context) => ({
       error: 'Too Many Requests',
       message: `Rate limit exceeded, retry in ${Math.ceil(context.ttl / 1000)}s`,
