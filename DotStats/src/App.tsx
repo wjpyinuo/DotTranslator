@@ -75,6 +75,30 @@ export function App() {
   const { activePage, setActivePage, serverUrl, setServerUrl, wsConnected } = useStatsStore();
   useWebSocket();
 
+  // Hash 路由：同步 activePage 与 URL hash
+  useEffect(() => {
+    const hash = window.location.hash.slice(1); // 去掉 #
+    if (hash && PAGES.some((p) => p.id === hash)) {
+      setActivePage(hash);
+    }
+  }, []); // 仅首次加载时读取
+
+  useEffect(() => {
+    window.location.hash = activePage;
+  }, [activePage]); // activePage 变更时写入 hash
+
+  // 监听浏览器前进/后退
+  useEffect(() => {
+    const onHashChange = () => {
+      const hash = window.location.hash.slice(1);
+      if (hash && PAGES.some((p) => p.id === hash)) {
+        setActivePage(hash);
+      }
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, [setActivePage]);
+
   const activeDef = PAGES.find((p) => p.id === activePage);
   const ActiveComponent = activeDef?.component || Overview;
 
