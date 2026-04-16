@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { getPool } from '../db/pool';
+import { sendError } from '../utils/reply';
 import {
   getOnlineCount, getDAU, getWAU, getFeatureCounts,
   getVersionDistribution, getOSDistribution, getEventStream,
@@ -63,7 +64,7 @@ export async function statsRoutes(app: FastifyInstance): Promise<void> {
       .filter(m => ALLOWED_METRIC_NAMES.has(m));
 
     if (metricList.length === 0) {
-      return reply.status(400).send({ error: 'No valid metrics specified' });
+      return sendError(reply, 400, 'No valid metrics specified');
     }
 
     // 使用预定义映射拼接 SELECT，不直接引用用户输入
