@@ -13,7 +13,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     to: z.string().date().optional(),
   });
 
-  app.delete('/instances/:id', { preHandler: adminAuth }, async (_request, _reply) => {
+  app.delete('/instances/:id', { preHandler: adminAuth }, async (request, reply) => {
     const parsed = deleteParamsSchema.safeParse(request.params);
     if (!parsed.success) {
       return sendError(reply, 400, 'Invalid instance ID', parsed.error.issues);
@@ -35,7 +35,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // GET /api/v1/admin/export?format=csv&from=2026-04-01&to=2026-04-15 (需认证)
-  app.get('/admin/export', { preHandler: adminAuth }, async (_request, _reply) => {
+  app.get('/admin/export', { preHandler: adminAuth }, async (request, reply) => {
     const parsed = exportQuerySchema.safeParse(request.query);
     if (!parsed.success) {
       return sendError(reply, 400, 'Invalid query parameters', parsed.error.issues);
@@ -87,7 +87,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /api/v1/admin/alerts (创建或更新)
-  app.post('/admin/alerts', { preHandler: adminAuth }, async (_request, _reply) => {
+  app.post('/admin/alerts', { preHandler: adminAuth }, async (request, reply) => {
     const parsed = alertRuleSchema.safeParse(request.body);
     if (!parsed.success) {
       return sendError(reply, 400, 'Invalid payload', parsed.error.issues);
@@ -115,7 +115,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // PATCH /api/v1/admin/alerts/:id
-  app.patch('/admin/alerts/:id', { preHandler: adminAuth }, async (_request, _reply) => {
+  app.patch('/admin/alerts/:id', { preHandler: adminAuth }, async (request, reply) => {
     const { id } = request.params as { id: string };
 
     // 使用 Zod partial schema 验证 PATCH 请求体（类型安全 + 值校验）
@@ -151,7 +151,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // DELETE /api/v1/admin/alerts/:id
-  app.delete('/admin/alerts/:id', { preHandler: adminAuth }, async (_request, _reply) => {
+  app.delete('/admin/alerts/:id', { preHandler: adminAuth }, async (request, _reply) => {
     const { id } = request.params as { id: string };
     const pool = getPool();
     await pool.query('DELETE FROM alert_rules WHERE id = $1', [id]);
