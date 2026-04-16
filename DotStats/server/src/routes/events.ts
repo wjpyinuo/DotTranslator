@@ -4,6 +4,7 @@ import { getPool } from '../db/pool';
 import { setOnline, addToDAU, addToWAU, incrementFeature, updateVersion, pushEventStream } from '../services/redis';
 import { broadcastEvents } from '../services/websocket';
 import { eventAuth } from '../middleware/auth';
+import { sendError } from '../utils/reply';
 
 const eventSchema = z.object({
   events: z.array(z.object({
@@ -28,14 +29,14 @@ export async function eventRoutes(app: FastifyInstance): Promise<void> {
   app.post('/events', { preHandler: eventAuth }, async (request, reply) => {
     const parsed = eventSchema.safeParse(request.body);
     if (!parsed.success) {
-      return reply.status(400).send({ error: 'Invalid payload', details: parsed.error.issues });
+      return sendError(reply, 400, 'Invalid payload', parsed.error.issues);
     }
 
     const { events } = parsed.data;
     const instanceId = request.headers['x-instance-id'] as string || events[0]?.payload.instanceId;
 
     if (!instanceId) {
-      return reply.status(400).send({ error: 'Missing instance ID' });
+      return sendError(reply, 400, 'Missing instance ID');
     }
 
     const pool = getPool();
@@ -151,7 +152,7 @@ export async function eventRoutes(app: FastifyInstance): Promise<void> {
     } catch (err) {
       await client.query('ROLLBACK').catch(() => {});
       app.log.error(err);
-      return reply.status(500).send({ error: 'Internal server error' });
+      return sendError(reply, 500, 'Internal server error');
     } finally {
       client.release();
     }
