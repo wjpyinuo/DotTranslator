@@ -202,35 +202,34 @@ html, body, #root {
 .titlebar-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); }
 .titlebar-btn.close:hover { background: #ef4444; color: white; }
 
-/* ==================== Theme Quick Toggle ==================== */
-
-.theme-quick-toggle {
-  display: flex;
-  gap: 4px;
-  padding: 4px 14px;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-subtle);
-  justify-content: flex-end;
-}
-
-.theme-quick-btn {
+/* 标题栏主题切换 */
+.titlebar-theme-btn {
   width: 28px; height: 28px;
-  border: 1px solid var(--border-subtle);
+  border: 1px solid transparent;
   border-radius: var(--radius-xs);
   background: transparent;
-  font-size: 14px;
+  color: var(--text-secondary);
+  font-size: 13px;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  -webkit-app-region: no-drag;
 }
-.theme-quick-btn.active {
+.titlebar-theme-btn.active {
   background: var(--accent);
   border-color: var(--accent);
-  box-shadow: 0 0 8px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 6px rgba(99, 102, 241, 0.3);
 }
-.theme-quick-btn:hover:not(.active) { background: var(--bg-tertiary); }
+.titlebar-theme-btn:hover:not(.active) { background: var(--bg-tertiary); }
+
+.titlebar-sep {
+  width: 1px; height: 20px;
+  background: var(--border-subtle);
+  margin: 0 4px;
+  opacity: 0.5;
+}
 
 /* ==================== Tab Bar ==================== */
 

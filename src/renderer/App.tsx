@@ -246,30 +246,6 @@ export function App() {
     <div className={`app-container ${settings.theme}`} ref={containerRef}>
       <TitleBar />
 
-      {/* 主题切换快捷按钮 */}
-      <div className="theme-quick-toggle">
-        <button
-          className={`theme-quick-btn ${settings.theme === 'light' ? 'active' : ''}`}
-          onClick={() => {
-            useAppStore.getState().updateSettings({ theme: 'light' });
-            window.electronAPI?._internal?.send('theme:changed', 'light');
-          }}
-          title="亮色模式"
-        >
-          ☀️
-        </button>
-        <button
-          className={`theme-quick-btn ${settings.theme === 'dark' ? 'active' : ''}`}
-          onClick={() => {
-            useAppStore.getState().updateSettings({ theme: 'dark' });
-            window.electronAPI?._internal?.send('theme:changed', 'dark');
-          }}
-          title="暗色模式"
-        >
-          🌙
-        </button>
-      </div>
-
       <nav className="tab-bar">
         {/* 左侧：主功能 */}
         <button

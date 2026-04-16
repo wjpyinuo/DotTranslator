@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { APP_VERSION } from '@shared/constants';
+import { useAppStore } from '@renderer/stores/appStore';
 
 export function TitleBar() {
   const [isMaximized, setIsMaximized] = useState(false);
+  const settings = useAppStore((s) => s.settings);
+  const updateSettings = useAppStore((s) => s.updateSettings);
 
   useEffect(() => {
     const api = window.electronAPI;
@@ -39,6 +42,28 @@ export function TitleBar() {
         </span>
       </div>
       <div className="titlebar-controls">
+        {/* 主题切换 */}
+        <button
+          className={`titlebar-theme-btn ${settings.theme === 'light' ? 'active' : ''}`}
+          onClick={() => {
+            updateSettings({ theme: 'light' });
+            window.electronAPI?._internal?.send('theme:changed', 'light');
+          }}
+          title="亮色模式"
+        >
+          ☀️
+        </button>
+        <button
+          className={`titlebar-theme-btn ${settings.theme === 'dark' ? 'active' : ''}`}
+          onClick={() => {
+            updateSettings({ theme: 'dark' });
+            window.electronAPI?._internal?.send('theme:changed', 'dark');
+          }}
+          title="暗色模式"
+        >
+          🌙
+        </button>
+        <span className="titlebar-sep" />
         <button onClick={() => window.electronAPI?.window.minimize()} className="titlebar-btn" title="最小化">
           ─
         </button>
