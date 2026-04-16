@@ -11,17 +11,16 @@ import { initRedis, getRedis } from './services/redis';
 import { setupWebSocket } from './services/websocket';
 import { startCronJobs, stopCronJobs } from './tasks/cron';
 import { setupSwagger } from './swagger';
+import { validateEnv } from './env';
 
-const SHUTDOWN_TIMEOUT_MS = parseInt(process.env.SHUTDOWN_TIMEOUT_MS || '10000', 10);
-
-const PORT = parseInt(process.env.PORT || '3000', 10);
-const HOST = process.env.HOST || '127.0.0.1';
+// 启动前校验环境变量（缺失或格式错误立即退出）
+const env = validateEnv();
 
 async function start(): Promise<void> {
   const app = Fastify({
     logger: {
-      level: process.env.LOG_LEVEL || 'info',
-      transport: process.env.NODE_ENV !== 'production'
+      level: env.LOG_LEVEL,
+      transport: env.NODE_ENV !== 'production'
         ? { target: 'pino-pretty', options: { colorize: true, translateTime: 'SYS:HH:MM:ss' } }
         : undefined,
       serializers: {
@@ -36,8 +35,8 @@ async function start(): Promise<void> {
   });
 
   // CORS - 默认仅允许同源，生产环境须通过 CORS_ORIGIN 环境变量指定允许的域名
-  const corsOrigins = process.env.CORS_ORIGIN
-    ? process.env.CORS_ORIGIN.split(',').map(s => s.trim()).filter(Boolean)
+  const corsOrigins = env.CORS_ORIGIN
+    ? env.CORS_ORIGIN.split(',').map(s => s.trim()).filter(Boolean)
     : false; // false = 禁止跨域（最安全的默认值）
   await app.register(cors, {
     origin: corsOrigins,
@@ -47,8 +46,8 @@ async function start(): Promise<void> {
 
   // Rate limiting - 全局默认限制
   await app.register(rateLimit, {
-    max: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),
-    timeWindow: process.env.RATE_LIMIT_WINDOW || '1 minute',
+    max: env.RATE_LIMIT_MAX,
+    timeWindow: env.RATE_LIMIT_WINDOW,
     // 健康检查路由豁免限流
     routeConfig: {
       health: { rateLimit: false },
@@ -74,7 +73,7 @@ async function start(): Promise<void> {
   setupWebSocket(app);
 
   // Swagger API 文档（仅非生产环境或明确启用时）
-  if (process.env.NODE_ENV !== 'production' || process.env.ENABLE_SWAGGER === '1') {
+  if (env.NODE_ENV !== 'production' || env.ENABLE_SWAGGER) {
     await setupSwagger(app);
   }
 
@@ -98,8 +97,8 @@ async function start(): Promise<void> {
   startCronJobs();
 
   try {
-    await app.listen({ port: PORT, host: HOST });
-    console.log(`🚀 Analytics Server running on http://${HOST}:${PORT}`);
+    await app.listen({ port: env.PORT, host: env.HOST });
+    console.log(`🚀 Analytics Server running on http://${env.HOST}:${env.PORT}`);
   } catch (err) {
     app.log.error(err);
     process.exit(1);
@@ -114,9 +113,9 @@ async function start(): Promise<void> {
 
     // 超时强制退出
     const forceTimer = setTimeout(() => {
-      console.error(`⏰ Shutdown timeout (${SHUTDOWN_TIMEOUT_MS}ms), forcing exit`);
+      console.error(`⏰ Shutdown timeout (${env.SHUTDOWN_TIMEOUT_MS}ms), forcing exit`);
       process.exit(1);
-    }, SHUTDOWN_TIMEOUT_MS);
+    }, env.SHUTDOWN_TIMEOUT_MS);
 
     try {
       // 1. 停止定时任务（防止新任务启动）
