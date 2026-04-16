@@ -73,7 +73,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     operator: z.enum(['>', '<', '>=', '<=', '==']),
     threshold: z.number(),
     window_hours: z.number().int().positive().default(24),
-    notify_channel: z.enum(['webhook']).default('webhook'),
+    notify_channel: z.enum(['webhook', 'dingtalk', 'wecom', 'slack']).default('webhook'),
     notify_target: z.string().optional().default(''),
     is_enabled: z.boolean().default(true),
     cooldown_minutes: z.number().int().positive().default(60),

@@ -1,5 +1,6 @@
 import { getPool } from '../db/pool';
 import { getOnlineCount, getDAU } from '../services/redis';
+import { sendNotification, type NotifyChannel, type AlertPayload } from '../services/notifiers';
 
 // 默认告警冷却时间（分钟），防止重复告警刷屏
 const DEFAULT_COOLDOWN_MINUTES = parseInt(process.env.ALERT_COOLDOWN_MINUTES || '60', 10);
@@ -52,23 +53,19 @@ export async function checkAlerts(): Promise<void> {
         console.log(`[Alert] 🚨 "${rule.name}" triggered: ${rule.metric}=${value} ${rule.operator} ${rule.threshold}`);
 
         // 发送通知
-        if (rule.notify_channel === 'webhook' && rule.notify_target) {
-          try {
-            await fetch(rule.notify_target, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                alert: rule.name,
-                metric: rule.metric,
-                value,
-                operator: rule.operator,
-                threshold: rule.threshold,
-                triggeredAt: new Date().toISOString(),
-              }),
-            });
-          } catch (err) {
-            console.error(`[Alert] Webhook delivery failed for "${rule.name}":`, err);
-          }
+        const payload: AlertPayload = {
+          alert: rule.name,
+          metric: rule.metric,
+          value,
+          operator: rule.operator,
+          threshold: rule.threshold,
+          triggeredAt: new Date().toISOString(),
+        };
+
+        const channel = (rule.notify_channel || 'webhook') as NotifyChannel;
+        const result = await sendNotification(channel, rule.notify_target, payload);
+        if (!result.success) {
+          console.error(`[Alert] Notify failed for "${rule.name}" (${channel}): ${result.error}`);
         }
       }
     } catch (err) {
