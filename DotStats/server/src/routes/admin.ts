@@ -74,7 +74,10 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     threshold: z.number(),
     window_hours: z.number().int().positive().default(24),
     notify_channel: z.enum(['webhook', 'dingtalk', 'wecom', 'slack']).default('webhook'),
-    notify_target: z.string().optional().default(''),
+    notify_target: z.string().refine(
+      (v) => v === '' || (v.startsWith('https://') && (() => { try { new URL(v); return true; } catch { return false; } })()),
+      'notify_target must be empty or a valid HTTPS URL'
+    ).optional().default(''),
     is_enabled: z.boolean().default(true),
     cooldown_minutes: z.number().int().positive().default(60),
   });

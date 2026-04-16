@@ -2,6 +2,16 @@ import { getPool } from '../db/pool';
 import { getOnlineCount, getDAU } from '../services/redis';
 import { sendNotification, type NotifyChannel, type AlertPayload } from '../services/notifiers';
 
+/** 验证 webhook URL 为合法 HTTPS 地址（防止 SSRF） */
+function isValidWebhookUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' && parsed.hostname !== 'localhost' && !parsed.hostname.startsWith('127.');
+  } catch {
+    return false;
+  }
+}
+
 // 默认告警冷却时间（分钟），防止重复告警刷屏
 const DEFAULT_COOLDOWN_MINUTES = parseInt(process.env.ALERT_COOLDOWN_MINUTES || '60', 10);
 
@@ -80,6 +90,11 @@ async function doCheckAlerts(): Promise<void> {
         };
 
         const channel = (rule.notify_channel || 'webhook') as NotifyChannel;
+        // 运行时 URL 安全校验（防御性检查，防止数据库中存在非法 URL）
+        if (rule.notify_target && !isValidWebhookUrl(rule.notify_target)) {
+          console.error(`[Alert] Invalid webhook URL for rule "${rule.name}": ${rule.notify_target}`);
+          continue;
+        }
         const result = await sendNotification(channel, rule.notify_target, payload);
         if (!result.success) {
           console.error(`[Alert] Notify failed for "${rule.name}" (${channel}): ${result.error}`);
