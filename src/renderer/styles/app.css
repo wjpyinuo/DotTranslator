@@ -297,19 +297,27 @@ html, body, #root {
 }
 
 .swap-btn {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border: none;
   border-radius: 50%;
   background: var(--bg-secondary);
   color: var(--accent);
-  font-size: 16px;
+  font-size: 20px;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  user-select: none;
+  -webkit-app-region: no-drag;
+}
+
+.swap-btn:hover {
+  transform: rotate(180deg);
+  background: var(--accent);
+  color: white;
 }
 
 .app-container:not(.dark) .swap-btn {

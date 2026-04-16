@@ -178,8 +178,8 @@ export function InputArea() {
           ))}
         </select>
 
-        <button onClick={handleSwap} className="swap-btn" title="交换语言">
-          ⇄
+        <button onClick={handleSwap} className="swap-btn" title="交换语言" aria-label="交换语言">
+          ↔
         </button>
 
         <select
