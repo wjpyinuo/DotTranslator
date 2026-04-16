@@ -37,7 +37,7 @@ export class FallbackProvider implements TranslationProvider {
     const langpair = `${src}|${tgt}`;
     const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(params.text)}&langpair=${langpair}`;
 
-    const res = await fetch(url);
+    const res = await fetch(url, { signal: params.signal });
     if (!res.ok) throw new Error(`免费翻译服务错误: ${res.status}`);
 
     const data = await res.json();

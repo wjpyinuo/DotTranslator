@@ -41,7 +41,7 @@ export class BaiduProvider implements TranslationProvider {
 
     const url = `https://fanyi-api.baidu.com/api/trans/vip/translate?q=${encodeURIComponent(params.text)}&from=${from}&to=${to}&appid=${this.appId}&salt=${salt}&sign=${sign}`;
 
-    const res = await fetch(url);
+    const res = await fetch(url, { signal: params.signal });
     if (!res.ok) throw new Error(`Baidu Translate error: ${res.status}`);
 
     const data = await res.json();

@@ -37,6 +37,7 @@ export class DeepLProvider implements TranslationProvider {
         source_lang: params.sourceLang === 'auto' ? undefined : params.sourceLang.toUpperCase(),
         target_lang: params.targetLang.toUpperCase(),
       }),
+      signal: params.signal,
     });
 
     if (res.status === 429) {

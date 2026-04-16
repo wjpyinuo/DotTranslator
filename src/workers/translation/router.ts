@@ -9,25 +9,29 @@ const DEFAULT_TIMEOUT_MS = 10_000;
 
 /**
  * 带超时的 Promise 包装
- * 使用 AbortController 取消底层请求（如果 provider 支持 signal）
+ * 使用 AbortController 取消底层请求，超时后真正中断网络连接
  */
-function withTimeout<T>(promise: Promise<T>, timeoutMs: number, providerId: string): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => {
-      reject(new Error(`Provider "${providerId}" timed out after ${timeoutMs}ms`));
-    }, timeoutMs);
+function withTimeout<T>(promiseFactory: (signal: AbortSignal) => Promise<T>, timeoutMs: number, providerId: string): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => {
+    controller.abort();
+  }, timeoutMs);
 
-    promise.then(
-      (value) => {
-        clearTimeout(timer);
-        resolve(value);
-      },
-      (err) => {
-        clearTimeout(timer);
-        reject(err);
+  const promise = promiseFactory(controller.signal);
+
+  return promise.then(
+    (value) => {
+      clearTimeout(timer);
+      return value;
+    },
+    (err) => {
+      clearTimeout(timer);
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        throw new Error(`Provider "${providerId}" timed out after ${timeoutMs}ms`);
       }
-    );
-  });
+      throw err;
+    }
+  );
 }
 
 /** EMA 平滑系数：越小越平滑，0.3 = 新数据权重 30% */
@@ -70,7 +74,11 @@ export class TranslationRouter {
     if (!provider) throw new Error(`Provider "${providerId}" not found`);
 
     try {
-      const result = await withTimeout(provider.translate(params), timeoutMs, providerId);
+      const result = await withTimeout(
+        (signal) => provider.translate({ ...params, signal }),
+        timeoutMs,
+        providerId
+      );
       this.recordSuccess(providerId);
       return result;
     } catch (error) {

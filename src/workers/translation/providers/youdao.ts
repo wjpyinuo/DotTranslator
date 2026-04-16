@@ -93,6 +93,7 @@ export class YoudaoProvider implements TranslationProvider {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: body.toString(),
+      signal: params.signal,
     });
 
     if (!res.ok) throw new Error(`有道翻译 HTTP error: ${res.status}`);

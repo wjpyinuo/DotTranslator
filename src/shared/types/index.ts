@@ -6,6 +6,8 @@ export interface TranslateParams {
   targetLang: string;
   context?: string;
   glossaryId?: string;
+  /** 可选的 AbortSignal，用于取消底层 HTTP 请求 */
+  signal?: AbortSignal;
 }
 
 export interface TranslateResult {
