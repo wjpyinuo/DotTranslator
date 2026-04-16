@@ -117,7 +117,15 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
   // PATCH /api/v1/admin/alerts/:id
   app.patch('/admin/alerts/:id', { preHandler: adminAuth }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const body = request.body as Record<string, unknown>;
+
+    // 使用 Zod partial schema 验证 PATCH 请求体（类型安全 + 值校验）
+    const patchSchema = alertRuleSchema.omit({ id: true }).partial();
+    const parsed = patchSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return sendError(reply, 400, 'Invalid payload', parsed.error.issues);
+    }
+
+    const body = parsed.data;
     const pool = getPool();
 
     const fields: string[] = [];
@@ -125,10 +133,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     let idx = 1;
 
     for (const [key, val] of Object.entries(body)) {
-      if (['name', 'metric', 'operator', 'threshold', 'window_hours', 'notify_channel', 'notify_target', 'is_enabled', 'cooldown_minutes'].includes(key)) {
-        fields.push(`${key} = $${idx++}`);
-        values.push(val);
-      }
+      fields.push(`${key} = $${idx++}`);
+      values.push(val);
     }
 
     if (fields.length === 0) {
