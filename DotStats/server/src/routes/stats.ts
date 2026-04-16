@@ -32,7 +32,7 @@ export async function statsRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // GET /api/v1/stats/trend?from=2026-01-01&to=2026-04-15&granularity=day&metrics=dau,feature_calls
-  app.get('/stats/trend', async (_request, _reply) => {
+  app.get('/stats/trend', async (request, reply) => {
     const { from, to, granularity = 'day', metrics = 'dau' } = request.query as {
       from?: string; to?: string; granularity?: string; metrics?: string;
     };
@@ -87,7 +87,7 @@ export async function statsRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // GET /api/v1/stats/features?period=30d&sort=total&limit=20
-  app.get('/stats/features', async (_request, _reply) => {
+  app.get('/stats/features', async (request, _reply) => {
     const { period = '30d', sort = 'total', limit = '20' } = request.query as {
       period?: string; sort?: string; limit?: string;
     };
@@ -161,7 +161,7 @@ export async function statsRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // GET /api/v1/stats/providers/metrics?period=30d
-  app.get('/stats/providers/metrics', async (_request, _reply) => {
+  app.get('/stats/providers/metrics', async (request, _reply) => {
     const { period = '30d' } = request.query as { period?: string };
     const days = parseInt(period) || 30;
     const since = new Date(Date.now() - days * 86400000).toISOString().split('T')[0];
