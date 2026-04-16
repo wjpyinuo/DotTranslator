@@ -62,6 +62,7 @@ async function start(): Promise<void> {
       error: 'Too Many Requests',
       message: `Rate limit exceeded, retry in ${Math.ceil(context.ttl / 1000)}s`,
       statusCode: 429,
+      retryAfter: Math.ceil(context.ttl / 1000),
     }),
   });
 
