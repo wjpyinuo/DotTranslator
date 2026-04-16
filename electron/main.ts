@@ -6,6 +6,7 @@ import { startClipboardMonitor, stopClipboardMonitor, registerClipboardIPC } fro
 import { startLocalApiServer, registerLocalApiIPC } from './local-api';
 import { registerAllIPC } from './ipc-handlers';
 import { APP_VERSION } from '../src/shared/constants';
+import { initAutoUpdater } from './auto-updater';
 
 // ========== 窗口引用 ==========
 let mainWindow: BrowserWindow | null = null;
@@ -257,6 +258,9 @@ app.whenReady().then(() => {
 
   // 启动本地 HTTP API
   startLocalApiServer();
+
+  // 启动自动更新（生产模式延迟 5s 检查）
+  initAutoUpdater(() => mainWindow);
 
   // ========== 主题变更广播 ==========
   ipcMain.on('theme:changed', (_event, theme: string) => {
