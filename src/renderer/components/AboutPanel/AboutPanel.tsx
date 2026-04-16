@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { APP_VERSION } from '@shared/constants';
 
 export function AboutPanel() {
   const [showDonate, setShowDonate] = useState(false);
@@ -20,7 +21,7 @@ export function AboutPanel() {
           <path d="M12 20 L7 23.5 L12 27" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
         <h2>DotTranslator</h2>
-        <span className="about-version">v0.3.1</span>
+        <span className="about-version">v{APP_VERSION}</span>
       </div>
 
       <p className="about-desc">

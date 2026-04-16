@@ -6,6 +6,8 @@ import {
   bucketCharCount, PRIVACY_ALLOWED_KEYS, PRIVACY_BLOCKED_KEYS,
 } from '@shared/constants';
 
+import { APP_VERSION } from '@shared/constants';
+
 interface TranslationDetail {
   provider: string;
   sourceLang: string;
@@ -158,7 +160,7 @@ export class TelemetryReporter {
       timestamp: Date.now(),
       payload: {
         instanceId: this.instanceId,
-        version: '0.3.1',
+        version: APP_VERSION,
         os: process.platform,
         osVersion: process.version,
         arch: process.arch,
@@ -177,7 +179,7 @@ export class TelemetryReporter {
       timestamp: Date.now(),
       payload: {
         instanceId: this.instanceId,
-        version: '0.3.1',
+        version: APP_VERSION,
         feature,
         metadata,
       },

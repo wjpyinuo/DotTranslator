@@ -5,6 +5,7 @@ import { registerSecureStorageIPC } from './secure-storage';
 import { startClipboardMonitor, stopClipboardMonitor, registerClipboardIPC } from './clipboard-monitor';
 import { startLocalApiServer, registerLocalApiIPC } from './local-api';
 import { registerAllIPC } from './ipc-handlers';
+import { APP_VERSION } from '../src/shared/constants';
 
 // ========== 窗口引用 ==========
 let mainWindow: BrowserWindow | null = null;
@@ -159,7 +160,7 @@ function createTray(): void {
     },
   ]);
 
-  tray.setToolTip('DotTranslator v0.3.1 - 即时翻译');
+  tray.setToolTip(`DotTranslator v${APP_VERSION} - 即时翻译`);
   tray.setContextMenu(contextMenu);
   tray.on('click', () => {
     mainWindow?.show();

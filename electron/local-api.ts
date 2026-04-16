@@ -6,6 +6,7 @@ import http from 'http';
 import crypto from 'crypto';
 import { ipcMain } from 'electron';
 import { translationRouter } from '../src/workers/translation/router';
+import { APP_VERSION } from '../src/shared/constants';
 
 const localApiToken = crypto.randomBytes(16).toString('hex');
 
@@ -38,7 +39,7 @@ export function startLocalApiServer(): void {
     try {
       if (pathname === '/api/health' && req.method === 'GET') {
         res.writeHead(200);
-        res.end(JSON.stringify({ status: 'ok', version: '0.3.1', uptime: process.uptime() }));
+        res.end(JSON.stringify({ status: 'ok', version: APP_VERSION, uptime: process.uptime() }));
       } else if (pathname === '/api/languages' && req.method === 'GET') {
         const { SUPPORTED_LANGUAGES } = await import('../src/shared/constants');
         res.writeHead(200);
