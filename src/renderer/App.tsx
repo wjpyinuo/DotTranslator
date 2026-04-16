@@ -58,8 +58,8 @@ function InlineStats() {
     }
 
     load();
-    // 每 5 秒刷新一次（实时统计）
-    interval = setInterval(load, 5000);
+    // 每 3 秒刷新一次（实时统计）
+    interval = setInterval(load, 3000);
     return () => { cancelled = true; if (interval) clearInterval(interval); };
   }, []);
 
