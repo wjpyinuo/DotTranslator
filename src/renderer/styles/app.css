@@ -119,16 +119,18 @@ html, body, #root {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  padding: 10px 24px;
+  padding: 12px 28px;
   background: var(--bg-secondary);
   color: var(--text-primary);
   border-radius: var(--radius-sm);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   z-index: 1000;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  animation: toastIn 0.2s ease, toastOut 0.3s ease 2s forwards;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  animation: toastIn 0.25s ease, toastOut 0.3s ease 2s forwards;
   pointer-events: none;
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-subtle);
 }
 
 @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); } }

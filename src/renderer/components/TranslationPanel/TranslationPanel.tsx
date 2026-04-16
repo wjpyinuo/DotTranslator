@@ -55,6 +55,7 @@ export function TranslationPanel() {
     try {
       await navigator.clipboard.writeText(text);
       setCopiedIdx(idx);
+      showToast('📋 已复制到剪贴板');
       setTimeout(() => setCopiedIdx(null), 1500);
     } catch {
       const ta = document.createElement('textarea');
@@ -64,9 +65,10 @@ export function TranslationPanel() {
       document.execCommand('copy');
       document.body.removeChild(ta);
       setCopiedIdx(idx);
+      showToast('📋 已复制到剪贴板');
       setTimeout(() => setCopiedIdx(null), 1500);
     }
-  }, []);
+  }, [showToast]);
 
   // 采用此翻译 → 写入 TM 缓存
   const handleAdopt = useCallback(async (idx: number) => {
@@ -76,10 +78,17 @@ export function TranslationPanel() {
     if (api && inputText.trim() && result?.text) {
       try {
         await api.tm.insert(inputText.trim(), result.text, sourceLang, targetLang);
+        showToast('✅ 已采用，下次相同文本将直接使用');
       } catch { /* 静默 */ }
     }
     setTimeout(() => setAdoptedIdx(null), 2000);
-  }, [results, inputText, sourceLang, targetLang]);
+  }, [results, inputText, sourceLang, targetLang, showToast]);
+
+  const [toast, setToast] = useState<string | null>(null);
+  const showToast = useCallback((msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2000);
+  }, []);
 
   if (isTranslating) {
     return (
@@ -95,7 +104,7 @@ export function TranslationPanel() {
   if (results.length === 0) {
     return (
       <div className="translation-panel">
-        <p className="empty-hint">输入文本后，翻译结果将显示在这里</p>
+        <p className="empty-hint">✨ 输入文本后，翻译结果将显示在这里</p>
       </div>
     );
   }
@@ -104,6 +113,7 @@ export function TranslationPanel() {
 
   return (
     <div className="translation-panel">
+      {toast && <div className="toast">{toast}</div>}
       {isComparison && <h3 className="comparison-title">翻译对比</h3>}
       <div className={isComparison ? 'comparison-grid' : ''}>
         {results.map((result, i) => {
@@ -135,7 +145,7 @@ export function TranslationPanel() {
               <div className="translation-actions">
                 <button
                   className="action-btn"
-                  onClick={() => speak(result.text, targetLang)}
+                  onClick={() => { speak(result.text, targetLang); showToast('🔊 正在朗读...'); }}
                   title="语音朗读"
                 >
                   🔊 朗读
