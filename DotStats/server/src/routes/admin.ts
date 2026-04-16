@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { getPool } from '../db/pool';
 import { z } from 'zod';
 import { adminAuth } from '../middleware/auth';
+import { sendError } from '../utils/reply';
 
 export async function adminRoutes(app: FastifyInstance): Promise<void> {
   // DELETE /api/v1/instances/:id - GDPR 级联删除 (需认证)
@@ -15,7 +16,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
   app.delete('/instances/:id', { preHandler: adminAuth }, async (request, reply) => {
     const parsed = deleteParamsSchema.safeParse(request.params);
     if (!parsed.success) {
-      return reply.status(400).send({ error: 'Invalid instance ID', details: parsed.error.issues });
+      return sendError(reply, 400, 'Invalid instance ID', parsed.error.issues);
     }
     const { id } = parsed.data;
     const pool = getPool();
@@ -29,7 +30,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     } catch (err) {
       await pool.query('ROLLBACK');
       app.log.error(err);
-      return reply.status(500).send({ error: 'Delete failed' });
+      return sendError(reply, 500, 'Delete failed');
     }
   });
 
@@ -37,7 +38,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
   app.get('/admin/export', { preHandler: adminAuth }, async (request, reply) => {
     const parsed = exportQuerySchema.safeParse(request.query);
     if (!parsed.success) {
-      return reply.status(400).send({ error: 'Invalid query parameters', details: parsed.error.issues });
+      return sendError(reply, 400, 'Invalid query parameters', parsed.error.issues);
     }
     const { format, from, to } = parsed.data;
 
@@ -89,7 +90,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
   app.post('/admin/alerts', { preHandler: adminAuth }, async (request, reply) => {
     const parsed = alertRuleSchema.safeParse(request.body);
     if (!parsed.success) {
-      return reply.status(400).send({ error: 'Invalid payload', details: parsed.error.issues });
+      return sendError(reply, 400, 'Invalid payload', parsed.error.issues);
     }
     const rule = parsed.data;
     const id = rule.id || crypto.randomUUID();
@@ -131,7 +132,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     }
 
     if (fields.length === 0) {
-      return reply.status(400).send({ error: 'No valid fields to update' });
+      return sendError(reply, 400, 'No valid fields to update');
     }
 
     values.push(id);
@@ -151,3 +152,4 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     return { success: true };
   });
 }
+
