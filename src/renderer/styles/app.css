@@ -67,12 +67,11 @@ body {
 
 .app-container {
   width: 100vw;
-  height: 100vh;
   background: var(--bg-primary);
   display: flex;
   flex-direction: column;
   border-radius: var(--radius);
-  overflow: hidden;
+  overflow: visible;
   position: relative;
 }
 
@@ -230,19 +229,8 @@ html, body, #root {
 
 .main-content {
   flex: 1;
-  overflow-y: auto;
+  overflow: visible;
   padding: 14px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--bg-tertiary) transparent;
-}
-
-.main-content::-webkit-scrollbar {
-  width: 4px;
-}
-
-.main-content::-webkit-scrollbar-thumb {
-  background: var(--bg-tertiary);
-  border-radius: 2px;
 }
 
 /* ==================== Input Area ==================== */

@@ -61,10 +61,11 @@ export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
 
   ipcMain.on('window:resize', (_event, { width, height }: { width: number; height: number }) => {
     if (!refs.mainWindow || refs.mainWindow.isDestroyed()) return;
-    const clampedW = Math.max(360, Math.min(width, 800));
+    // 横向固定为初始宽度，只允许纵向调整
+    const fixedW = 420;
     const clampedH = Math.max(400, Math.min(height, 900));
     if (!refs.mainWindow.isMaximized()) {
-      refs.mainWindow.setSize(clampedW, clampedH);
+      refs.mainWindow.setSize(fixedW, clampedH);
     }
   });
 

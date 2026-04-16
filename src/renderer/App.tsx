@@ -121,18 +121,22 @@ export function App() {
   const [activeTab, setActiveTab] = useState<Tab>('translate');
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // 窗口自动调整尺寸（跟随内容变化）
+  // 窗口自动调整纵向尺寸（仅在内容高度变化时调整，横向保持不变）
   const resizeTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const lastHeightRef = useRef<number>(0);
   const handleResize = useCallback(() => {
     if (resizeTimerRef.current) clearTimeout(resizeTimerRef.current);
     resizeTimerRef.current = setTimeout(() => {
       const el = containerRef.current;
       if (!el || !window.electronAPI?.window?.resize) return;
       const scrollH = el.scrollHeight;
-      const scrollW = el.scrollWidth;
-      // 只在内容高度超过当前窗口时调整
-      window.electronAPI.window.resize(scrollW + 2, scrollH + 2);
-    }, 150);
+      // 仅在高度实际变化时才调整，避免无意义的 resize 抖动
+      if (Math.abs(scrollH - lastHeightRef.current) < 3) return;
+      lastHeightRef.current = scrollH;
+      // 横向固定为初始宽度（420），只调整纵向
+      const fixedWidth = 420;
+      window.electronAPI.window.resize(fixedWidth, scrollH + 2);
+    }, 200);
   }, []);
 
   useEffect(() => {
