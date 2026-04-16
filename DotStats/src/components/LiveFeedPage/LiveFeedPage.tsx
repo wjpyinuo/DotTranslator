@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useStatsStore } from '../../stores/statsStore';
+import type { RecentEvent } from '../../types/api';
 
 export function LiveFeedPage() {
   const { realtimeData, wsConnected } = useStatsStore();
@@ -45,7 +46,7 @@ export function LiveFeedPage() {
           {events.length === 0 ? (
             <div className="empty-chart">{paused ? '已暂停接收事件' : '等待事件...'}</div>
           ) : (
-            events.slice(0, maxItems).map((event: any, i: number) => (
+            events.slice(0, maxItems).map((event: RecentEvent, i: number) => (
               <div key={i} style={{
                 display: 'flex', gap: 20, padding: '10px 16px',
                 borderBottom: '1px solid #1e293b', fontSize: 12,

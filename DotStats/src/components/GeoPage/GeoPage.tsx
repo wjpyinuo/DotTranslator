@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useStatsStore } from '../../stores/statsStore';
 import ReactECharts from 'echarts-for-react';
+import type { CallbackDataParams } from 'echarts/types/dist/shared';
+import type { GeoEntry } from '../../types/api';
 
 export function GeoPage() {
   const { serverUrl } = useStatsStore();
-  const [data, setData] = useState<{ locale: string; count: number }[]>([]);
+  const [data, setData] = useState<GeoEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,7 +19,7 @@ export function GeoPage() {
         const json = await res.json();
         setData(json.data || []);
       }
-    } catch (e: any) { setError(e.message || "请求失败"); }
+    } catch (e: unknown) { setError(e instanceof Error ? e.message : "请求失败"); }
     setLoading(false);
   }, [serverUrl]);
 
@@ -35,10 +37,11 @@ export function GeoPage() {
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'axis' as const, backgroundColor: '#1e293b', borderColor: '#334155', textStyle: { color: '#e2e8f0' },
-      formatter: (params: any) => {
-        const p = params[0];
-        const pct = total > 0 ? ((p.value / total) * 100).toFixed(1) : 0;
-        return `${p.name}<br/>实例: ${p.value} (${pct}%)`;
+      formatter: (params: CallbackDataParams | CallbackDataParams[]) => {
+        const p = Array.isArray(params) ? params[0] : params;
+        const value = typeof p.value === 'number' ? p.value : 0;
+        const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+        return `${p.name}<br/>实例: ${value} (${pct}%)`;
       },
     },
     grid: { left: 140, right: 40, top: 20, bottom: 30 },
@@ -54,9 +57,9 @@ export function GeoPage() {
       data: data.map((d) => d.count).reverse(),
       itemStyle: {
         borderRadius: [0, 4, 4, 0],
-        color: (params: any) => {
+        color: (params: CallbackDataParams) => {
           const colors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899', '#f97316'];
-          return colors[params.dataIndex % colors.length];
+          return colors[(params.dataIndex ?? 0) % colors.length];
         },
       },
       barWidth: 16,

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useStatsStore } from '../../stores/statsStore';
+import type { HealthCheck } from '../../types/api';
 
 /**
  * 安全存储辅助：优先 sessionStorage（关闭窗口即清除），
@@ -25,7 +26,7 @@ function secureSet(key: string, value: string): void {
 
 export function SettingsPage() {
   const { serverUrl, setServerUrl } = useStatsStore();
-  const [health, setHealth] = useState<any>(null);
+  const [health, setHealth] = useState<HealthCheck | null>(null);
   const [adminKey, setAdminKey] = useState(secureGet('dotstats_admin_key'));
   const [wsToken, setWsToken] = useState(secureGet('dotstats_ws_token'));
   const [exportFormat, setExportFormat] = useState('json');
@@ -36,9 +37,9 @@ export function SettingsPage() {
     try {
       const res = await fetch(`${serverUrl}/api/v1/health`);
       if (res.ok) setHealth(await res.json());
-      else setHealth({ status: 'error', checks: { http: `HTTP ${res.status}` } });
-    } catch (e: any) {
-      setHealth({ status: 'error', checks: { connection: e.message || '连接失败' } });
+      else setHealth({ status: 'unhealthy', checks: { http: `HTTP ${res.status}` } });
+    } catch (e: unknown) {
+      setHealth({ status: 'unhealthy', checks: { connection: e instanceof Error ? e.message : '连接失败' } });
     }
   }, [serverUrl]);
 

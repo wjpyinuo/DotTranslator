@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useStatsStore } from '../../stores/statsStore';
 import ReactECharts from 'echarts-for-react';
+import type { CallbackDataParams } from 'echarts/types/dist/shared';
 
 export function VersionsPage() {
   const { serverUrl } = useStatsStore();
@@ -17,7 +18,7 @@ export function VersionsPage() {
         const json = await res.json();
         setData(json.data || {});
       }
-    } catch (e: any) { setError(e.message || "请求失败"); }
+    } catch (e: unknown) { setError(e instanceof Error ? e.message : "请求失败"); }
     setLoading(false);
   }, [serverUrl]);
 
@@ -31,7 +32,7 @@ export function VersionsPage() {
     tooltip: {
       trigger: 'item' as const,
       backgroundColor: '#1e293b', borderColor: '#334155', textStyle: { color: '#e2e8f0' },
-      formatter: (p: any) => `${p.name}<br/>实例数: ${p.value} (${p.percent}%)`,
+      formatter: (p: CallbackDataParams) => `${p.name}<br/>实例数: ${p.value} (${(p.percent ?? 0).toFixed(1)}%)`,
     },
     legend: { orient: 'vertical', right: 20, top: 'center', textStyle: { color: '#94a3b8' } },
     series: [{

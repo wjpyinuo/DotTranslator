@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useStatsStore } from '../../stores/statsStore';
 import ReactECharts from 'echarts-for-react';
+import type { FeatureStat } from '../../types/api';
 
 export function FeaturesPage() {
   const { serverUrl } = useStatsStore();
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<FeatureStat[]>([]);
   const [sort, setSort] = useState<string>('total');
   const [period, setPeriod] = useState('30');
   const [loading, setLoading] = useState(true);
@@ -19,7 +20,7 @@ export function FeaturesPage() {
         const json = await res.json();
         setData(json.data || []);
       }
-    } catch (e: any) { setError(e.message || "请求失败"); }
+    } catch (e: unknown) { setError(e instanceof Error ? e.message : "请求失败"); }
     setLoading(false);
   }, [serverUrl, sort, period]);
 
@@ -47,7 +48,7 @@ export function FeaturesPage() {
     xAxis: { type: 'value' as const, axisLabel: { color: '#94a3b8' }, splitLine: { lineStyle: { color: '#1e293b' } } },
     yAxis: {
       type: 'category' as const,
-      data: data.map((d: any) => featureNames[d.feature] || d.feature).reverse(),
+      data: data.map((d) => featureNames[d.feature] || d.feature).reverse(),
       axisLabel: { color: '#e2e8f0', fontSize: 12 },
       axisLine: { lineStyle: { color: '#2a2d3a' } },
     },
@@ -55,14 +56,14 @@ export function FeaturesPage() {
       {
         name: '总调用',
         type: 'bar' as const,
-        data: data.map((d: any) => parseInt(d.total_calls)).reverse(),
+        data: data.map((d) => d.total_calls).reverse(),
         itemStyle: { color: '#3b82f6', borderRadius: [0, 4, 4, 0] },
         barWidth: 14,
       },
       {
         name: '独立用户',
         type: 'bar' as const,
-        data: data.map((d: any) => parseInt(d.unique_users)).reverse(),
+        data: data.map((d) => d.unique_users).reverse(),
         itemStyle: { color: '#10b981', borderRadius: [0, 4, 4, 0] },
         barWidth: 14,
       },

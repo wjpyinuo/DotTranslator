@@ -35,7 +35,7 @@ export function ProvidersPage() {
         const json = await metricRes.json();
         setMetrics(json.data || []);
       }
-    } catch (e: any) { setError(e.message || "请求失败"); }
+    } catch (e: unknown) { setError(e instanceof Error ? e.message : "请求失败"); }
     setLoading(false);
   }, [serverUrl, period]);
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useStatsStore } from '../../stores/statsStore';
 import ReactECharts from 'echarts-for-react';
+import type { TrendPoint } from '../../types/api';
 
 type Granularity = 'day' | 'week' | 'month';
 
@@ -8,7 +9,7 @@ export function TrendsPage() {
   const { serverUrl } = useStatsStore();
   const [granularity, setGranularity] = useState<Granularity>('day');
   const [period, setPeriod] = useState('30');
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<TrendPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,18 +26,18 @@ export function TrendsPage() {
         const json = await res.json();
         setData(json.data || []);
       }
-    } catch (e: any) { setError(e.message || "请求失败"); }
+    } catch (e: unknown) { setError(e instanceof Error ? e.message : "请求失败"); }
     setLoading(false);
   }, [serverUrl, granularity, period]);
 
   useEffect(() => { fetchTrends(); }, [fetchTrends]);
 
-  const dates = data.map((d: any) => {
+  const dates = data.map((d) => {
     const p = d.period;
     return typeof p === 'string' && p.length > 10 ? p.slice(0, 10) : p;
   });
 
-  const makeOption = (title: string, key: string, color: string) => ({
+  const makeOption = (title: string, key: keyof TrendPoint, color: string) => ({
     backgroundColor: 'transparent',
     title: { text: title, textStyle: { color: '#e2e8f0', fontSize: 14 }, left: 10 },
     tooltip: { trigger: 'axis' as const, backgroundColor: '#1e293b', borderColor: '#334155', textStyle: { color: '#e2e8f0' } },
@@ -44,7 +45,7 @@ export function TrendsPage() {
     xAxis: { type: 'category' as const, data: dates, axisLabel: { color: '#94a3b8', fontSize: 10 }, axisLine: { lineStyle: { color: '#2a2d3a' } } },
     yAxis: { type: 'value' as const, axisLabel: { color: '#94a3b8' }, splitLine: { lineStyle: { color: '#1e293b' } } },
     series: [{
-      type: 'line', smooth: true, data: data.map((d: any) => d[key] || 0),
+      type: 'line', smooth: true, data: data.map((d) => (d[key] as number) || 0),
       lineStyle: { color, width: 2 },
       areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: color + '40' }, { offset: 1, color: color + '05' }] } },
       itemStyle: { color },
