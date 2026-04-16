@@ -270,6 +270,50 @@ export function getLocalStats(days = 30): LocalStatsRecord[] {
 
 // ==================== Provider Metrics ====================
 
+// ==================== Circuit Breaker State ====================
+
+const CIRCUIT_PREFIX = 'circuit:';
+
+export interface PersistedCircuit {
+  failures: number;
+  state: 'closed' | 'open' | 'half-open';
+  openedAt: number;
+  errorRate: number;
+}
+
+export function saveCircuitState(providerId: string, circuit: PersistedCircuit): void {
+  const database = getDatabase();
+  database.prepare(
+    'INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)'
+  ).run(CIRCUIT_PREFIX + providerId, JSON.stringify(circuit));
+}
+
+export function loadAllCircuitStates(): Record<string, PersistedCircuit> {
+  const database = getDatabase();
+  const rows = database.prepare(
+    "SELECT key, value FROM settings WHERE key LIKE ?"
+  ).all(CIRCUIT_PREFIX + '%') as { key: string; value: string }[];
+
+  const result: Record<string, PersistedCircuit> = {};
+  for (const row of rows) {
+    try {
+      const providerId = row.key.slice(CIRCUIT_PREFIX.length);
+      const circuit = JSON.parse(row.value) as PersistedCircuit;
+      // 校验熔断器是否已过期（超过 cooldown 后自动进入 half-open）
+      if (circuit.state === 'open' && Date.now() - circuit.openedAt >= 30_000) {
+        circuit.state = 'half-open';
+      }
+      result[providerId] = circuit;
+    } catch { /* 跳过损坏的记录 */ }
+  }
+  return result;
+}
+
+export function clearCircuitState(providerId: string): void {
+  const database = getDatabase();
+  database.prepare('DELETE FROM settings WHERE key = ?').run(CIRCUIT_PREFIX + providerId);
+}
+
 export function recordProviderMetric(provider: string, success: boolean, latencyMs: number): void {
   const database = getDatabase();
   const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD

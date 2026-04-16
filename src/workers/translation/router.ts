@@ -296,6 +296,65 @@ export class TranslationRouter {
 
     return false;
   }
+
+  // ========== 熔断器状态持久化 ==========
+
+  /**
+   * 导出所有 provider 的熔断器状态（供外部持久化到数据库）
+   */
+  exportCircuitStates(): Array<{
+    providerId: string;
+    failures: number;
+    state: 'closed' | 'open' | 'half-open';
+    openedAt: number;
+    errorRate: number;
+  }> {
+    const result: Array<{
+      providerId: string;
+      failures: number;
+      state: 'closed' | 'open' | 'half-open';
+      openedAt: number;
+      errorRate: number;
+    }> = [];
+
+    for (const [providerId, circuit] of this.circuits) {
+      if (circuit.state !== 'closed' || circuit.failures > 0) {
+        result.push({
+          providerId,
+          failures: circuit.failures,
+          state: circuit.state,
+          openedAt: circuit.openedAt,
+          errorRate: this.errorRates.get(providerId) ?? 0,
+        });
+      }
+    }
+    return result;
+  }
+
+  /**
+   * 从外部数据恢复熔断器状态（应用启动时调用）
+   */
+  importCircuitStates(
+    states: Array<{
+      providerId: string;
+      failures: number;
+      state: 'closed' | 'open' | 'half-open';
+      openedAt: number;
+      errorRate: number;
+    }>
+  ): void {
+    for (const s of states) {
+      this.circuits.set(s.providerId, {
+        failures: s.failures,
+        state: s.state,
+        openedAt: s.openedAt,
+      });
+      this.errorRates.set(s.providerId, s.errorRate);
+    }
+    if (states.length > 0) {
+      console.info(`[CircuitBreaker] Restored state for ${states.length} provider(s)`);
+    }
+  }
 }
 
 export const translationRouter = new TranslationRouter();

@@ -40,6 +40,19 @@ interface Setters {
 export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
   // 所有窗口引用通过 refs.xxx 访问（保持响应式）
 
+  // ========== 恢复熔断器状态（跨重启保留） ==========
+  import('../src/main/database').then(({ loadAllCircuitStates }) => {
+    const states = loadAllCircuitStates();
+    const arr = Object.entries(states).map(([providerId, s]) => ({
+      providerId,
+      failures: s.failures,
+      state: s.state,
+      openedAt: s.openedAt,
+      errorRate: s.errorRate,
+    }));
+    translationRouter.importCircuitStates(arr);
+  }).catch(() => { /* 首次启动无历史数据 */ });
+
   // ========== 全局快捷键 ==========
   globalShortcut.register('Alt+Space', () => {
     if (refs.mainWindow?.isVisible()) {
@@ -143,7 +156,7 @@ export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
       const enabled = params.enabledProviders || ['fallback'];
       const { results, errors } = await translationRouter.translateCompare(params, enabled);
       try {
-        const { recordProviderMetric } = await import('../src/main/database');
+        const { recordProviderMetric, saveCircuitState } = await import('../src/main/database');
         const succeeded = new Set(results.map((r: any) => r.provider));
         for (const r of results) {
           recordProviderMetric(r.provider, true, r.latencyMs);
@@ -160,6 +173,10 @@ export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
           if (!succeeded.has(id)) {
             recordProviderMetric(id, false, 0);
           }
+        }
+        // 持久化熔断器状态
+        for (const circuit of translationRouter.exportCircuitStates()) {
+          saveCircuitState(circuit.providerId, circuit);
         }
       } catch {
         /* 静默 */
