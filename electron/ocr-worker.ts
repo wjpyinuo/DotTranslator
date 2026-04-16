@@ -22,7 +22,13 @@ async function getWorker(): Promise<TesseractWorker> {
   if (initFailed) throw new Error('OCR worker failed to initialize previously');
   if (!initPromise) {
     initPromise = (async () => {
-      const { createWorker } = await import('tesseract.js');
+      let createWorker: typeof import('tesseract.js').createWorker;
+      try {
+        const tesseract = await import('tesseract.js');
+        createWorker = tesseract.createWorker;
+      } catch {
+        throw new Error('tesseract.js not installed (optional dependency). Run: npm install tesseract.js');
+      }
       const w = await createWorker('chi_sim+eng');
       worker = w as unknown as TesseractWorker;
       initPromise = null;
@@ -30,6 +36,7 @@ async function getWorker(): Promise<TesseractWorker> {
     })().catch((err) => {
       initFailed = true;
       initPromise = null;
+      console.warn('[OCR] Not available:', err.message);
       throw err;
     });
   }
