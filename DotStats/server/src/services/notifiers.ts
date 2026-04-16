@@ -153,7 +153,33 @@ async function hmacSha256Base64(data: string, secret: string): Promise<string> {
     'raw', encoder.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
   );
   const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(data));
-  return btoa(String.fromCharCode(...new Uint8Array(signature)));
+  return Buffer.from(signature).toString('base64');
+}
+
+/**
+ * 验证通知目标 URL，防止 SSRF
+ * 仅允许 HTTPS（webhook/dingtalk 允许 HTTP 用于内网部署场景）
+ */
+function validateNotifyTarget(target: string, channel: NotifyChannel): string | null {
+  try {
+    const url = new URL(target);
+    // 仅允许 HTTP/HTTPS
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+      return 'Only HTTP(S) URLs are allowed';
+    }
+    // 阻止指向本机/内网的请求（基础 SSRF 防护）
+    const blocked = ['localhost', '127.0.0.1', '0.0.0.0', '::1', '[::1]'];
+    if (blocked.includes(url.hostname)) {
+      return 'Localhost targets are not allowed';
+    }
+    // 私有 IP 段检查
+    if (/^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/.test(url.hostname)) {
+      return 'Private IP ranges are not allowed';
+    }
+    return null;
+  } catch {
+    return 'Invalid URL';
+  }
 }
 
 /**
@@ -165,6 +191,9 @@ export async function sendNotification(
   payload: AlertPayload,
 ): Promise<NotifyResult> {
   if (!target) return { success: false, error: 'No target configured' };
+
+  const urlError = validateNotifyTarget(target, channel);
+  if (urlError) return { success: false, error: urlError };
 
   try {
     switch (channel) {
