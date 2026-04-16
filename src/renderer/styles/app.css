@@ -896,6 +896,7 @@ html, body, #root {
   justify-content: center;
   z-index: 100;
   animation: fadeIn 0.2s ease;
+  border-radius: var(--radius);
 }
 
 /* 暗色模式下设置遮罩 */
@@ -1308,6 +1309,7 @@ kbd {
   justify-content: center;
   z-index: 200;
   animation: fadeIn 0.2s ease;
+  border-radius: var(--radius);
 }
 
 .donate-panel {
