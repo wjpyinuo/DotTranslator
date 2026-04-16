@@ -51,17 +51,20 @@ export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
   // 所有窗口引用通过 refs.xxx 访问（保持响应式）
 
   // ========== 恢复熔断器状态（跨重启保留） ==========
-  import('../src/main/database').then(({ loadAllCircuitStates }) => {
-    const states = loadAllCircuitStates();
-    const arr = Object.entries(states).map(([providerId, s]) => ({
-      providerId,
-      failures: s.failures,
-      state: s.state,
-      openedAt: s.openedAt,
-      errorRate: s.errorRate,
-    }));
-    translationRouter.importCircuitStates(arr);
-  }).catch(() => { /* 首次启动无历史数据 */ });
+  void (async () => {
+    try {
+      const { loadAllCircuitStates } = await import('../src/main/database');
+      const states = loadAllCircuitStates();
+      const arr = Object.entries(states).map(([providerId, s]) => ({
+        providerId,
+        failures: s.failures,
+        state: s.state,
+        openedAt: s.openedAt,
+        errorRate: s.errorRate,
+      }));
+      translationRouter.importCircuitStates(arr);
+    } catch { /* 首次启动无历史数据 */ }
+  })();
 
   // ========== 全局快捷键 ==========
   globalShortcut.register('Alt+Space', () => {
