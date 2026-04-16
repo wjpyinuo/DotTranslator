@@ -134,8 +134,15 @@ export function startCronJobs(): void {
         const pool = getPool();
         const sixMonthsAgo = new Date();
         sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+        // 先归档到 events_archive，再删除（防止数据不可恢复）
+        await pool.query(`
+          INSERT INTO events_archive
+          SELECT *, NOW() as archived_at FROM events WHERE received_at < $1
+          ON CONFLICT DO NOTHING
+        `, [sixMonthsAgo]);
         await pool.query('DELETE FROM events WHERE received_at < $1', [sixMonthsAgo]);
-        console.log('[Cron] Archived old events');
+        console.log('[Cron] Archived and cleaned old events');
 
         // 清理 16 周以上的留存快照（W12 已过期，无需保留）
         const sixteenWeeksAgo = new Date();
