@@ -107,15 +107,14 @@ export async function eventRoutes(app: FastifyInstance): Promise<void> {
         }
       }
       for (const [provider, agg] of Object.entries(providerAgg)) {
-        const avgLatency = agg.totalLatency / agg.calls;
         await client.query(`
-          INSERT INTO provider_metrics (provider, date, total_calls, success, fail, avg_latency)
+          INSERT INTO provider_metrics (provider, date, total_calls, success, fail, total_latency)
           VALUES ($1, CURRENT_DATE, $2, $2, 0, $3)
           ON CONFLICT (provider, date) DO UPDATE SET
             total_calls = provider_metrics.total_calls + $2,
             success = provider_metrics.success + $2,
-            avg_latency = (provider_metrics.avg_latency * provider_metrics.total_calls + $3 * $2) / (provider_metrics.total_calls + $2)
-        `, [provider, agg.calls, avgLatency]);
+            total_latency = provider_metrics.total_latency + $3
+        `, [provider, agg.calls, agg.totalLatency]);
       }
 
       await client.query('COMMIT');
