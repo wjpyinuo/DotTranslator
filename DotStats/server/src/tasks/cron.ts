@@ -127,7 +127,7 @@ export function startCronJobs(): void {
     })
   );
 
-  // 每月 1 号凌晨 5:00 - 归档旧事件
+  // 每月 1 号凌晨 5:00 - 归档旧事件 + 清理旧留存数据
   scheduledTasks.push(
     cron.schedule('0 5 1 * *', async () => {
       try {
@@ -136,6 +136,13 @@ export function startCronJobs(): void {
         sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
         await pool.query('DELETE FROM events WHERE received_at < $1', [sixMonthsAgo]);
         console.log('[Cron] Archived old events');
+
+        // 清理 16 周以上的留存快照（W12 已过期，无需保留）
+        const sixteenWeeksAgo = new Date();
+        sixteenWeeksAgo.setDate(sixteenWeeksAgo.getDate() - 112);
+        const cutoffWeek = `${sixteenWeeksAgo.getFullYear()}-W${String(Math.ceil((sixteenWeeksAgo.getTime() - new Date(sixteenWeeksAgo.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000))).padStart(2, '0')}`;
+        await pool.query('DELETE FROM retention_weekly WHERE cohort_week < $1', [cutoffWeek]);
+        console.log('[Cron] Cleaned old retention snapshots');
       } catch (err) {
         console.error('[Cron] Archive failed:', err);
       }
