@@ -28,6 +28,14 @@ import {
   validateLanguageDetectText,
 } from './ipc-validator';
 
+/** 公告白名单域名（防止 SSRF） */
+const ANNOUNCEMENT_ALLOWED_HOSTS = new Set([
+  'raw.githubusercontent.com',
+  'gist.githubusercontent.com',
+  'cdn.jsdelivr.net',
+  'unpkg.com',
+]);
+
 interface WindowRefs {
   mainWindow: BrowserWindow | null;
 }
@@ -252,14 +260,6 @@ export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
   });
 
   // ========== 公告栏 ==========
-  // 公告白名单域名（防止 SSRF）
-  const ANNOUNCEMENT_ALLOWED_HOSTS = new Set([
-    'raw.githubusercontent.com',
-    'gist.githubusercontent.com',
-    'cdn.jsdelivr.net',
-    'unpkg.com',
-  ]);
-
   ipcMain.handle('announcement:fetch', async (_event, raw) => {
     try {
       const url = assertString(raw, 'url', { maxLen: 2048 });
