@@ -34,13 +34,22 @@ export async function adminAuth(request: FastifyRequest, reply: FastifyReply): P
  * 使用独立的 INGEST_API_KEY，与 admin key 分离（最小权限原则）
  * 如果未配置 INGEST_API_KEY，则拒绝所有请求（安全默认）
  */
+/** 启动时记录一次的 stats 未认证警告标志 */
+let statsNoAuthWarned = false;
+
 /**
  * Stats 视图认证 - 用于 /api/v1/stats/* 端点
- * 如果配置了 STATS_VIEW_KEY 则要求认证；未配置时放行（向后兼容）
+ * 如果配置了 STATS_VIEW_KEY 则要求认证；未配置时放行（向后兼容）并打印警告
  */
 export async function statsViewAuth(request: FastifyRequest, reply: FastifyReply): Promise<void> {
   const statsKey = process.env.STATS_VIEW_KEY;
-  if (!statsKey) return; // 未配置则开放访问
+  if (!statsKey) {
+    if (!statsNoAuthWarned) {
+      statsNoAuthWarned = true;
+      console.warn('⚠️  STATS_VIEW_KEY not set — /api/v1/stats/* endpoints are open. Set STATS_VIEW_KEY for production.');
+    }
+    return; // 未配置则开放访问（向后兼容）
+  }
 
   const token = request.headers['x-stats-key'] as string
     || (request.query as Record<string, unknown>)?.stats_key as string;
