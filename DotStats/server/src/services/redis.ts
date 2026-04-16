@@ -143,9 +143,17 @@ export async function getEventStream(limit = 20): Promise<Record<string, unknown
   return items.map((item: string) => JSON.parse(item));
 }
 
+/**
+ * ISO 8601 周编号：YYYY-Www
+ * 使用 ISO 周定义（周四所在的周决定年份，周一为周起始日）
+ */
 function getWeekKey(): string {
   const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 1);
-  const week = Math.ceil((now.getTime() - start.getTime()) / (7 * 24 * 60 * 60 * 1000));
-  return `${now.getFullYear()}-W${week.toString().padStart(2, '0')}`;
+  // ISO week: 找到本周的周四（ISO 周由周四所在年份决定）
+  const dayOfWeek = (now.getDay() + 6) % 7; // 0=Monday
+  const thursday = new Date(now);
+  thursday.setDate(now.getDate() - dayOfWeek + 3);
+  const yearStart = new Date(thursday.getFullYear(), 0, 1);
+  const week = Math.ceil(((thursday.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+  return `${thursday.getFullYear()}-W${week.toString().padStart(2, '0')}`;
 }
