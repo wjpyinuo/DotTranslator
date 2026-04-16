@@ -24,7 +24,7 @@ interface Setters {
 }
 
 export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
-  const { mainWindow, floatingBall, pipWindow } = refs;
+  // 所有窗口引用通过 refs.xxx 访问（保持响应式）
 
   // ========== 全局快捷键 ==========
   globalShortcut.register('Alt+Space', () => {

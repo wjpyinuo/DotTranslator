@@ -3,7 +3,7 @@ import path from 'path';
 import { telemetry } from '../src/telemetry/reporter';
 import { registerSecureStorageIPC } from './secure-storage';
 import { startClipboardMonitor, stopClipboardMonitor, registerClipboardIPC } from './clipboard-monitor';
-import { startLocalApiServer, registerLocalApiIPC, getLocalApiToken } from './local-api';
+import { startLocalApiServer, registerLocalApiIPC } from './local-api';
 import { registerAllIPC } from './ipc-handlers';
 
 // ========== 窗口引用 ==========

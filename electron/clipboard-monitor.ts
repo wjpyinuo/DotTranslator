@@ -52,12 +52,7 @@ let monitorInterval: ReturnType<typeof setInterval> | null = null;
 let miniCard: BrowserWindow | null = null;
 let miniCardTimer: ReturnType<typeof setTimeout> | null = null;
 
-interface MiniCardCallbacks {
-  getMainWindow: () => BrowserWindow | null;
-  showMiniCard: (text: string, sourceLang: string, targetLang: string) => void;
-}
-
-function showMiniCardInternal(text: string, sourceLang: string, targetLang: string, getMainWindow: () => BrowserWindow | null): void {
+function showMiniCardInternal(text: string, sourceLang: string, targetLang: string): void {
   const { screen } = require('electron');
   const cursorPos = screen.getCursorScreenPoint();
   const path = require('path');
@@ -118,7 +113,7 @@ export function startClipboardMonitor(getMainWindow: () => BrowserWindow | null)
 
       // 主窗口隐藏时显示迷你卡片
       if (!mainWindow.isVisible()) {
-        showMiniCardInternal(text, 'auto', 'zh', getMainWindow);
+        showMiniCardInternal(text, 'auto', 'zh');
       }
     } catch {
       /* 静默 */
