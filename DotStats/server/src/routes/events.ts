@@ -121,27 +121,31 @@ export async function eventRoutes(app: FastifyInstance): Promise<void> {
 
       await client.query('COMMIT');
 
-      // Redis 实时更新
-      await setOnline(instanceId);
-      await addToDAU(instanceId);
-      await addToWAU(instanceId);
+      // Redis 实时更新（故障降级：Redis 不可用时不影响主流程）
+      try {
+        await setOnline(instanceId);
+        await addToDAU(instanceId);
+        await addToWAU(instanceId);
 
-      for (const event of events) {
-        if (event.type === 'feature' && event.payload.feature) {
-          await incrementFeature(event.payload.feature);
+        for (const event of events) {
+          if (event.type === 'feature' && event.payload.feature) {
+            await incrementFeature(event.payload.feature);
+          }
+          if (event.payload.version) {
+            await updateVersion(instanceId, event.payload.version);
+          }
+          await pushEventStream({
+            instanceId,
+            type: event.type,
+            feature: event.payload.feature,
+            timestamp: event.timestamp,
+          });
         }
-        if (event.payload.version) {
-          await updateVersion(instanceId, event.payload.version);
-        }
-        await pushEventStream({
-          instanceId,
-          type: event.type,
-          feature: event.payload.feature,
-          timestamp: event.timestamp,
-        });
+      } catch (redisErr) {
+        app.log.warn(redisErr, 'Redis update failed, data persisted to PostgreSQL');
       }
 
-      // WebSocket 批量广播（单次推送，避免逐条发送）
+      // WebSocket 批量广播（尽力而为）
       const broadcastPayload = events.map((e) => ({
         instanceId,
         type: e.type,
