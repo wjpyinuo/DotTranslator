@@ -10,7 +10,7 @@
     "build": "tsc && vite build",
     "electron:dev": "vite && electron .",
     "electron:build": "vite build && electron-builder",
-    "lint": "eslint src electron --ext .ts,.tsx",
+    "lint": "eslint src electron DotStats/src DotStats/electron DotStats/server --ext .ts,.tsx",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
