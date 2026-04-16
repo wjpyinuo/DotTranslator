@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, session } from 'electron'; // eslint-disable-line @typescript-eslint/no-unused-vars
+import { app, BrowserWindow, Tray, Menu, nativeImage, session } from 'electron';
 import path from 'path';
 import { telemetry } from '../src/telemetry/reporter';
 import { registerSecureStorageIPC } from './secure-storage';
