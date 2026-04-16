@@ -1,11 +1,33 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useStatsStore } from '../../stores/statsStore';
 
+/**
+ * 安全存储辅助：优先 sessionStorage（关闭窗口即清除），
+ * 回退到内存变量（不持久化）。
+ * 不使用 localStorage 以防止密钥长期明文残留。
+ */
+const memoryStore: Record<string, string> = {};
+
+function secureGet(key: string): string {
+  try {
+    return sessionStorage.getItem(key) || memoryStore[key] || '';
+  } catch {
+    return memoryStore[key] || '';
+  }
+}
+
+function secureSet(key: string, value: string): void {
+  memoryStore[key] = value;
+  try {
+    sessionStorage.setItem(key, value);
+  } catch { /* sessionStorage 不可用时仅保留内存 */ }
+}
+
 export function SettingsPage() {
   const { serverUrl, setServerUrl } = useStatsStore();
   const [health, setHealth] = useState<any>(null);
-  const [adminKey, setAdminKey] = useState(localStorage.getItem('dotstats_admin_key') || '');
-  const [wsToken, setWsToken] = useState(localStorage.getItem('dotstats_ws_token') || '');
+  const [adminKey, setAdminKey] = useState(secureGet('dotstats_admin_key'));
+  const [wsToken, setWsToken] = useState(secureGet('dotstats_ws_token'));
   const [exportFormat, setExportFormat] = useState('json');
   const [exportDays, setExportDays] = useState('30');
   const [exporting, setExporting] = useState(false);
@@ -100,16 +122,16 @@ export function SettingsPage() {
           <div style={{ marginBottom: 12 }}>
             <label style={{ fontSize: 12, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Admin API Key</label>
             <input type="password" className="server-input" value={adminKey}
-              onChange={(e) => { setAdminKey(e.target.value); localStorage.setItem('dotstats_admin_key', e.target.value); }}
+              onChange={(e) => { setAdminKey(e.target.value); secureSet('dotstats_admin_key', e.target.value); }}
               placeholder="用于管理操作（删除实例/导出数据）" />
           </div>
           <div>
             <label style={{ fontSize: 12, color: '#94a3b8', display: 'block', marginBottom: 4 }}>WebSocket Token</label>
             <input type="password" className="server-input" value={wsToken}
-              onChange={(e) => { setWsToken(e.target.value); localStorage.setItem('dotstats_ws_token', e.target.value); }}
+              onChange={(e) => { setWsToken(e.target.value); secureSet('dotstats_ws_token', e.target.value); }}
               placeholder="用于 WebSocket 连接认证" />
           </div>
-          <p style={{ fontSize: 11, color: '#64748b', marginTop: 8 }}>密钥仅存储在本地浏览器 localStorage 中</p>
+          <p style={{ fontSize: 11, color: '#64748b', marginTop: 8 }}>密钥存储在 sessionStorage，关闭窗口后自动清除（不持久化到磁盘）</p>
         </div>
 
         {/* 数据导出 */}

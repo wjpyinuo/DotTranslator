@@ -6,6 +6,19 @@ const MAX_RECONNECT_DELAY_MS = 30000;
 /** 基础退避延迟（毫秒） */
 const BASE_RECONNECT_DELAY_MS = 1000;
 
+/**
+ * 安全读取 token：优先 sessionStorage，回退内存
+ */
+const memoryStore: Record<string, string> = {};
+function secureGet(key: string): string {
+  try { return sessionStorage.getItem(key) || memoryStore[key] || ''; }
+  catch { return memoryStore[key] || ''; }
+}
+export function secureSet(key: string, value: string): void {
+  memoryStore[key] = value;
+  try { sessionStorage.setItem(key, value); } catch { /* noop */ }
+}
+
 export function useWebSocket() {
   const { serverUrl, wsConnected, setWsConnected, setRealtimeData } = useStatsStore();
   const wsRef = useRef<WebSocket | null>(null);
@@ -17,7 +30,7 @@ export function useWebSocket() {
   serverUrlRef.current = serverUrl;
 
   const connect = useCallback(() => {
-    const wsToken = localStorage.getItem('dotstats_ws_token');
+    const wsToken = secureGet('dotstats_ws_token');
     const base = serverUrlRef.current;
     const wsUrl = base.replace(/^http/, 'ws') + '/ws' + (wsToken ? `?token=${encodeURIComponent(wsToken)}` : '');
 
