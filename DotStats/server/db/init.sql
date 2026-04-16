@@ -62,12 +62,13 @@ CREATE TABLE IF NOT EXISTS retention_weekly (
 
 -- 引擎性能指标
 CREATE TABLE IF NOT EXISTS provider_metrics (
-  provider    TEXT NOT NULL,
-  date        DATE NOT NULL DEFAULT CURRENT_DATE,
-  total_calls INTEGER DEFAULT 0,
-  success     INTEGER DEFAULT 0,
-  fail        INTEGER DEFAULT 0,
-  avg_latency REAL DEFAULT 0,
+  provider      TEXT NOT NULL,
+  date          DATE NOT NULL DEFAULT CURRENT_DATE,
+  total_calls   INTEGER DEFAULT 0,
+  success       INTEGER DEFAULT 0,
+  fail          INTEGER DEFAULT 0,
+  total_latency REAL DEFAULT 0,
+  avg_latency   REAL DEFAULT 0,
   PRIMARY KEY (provider, date)
 );
 
@@ -82,5 +83,6 @@ CREATE TABLE IF NOT EXISTS alert_rules (
   notify_channel  TEXT DEFAULT 'webhook',
   notify_target   TEXT,
   is_enabled      BOOLEAN DEFAULT TRUE,
-  last_triggered  TIMESTAMPTZ
+  last_triggered  TIMESTAMPTZ,
+  cooldown_minutes INTEGER DEFAULT 60
 );

@@ -7,6 +7,10 @@ import {
 
 const clients = new Set<any>();
 
+// 连续广播错误计数（用于退避策略）
+let consecutiveBroadcastErrors = 0;
+const MAX_CONSECUTIVE_ERRORS = 5;
+
 export async function setupWebSocket(app: FastifyInstance): Promise<void> {
   await app.register(websocket);
 
@@ -30,6 +34,11 @@ export async function setupWebSocket(app: FastifyInstance): Promise<void> {
         clients.delete(connection.socket);
       });
 
+      connection.socket.on('error', (err: Error) => {
+        console.error('[WS] Client error:', err.message);
+        clients.delete(connection.socket);
+      });
+
       connection.socket.on('message', (message: Buffer) => {
         try {
           const data = JSON.parse(message.toString());
@@ -47,6 +56,11 @@ export async function setupWebSocket(app: FastifyInstance): Promise<void> {
   const broadcastMs = parseInt(process.env.WS_BROADCAST_MS || '30000', 10);
   setInterval(async () => {
     if (clients.size === 0) return;
+
+    // 连续错误退避：超过阈值后静默跳过，直到恢复
+    if (consecutiveBroadcastErrors >= MAX_CONSECUTIVE_ERRORS) {
+      return;
+    }
 
     try {
       const payload = {
@@ -71,8 +85,12 @@ export async function setupWebSocket(app: FastifyInstance): Promise<void> {
           clients.delete(client);
         }
       }
+
+      // 广播成功，重置错误计数
+      consecutiveBroadcastErrors = 0;
     } catch (err) {
-      console.error('WebSocket broadcast error:', err);
+      consecutiveBroadcastErrors++;
+      console.error(`[WS] Broadcast error (${consecutiveBroadcastErrors}/${MAX_CONSECUTIVE_ERRORS}):`, err);
     }
   }, broadcastMs);
 }

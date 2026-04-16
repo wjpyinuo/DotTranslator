@@ -301,8 +301,26 @@ export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
   });
 
   // ========== 公告栏 ==========
+  // 公告白名单域名（防止 SSRF）
+  const ANNOUNCEMENT_ALLOWED_HOSTS = new Set([
+    'raw.githubusercontent.com',
+    'gist.githubusercontent.com',
+    'cdn.jsdelivr.net',
+    'unpkg.com',
+  ]);
+
   ipcMain.handle('announcement:fetch', async (_event, url: string) => {
     try {
+      const parsed = new URL(url);
+      // 仅允许 HTTPS + 白名单域名
+      if (parsed.protocol !== 'https:') {
+        console.warn('[Announcement] Blocked non-HTTPS URL:', url);
+        return '';
+      }
+      if (!ANNOUNCEMENT_ALLOWED_HOSTS.has(parsed.hostname)) {
+        console.warn('[Announcement] Blocked non-whitelisted host:', parsed.hostname);
+        return '';
+      }
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.text();

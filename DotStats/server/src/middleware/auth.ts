@@ -1,4 +1,13 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
+import { timingSafeEqual } from 'crypto';
+
+/**
+ * 常量时间比较，防止时序攻击
+ */
+function safeCompare(token: string, expected: string): boolean {
+  if (token.length !== expected.length) return false;
+  return timingSafeEqual(Buffer.from(token), Buffer.from(expected));
+}
 
 /**
  * Admin API 认证 - 用于管理接口（数据导出、实例删除等）
@@ -14,7 +23,7 @@ export async function adminAuth(request: FastifyRequest, reply: FastifyReply): P
   const token = request.headers['x-admin-key'] as string
     || (request.query as any)?.admin_key;
 
-  if (!token || token !== adminApiKey) {
+  if (!token || !safeCompare(token, adminApiKey)) {
     reply.status(401).send({ error: 'Unauthorized: invalid or missing admin key' });
     return;
   }
@@ -41,7 +50,7 @@ export async function eventAuth(request: FastifyRequest, reply: FastifyReply): P
     ? authHeader.slice(7)
     : (request.headers['x-api-key'] as string);
 
-  if (!token || token !== ingestApiKey) {
+  if (!token || !safeCompare(token, ingestApiKey)) {
     reply.status(401).send({ error: 'Unauthorized: invalid or missing API key' });
     return;
   }

@@ -1,6 +1,9 @@
 import { getPool } from '../db/pool';
 import { getOnlineCount, getDAU } from '../services/redis';
 
+// 默认告警冷却时间（分钟），防止重复告警刷屏
+const DEFAULT_COOLDOWN_MINUTES = parseInt(process.env.ALERT_COOLDOWN_MINUTES || '60', 10);
+
 interface AlertRule {
   id: string;
   name: string;
@@ -11,6 +14,8 @@ interface AlertRule {
   notify_channel: string;
   notify_target: string;
   is_enabled: boolean;
+  last_triggered: string | null;
+  cooldown_minutes: number | null;
 }
 
 export async function checkAlerts(): Promise<void> {
@@ -20,8 +25,19 @@ export async function checkAlerts(): Promise<void> {
     'SELECT * FROM alert_rules WHERE is_enabled = TRUE'
   ) as { rows: AlertRule[] };
 
+  const now = Date.now();
+
   for (const rule of rules) {
     try {
+      // 冷却检查：如果上次触发时间在冷却窗口内，跳过
+      if (rule.last_triggered) {
+        const cooldownMs = (rule.cooldown_minutes ?? DEFAULT_COOLDOWN_MINUTES) * 60 * 1000;
+        const lastTriggeredMs = new Date(rule.last_triggered).getTime();
+        if (now - lastTriggeredMs < cooldownMs) {
+          continue;
+        }
+      }
+
       const value = await getMetricValue(rule.metric);
       if (value === null) continue;
 
