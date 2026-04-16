@@ -186,7 +186,7 @@ function validateNotifyTarget(target: string, _channel: NotifyChannel): string |
  * 统一发送入口
  */
 export async function sendNotification(
-  _channel: NotifyChannel,  // eslint-disable-line @typescript-eslint/no-unused-vars
+  channel: NotifyChannel,
   target: string,
   payload: AlertPayload,
 ): Promise<NotifyResult> {
