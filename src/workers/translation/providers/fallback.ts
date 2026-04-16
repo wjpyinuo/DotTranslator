@@ -10,6 +10,7 @@ export class FallbackProvider implements TranslationProvider {
   readonly maxTextLength = 5000;
   readonly requiresApiKey = false;
   readonly supportedLanguages = [
+    // 中文 ↔ 各语言
     { source: 'auto', target: 'zh' },
     { source: 'auto', target: 'en' },
     { source: 'zh', target: 'en' },
@@ -26,6 +27,23 @@ export class FallbackProvider implements TranslationProvider {
     { source: 'zh', target: 'es' },
     { source: 'ru', target: 'zh' },
     { source: 'zh', target: 'ru' },
+    // 各语言 ↔ 英语（修复西/法等直译）
+    { source: 'en', target: 'es' },
+    { source: 'es', target: 'en' },
+    { source: 'en', target: 'fr' },
+    { source: 'fr', target: 'en' },
+    { source: 'en', target: 'de' },
+    { source: 'de', target: 'en' },
+    { source: 'en', target: 'ja' },
+    { source: 'ja', target: 'en' },
+    { source: 'en', target: 'ko' },
+    { source: 'ko', target: 'en' },
+    { source: 'en', target: 'ru' },
+    { source: 'ru', target: 'en' },
+    { source: 'en', target: 'pt' },
+    { source: 'pt', target: 'en' },
+    { source: 'en', target: 'it' },
+    { source: 'it', target: 'en' },
   ];
 
   async translate(params: TranslateParams): Promise<TranslateResult> {
