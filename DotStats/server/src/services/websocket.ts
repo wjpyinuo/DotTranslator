@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import websocket from '@fastify/websocket';
+import { timingSafeEqual } from 'crypto';
 import {
   getOnlineCount, getDAU, getWAU, getFeatureCounts,
   getVersionDistribution, getOSDistribution, getEventStream,
@@ -25,8 +26,9 @@ export async function setupWebSocket(app: FastifyInstance): Promise<void> {
       // Token 校验（如果配置了 WS_TOKEN）
       if (wsToken) {
         const url = new URL(request.url, 'http://localhost');
-        const clientToken = url.searchParams.get('token');
-        if (clientToken !== wsToken) {
+        const clientToken = url.searchParams.get('token') || '';
+        if (clientToken.length !== wsToken.length ||
+            !timingSafeEqual(Buffer.from(clientToken), Buffer.from(wsToken))) {
           connection.socket.close(4001, 'Unauthorized');
           return;
         }
