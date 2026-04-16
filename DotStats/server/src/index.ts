@@ -129,7 +129,7 @@ async function start(): Promise<void> {
 
       // 4. 关闭 Redis
       try {
-        const redis = getRedis();
+        const redis = await getRedis();
         if (typeof redis.quit === 'function') await redis.quit();
       } catch { /* 轻量模式无需关闭 */ }
 

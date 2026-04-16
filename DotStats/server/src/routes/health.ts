@@ -21,7 +21,7 @@ export async function healthRoutes(app: FastifyInstance): Promise<void> {
       checks.cache = 'skipped (lite mode)';
     } else {
       try {
-        const redis = getRedis();
+        const redis = await getRedis();
         if (typeof redis.ping === 'function') {
           await redis.ping();
         }
