@@ -100,8 +100,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   _internal: {
     send: (() => {
       const ALLOWED_CHANNELS = new Set([
-        'mini-card:update',
-        'mini-card:auto-hide',
         'pip:update',
         'theme:changed',
       ]);

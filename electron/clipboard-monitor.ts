@@ -49,56 +49,6 @@ function isSensitiveContent(text: string): boolean {
 let lastClipboardText = '';
 let clipboardMonitorEnabled = true;
 let monitorInterval: ReturnType<typeof setInterval> | null = null;
-let miniCard: BrowserWindow | null = null;
-let miniCardTimer: ReturnType<typeof setTimeout> | null = null;
-
-function showMiniCardInternal(text: string, sourceLang: string, targetLang: string): void {
-  const { screen } = require('electron');
-  const cursorPos = screen.getCursorScreenPoint();
-  const path = require('path');
-
-  if (miniCard && !miniCard.isDestroyed()) {
-    miniCard.webContents.send('mini-card:update', { text, sourceLang, targetLang });
-    miniCard.setPosition(cursorPos.x + 20, cursorPos.y - 40);
-    miniCard.show();
-  } else {
-    miniCard = new BrowserWindow({
-      width: 200,
-      height: 80,
-      x: cursorPos.x + 20,
-      y: cursorPos.y - 40,
-      frame: false,
-      transparent: true,
-      resizable: false,
-      alwaysOnTop: true,
-      skipTaskbar: true,
-      hasShadow: true,
-      roundedCorners: true,
-      backgroundColor: '#00000000',
-      webPreferences: {
-        preload: path.join(__dirname, 'preload.js'),
-        contextIsolation: true,
-        nodeIntegration: false,
-        sandbox: true,
-      },
-    });
-
-    miniCard.loadFile(path.join(__dirname, 'aux-windows', 'mini-card.html'));
-    miniCard.on('closed', () => {
-      miniCard = null;
-    });
-
-    miniCard.webContents.once('did-finish-load', () => {
-      miniCard?.webContents.send('mini-card:update', { text, sourceLang, targetLang });
-    });
-  }
-
-  // 5 秒后自动隐藏
-  if (miniCardTimer) clearTimeout(miniCardTimer);
-  miniCardTimer = setTimeout(() => {
-    miniCard?.hide();
-  }, 5000);
-}
 
 export function startClipboardMonitor(getMainWindow: () => BrowserWindow | null): void {
   monitorInterval = setInterval(() => {
@@ -110,11 +60,6 @@ export function startClipboardMonitor(getMainWindow: () => BrowserWindow | null)
       if (isSensitiveContent(text)) return;
       lastClipboardText = text;
       mainWindow.webContents.send('clipboard:changed', text);
-
-      // 主窗口隐藏时显示迷你卡片
-      if (!mainWindow.isVisible()) {
-        showMiniCardInternal(text, 'auto', 'zh');
-      }
     } catch {
       /* 静默 */
     }
@@ -126,10 +71,6 @@ export function stopClipboardMonitor(): void {
     clearInterval(monitorInterval);
     monitorInterval = null;
   }
-  if (miniCard && !miniCard.isDestroyed()) {
-    miniCard.destroy();
-    miniCard = null;
-  }
 }
 
 export function registerClipboardIPC(): void {
@@ -139,9 +80,5 @@ export function registerClipboardIPC(): void {
 
   ipcMain.handle('clipboard:readText', () => {
     return clipboard.readText();
-  });
-
-  ipcMain.on('mini-card:auto-hide', () => {
-    miniCard?.hide();
   });
 }
