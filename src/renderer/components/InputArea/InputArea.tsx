@@ -53,25 +53,41 @@ export function InputArea() {
         ? settings.enabledProviders
         : [...settings.enabledProviders, 'fallback'];
 
-      const results = await api.translation.translate({
+      const response = await api.translation.translate({
         text,
         sourceLang: src,
         targetLang: tgt,
         enabledProviders: providersWithFallback,
       });
 
-      if (results && (results as TranslateResult[]).length > 0) {
-        setResults(results as TranslateResult[]);
+      // 兼容新旧返回格式：CompareResult { results, errors } 或旧的 TranslateResult[]
+      const results = Array.isArray(response)
+        ? response as TranslateResult[]
+        : (response as { results: TranslateResult[]; errors: Array<{ providerId: string; error: string }> }).results || [];
+      const errors = Array.isArray(response)
+        ? []
+        : (response as { results: TranslateResult[]; errors: Array<{ providerId: string; error: string }> }).errors || [];
+
+      // 输出引擎错误到控制台（UI 可后续扩展为 toast 展示）
+      for (const err of errors) {
+        console.warn(`[Translate] Provider "${err.providerId}" failed: ${err.error}`);
+      }
+
+      if (results.length > 0) {
+        setResults(results);
       } else {
         // 所有引擎都失败，单独尝试 fallback
         try {
-          const fallbackResults = await api.translation.translate({
+          const fallbackResponse = await api.translation.translate({
             text,
             sourceLang: src,
             targetLang: tgt,
             enabledProviders: ['fallback'],
           });
-          setResults(fallbackResults as TranslateResult[]);
+          const fallbackResults = Array.isArray(fallbackResponse)
+            ? fallbackResponse as TranslateResult[]
+            : (fallbackResponse as { results: TranslateResult[] }).results || [];
+          setResults(fallbackResults);
         } catch {
           setResults([]);
         }

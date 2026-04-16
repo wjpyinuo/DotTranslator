@@ -141,7 +141,7 @@ export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
       const params = validateTranslationParams(raw);
       await loadProviderCredentials();
       const enabled = params.enabledProviders || ['fallback'];
-      const results = await translationRouter.translateCompare(params, enabled);
+      const { results, errors } = await translationRouter.translateCompare(params, enabled);
       try {
         const { recordProviderMetric } = await import('../src/main/database');
         const succeeded = new Set(results.map((r: any) => r.provider));
@@ -164,7 +164,7 @@ export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
       } catch {
         /* 静默 */
       }
-      return results;
+      return { results, errors };
     } catch (err) {
       if (err instanceof ValidationError) {
         console.warn('[IPC:translate] Validation error:', err.message);

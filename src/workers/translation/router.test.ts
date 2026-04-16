@@ -61,13 +61,15 @@ describe('TranslationRouter', () => {
     router.register(goodProvider);
     router.register(badProvider);
 
-    const results = await router.translateCompare(
+    const { results, errors } = await router.translateCompare(
       { text: 'hello', sourceLang: 'en', targetLang: 'zh' },
       ['good', 'bad']
     );
 
     expect(results.length).toBe(1);
     expect(results[0].provider).toBe('good');
+    expect(errors.length).toBe(1);
+    expect(errors[0].providerId).toBe('bad');
   });
 
   it('translateCompare should handle all providers failing gracefully', async () => {
@@ -76,12 +78,14 @@ describe('TranslationRouter', () => {
     router.register(bad1);
     router.register(bad2);
 
-    const results = await router.translateCompare(
+    const { results, errors } = await router.translateCompare(
       { text: 'hello', sourceLang: 'en', targetLang: 'zh' },
       ['bad1', 'bad2']
     );
 
     expect(results.length).toBe(0);
+    expect(errors.length).toBe(2);
+    expect(errors.map(e => e.providerId)).toEqual(expect.arrayContaining(['bad1', 'bad2']));
   });
 
   it('translateWithProvider should throw for unknown provider', async () => {

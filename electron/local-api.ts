@@ -61,12 +61,12 @@ export function startLocalApiServer(): void {
           req.on('end', resolve);
         });
         const params = JSON.parse(body);
-        const results = await translationRouter.translateCompare(
+        const { results, errors } = await translationRouter.translateCompare(
           params,
           params.enabledProviders || ['fallback']
         );
         res.writeHead(200);
-        res.end(JSON.stringify(results));
+        res.end(JSON.stringify({ results, errors }));
       } else {
         res.writeHead(404);
         res.end(JSON.stringify({ error: 'Not Found' }));

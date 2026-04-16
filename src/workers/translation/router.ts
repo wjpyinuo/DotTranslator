@@ -4,7 +4,21 @@ import { YoudaoProvider } from './providers/youdao';
 import { BaiduProvider } from './providers/baidu';
 import { FallbackProvider } from './providers/fallback';
 
-/** 默认翻译超时（毫秒） */
+/** 对比翻译单个引擎的错误信息 */
+export interface CompareError {
+  providerId: string;
+  error: string;
+  /** 是否因熔断而跳过 */
+  circuitBroken: boolean;
+}
+
+/** translateCompare 的返回结果，同时包含成功结果和失败错误 */
+export interface CompareResult {
+  /** 翻译成功的结果 */
+  results: TranslateResult[];
+  /** 翻译失败的错误（UI 可选择性展示） */
+  errors: CompareError[];
+}
 const DEFAULT_TIMEOUT_MS = 10_000;
 
 /** EMA 平滑系数：越小越平滑，0.3 = 新数据权重 30% */
@@ -164,27 +178,37 @@ export class TranslationRouter {
 
   /**
    * 翻译对比模式：同时调用所有可用引擎（各自带超时）
+   * 返回 CompareResult，包含成功结果和失败错误（UI 可选择性展示）
    */
   async translateCompare(
     params: TranslateParams,
     enabledProviders: string[]
-  ): Promise<TranslateResult[]> {
+  ): Promise<CompareResult> {
+    const errors: CompareError[] = [];
+
     const tasks = enabledProviders
       .filter((id) => this.providers.has(id))
       .map(async (id) => {
         try {
           return await this.translateWithProvider(id, params);
         } catch (error) {
-          console.error(`Provider ${id} failed:`, error);
+          const msg = error instanceof Error ? error.message : String(error);
+          errors.push({
+            providerId: id,
+            error: msg,
+            circuitBroken: this.isCircuitOpen(id),
+          });
           return null;
         }
       });
 
-    const results = await Promise.allSettled(tasks);
-    return results
+    const settled = await Promise.allSettled(tasks);
+    const results = settled
       .filter((r): r is PromiseFulfilledResult<TranslateResult | null> => r.status === 'fulfilled')
       .map((r) => r.value)
       .filter((v): v is TranslateResult => v !== null);
+
+    return { results, errors };
   }
 
   /**
