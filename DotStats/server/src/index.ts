@@ -44,14 +44,10 @@ async function start(): Promise<void> {
     credentials: true,
   });
 
-  // Rate limiting - 全局默认限制
+  // Rate limiting - 全局默认限制（健康检查通过 nginx 反代 bypass，无需单独豁免）
   await app.register(rateLimit, {
     max: env.RATE_LIMIT_MAX,
     timeWindow: env.RATE_LIMIT_WINDOW,
-    // 健康检查路由豁免限流
-    routeConfig: {
-      health: { rateLimit: false },
-    },
     // 使用 API Key hash + IP 组合作为限流 key（避免前缀碰撞导致误限流）
     keyGenerator: (request) => {
       const apiKey = (request.headers['x-admin-key'] || request.headers['authorization'] || '') as string;

@@ -70,7 +70,7 @@ describe('POST /events', () => {
     });
     expect(res.statusCode).toBe(400);
     const body = res.json();
-    expect(body.error).toBe('Invalid payload');
+    expect(body.message).toBe('Invalid payload');
   });
 
   it('应该拒绝 events 数组超限 (>50)', async () => {
@@ -104,7 +104,7 @@ describe('POST /events', () => {
     });
     expect(res.statusCode).toBe(400);
     const body = res.json();
-    expect(body.error).toBe('Invalid payload');
+    expect(body.message).toBe('Invalid payload');
   });
 
   it('应该接受合法的 heartbeat 事件', async () => {

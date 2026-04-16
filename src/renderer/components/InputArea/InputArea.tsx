@@ -64,14 +64,14 @@ export function InputArea() {
       const results = Array.isArray(response)
         ? response as TranslateResult[]
         : (response as { results: TranslateResult[]; errors: Array<{ providerId: string; error: string }> }).results || [];
-      const errors = Array.isArray(response)
+      const errors: Array<{ providerId: string; error: string; category?: string }> = Array.isArray(response)
         ? []
-        : (response as { results: TranslateResult[]; errors: Array<{ providerId: string; error: string }> }).errors || [];
+        : (response as { results: TranslateResult[]; errors: Array<{ providerId: string; error: string; category?: string }> }).errors || [];
 
       // 输出引擎错误到控制台（UI 可后续扩展为 toast 展示）
       for (const err of errors) {
         const icon = err.category === 'rate_limited' ? '⏳' : err.category === 'auth_failed' ? '🔑' : err.category === 'quota_exceeded' ? '🚫' : '❌';
-        console.warn(`[Translate] ${icon} Provider "${err.providerId}" [${err.category}]: ${err.error}`);
+        console.warn(`[Translate] ${icon} Provider "${err.providerId}" [${err.category || 'unknown'}]: ${err.error}`);
       }
 
       if (results.length > 0) {

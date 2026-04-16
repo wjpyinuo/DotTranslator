@@ -50,6 +50,12 @@ export function TranslationPanel() {
   const { results, isTranslating, targetLang, sourceLang, inputText } = useAppStore();
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [adoptedIdx, setAdoptedIdx] = useState<number | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  const showToast = useCallback((msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2000);
+  }, []);
 
   const handleCopy = useCallback(async (text: string, idx: number) => {
     try {
@@ -83,12 +89,6 @@ export function TranslationPanel() {
     }
     setTimeout(() => setAdoptedIdx(null), 2000);
   }, [results, inputText, sourceLang, targetLang, showToast]);
-
-  const [toast, setToast] = useState<string | null>(null);
-  const showToast = useCallback((msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 2000);
-  }, []);
 
   if (isTranslating) {
     return (

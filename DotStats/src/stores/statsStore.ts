@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { RecentEvent } from '../types/api';
 
 interface RealtimeData {
   onlineNow: number;
@@ -7,7 +8,7 @@ interface RealtimeData {
   topFeatures: Record<string, number>;
   versionDistribution: Record<string, number>;
   osDistribution: Record<string, number>;
-  recentEvents: Array<Record<string, unknown>>;
+  recentEvents: RecentEvent[];
 }
 
 interface StatsStore {

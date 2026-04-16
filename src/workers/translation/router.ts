@@ -229,7 +229,10 @@ export class TranslationRouter {
       // 根据错误类型决定是否计入熔断失败
       const category = classifyError(error);
       if (!NO_CIRCUIT_TRIP.includes(category)) {
-        this.recordError(providerId);
+        const tripped = this.recordErrorAndCheckTrip(providerId);
+        if (tripped) {
+          throw new Error(`Provider "${providerId}" is circuit-broken (too many recent failures)`);
+        }
       }
       throw error;
     }
@@ -328,6 +331,16 @@ export class TranslationRouter {
       circuit.openedAt = Date.now();
       log.warn(`[CircuitBreaker] Provider "${providerId}" OPENED (${circuit.failures} consecutive failures)`);
     }
+  }
+
+  /**
+   * 记录错误并检查是否应立即熔断（用于 translateWithProvider 的 catch 块）
+   * 返回 true 表示已触发熔断，调用方应抛出 circuit-broken 错误
+   */
+  private recordErrorAndCheckTrip(providerId: string): boolean {
+    this.recordError(providerId);
+    const circuit = this.circuits.get(providerId);
+    return circuit?.state === 'open';
   }
 
   private getErrorRate(providerId: string): number {

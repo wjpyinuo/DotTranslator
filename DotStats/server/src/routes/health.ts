@@ -3,7 +3,7 @@ import { getPool } from '../db/pool';
 import { getRedis } from '../services/redis';
 
 export async function healthRoutes(app: FastifyInstance): Promise<void> {
-  app.get('/health', async (_request, reply) => {
+  app.get('/health', { config: { rateLimit: false } }, async (_request, reply) => {
     const checks: Record<string, string> = {};
     const isLite = process.env.LITE_MODE === '1';
 

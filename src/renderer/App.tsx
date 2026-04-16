@@ -30,7 +30,7 @@ const PROVIDER_NAMES: Record<string, string> = {
 function InlineStats() {
   const [stats, setStats] = useState<StatsData | null>(null);
   const [expanded, setExpanded] = useState(false);
-  const privacyMode = useAppStore((s) => s.privacyMode);
+  const privacyMode = useAppStore((s) => s.settings.privacyMode);
 
   // 实时刷新统计
   useEffect(() => {

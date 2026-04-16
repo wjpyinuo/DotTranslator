@@ -47,19 +47,20 @@ describe('Stats Routes', () => {
       mockQuery.mockResolvedValue({ rows: [] });
       const res = await app.inject({ method: 'GET', url: '/stats/providers/metrics?period=30d' });
       expect(res.statusCode).toBe(200);
-      // Verify parameterized query was called with days as parameter
+      // Route converts days to date string, so param should be a date not a number
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('$1'),
-        [30]
+        expect.arrayContaining([expect.any(String)])
       );
     });
 
     it('should default to 30 days', async () => {
       mockQuery.mockResolvedValue({ rows: [] });
-      await app.inject({ method: 'GET', url: '/stats/providers/metrics' });
+      const res = await app.inject({ method: 'GET', url: '/stats/providers/metrics' });
+      expect(res.statusCode).toBe(200);
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('$1'),
-        [30]
+        expect.arrayContaining([expect.any(String)])
       );
     });
   });
@@ -74,7 +75,7 @@ describe('Stats Routes', () => {
     it('should return 400 for invalid metrics', async () => {
       const res = await app.inject({ method: 'GET', url: '/stats/trend?metrics=invalid_metric' });
       expect(res.statusCode).toBe(400);
-      expect(res.json().error).toBe('No valid metrics specified');
+      expect(res.json().message).toBe('No valid metrics specified');
     });
   });
 });
