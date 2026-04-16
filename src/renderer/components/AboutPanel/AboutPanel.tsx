@@ -1,8 +1,6 @@
-import { useState } from 'react';
 import { APP_VERSION } from '@shared/constants';
 
 export function AboutPanel() {
-  const [showDonate, setShowDonate] = useState(false);
 
   return (
     <div className="about-panel">
@@ -91,62 +89,9 @@ export function AboutPanel() {
       </div>
 
       <div className="about-footer">
-        <button className="about-btn" onClick={() => window.open('https://github.com/wjpyinuo/DotTranslator')}>
-          🔗 GitHub
+        <button className="about-btn donate-btn about-donate-full" onClick={() => window.open('')}>
+          <span className="donate-icon">☕</span> 打赏支持
         </button>
-        <button className="about-btn donate-btn" onClick={() => setShowDonate(true)}>
-          <span className="donate-icon">☕</span> 打赏
-        </button>
-      </div>
-
-      {showDonate && <DonateModal onClose={() => setShowDonate(false)} />}
-    </div>
-  );
-}
-
-function DonateModal({ onClose }: { onClose: () => void }) {
-  return (
-    <div className="donate-overlay" onClick={onClose}>
-      <div className="donate-panel" onClick={(e) => e.stopPropagation()}>
-        <div className="donate-header">
-          <h2>☕ 请作者喝杯咖啡</h2>
-          <button onClick={onClose} className="close-btn">✕</button>
-        </div>
-        <p className="donate-desc">
-          如果 DotTranslator 对你有帮助，欢迎打赏支持！每一份鼓励都是持续更新的动力 💪
-        </p>
-        <div className="donate-codes">
-          <div className="donate-code-item">
-            <div className="donate-code-img">
-              <svg viewBox="0 0 200 200" width="160" height="160">
-                <rect width="200" height="200" rx="12" fill="#f0f2f5"/>
-                <text x="100" y="85" textAnchor="middle" fontSize="40">💚</text>
-                <text x="100" y="115" textAnchor="middle" fontSize="14" fill="#6b7280" fontFamily="sans-serif">微信收款码</text>
-                <text x="100" y="135" textAnchor="middle" fontSize="11" fill="#9ca3af" fontFamily="sans-serif">请替换为实际二维码</text>
-                <rect x="20" y="155" width="160" height="28" rx="6" fill="#22c55e" opacity="0.15"/>
-                <text x="100" y="174" textAnchor="middle" fontSize="12" fill="#22c55e" fontWeight="bold" fontFamily="sans-serif">微信支付</text>
-              </svg>
-            </div>
-            <span className="donate-label">微信支付</span>
-          </div>
-          <div className="donate-code-item">
-            <div className="donate-code-img">
-              <svg viewBox="0 0 200 200" width="160" height="160">
-                <rect width="200" height="200" rx="12" fill="#f0f2f5"/>
-                <text x="100" y="85" textAnchor="middle" fontSize="40">💙</text>
-                <text x="100" y="115" textAnchor="middle" fontSize="14" fill="#6b7280" fontFamily="sans-serif">支付宝收款码</text>
-                <text x="100" y="135" textAnchor="middle" fontSize="11" fill="#9ca3af" fontFamily="sans-serif">请替换为实际二维码</text>
-                <rect x="20" y="155" width="160" height="28" rx="6" fill="#3b82f6" opacity="0.15"/>
-                <text x="100" y="174" textAnchor="middle" fontSize="12" fill="#3b82f6" fontWeight="bold" fontFamily="sans-serif">支付宝</text>
-              </svg>
-            </div>
-            <span className="donate-label">支付宝</span>
-          </div>
-        </div>
-        <p className="donate-note">
-          💡 将上方占位图替换为你的实际收款码图片即可使用<br />
-          文件路径：<code>src/renderer/assets/wechat-qr.png</code> 和 <code>alipay-qr.png</code>
-        </p>
       </div>
     </div>
   );

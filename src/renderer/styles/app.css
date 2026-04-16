@@ -1652,3 +1652,19 @@ kbd {
   font-size: 13px;
   color: var(--text-tertiary);
 }
+
+/* ==================== About - Donate full-width ==================== */
+
+.about-donate-full {
+  width: 100%;
+  justify-content: center;
+  background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+  color: white;
+  font-size: 16px;
+  padding: 12px;
+}
+
+.about-donate-full:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+}
