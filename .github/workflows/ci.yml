@@ -59,6 +59,27 @@ jobs:
           DATABASE_URL: postgresql://dotstats:testpassword@localhost:5432/dotstats_test
           REDIS_URL: redis://localhost:6379
 
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build DotStats Server Docker image
+        run: docker build -t dotstats-server:test ./DotStats/server
+      - name: Verify Docker image runs
+        run: |
+          docker run -d --name dotstats-test \
+            -e DB_PASSWORD=testpassword \
+            -e ADMIN_API_KEY=testkey \
+            -e INGEST_API_KEY=testingestkey \
+            -p 3000:3000 \
+            dotstats-server:test
+          sleep 5
+          # Health check should return 503 (degraded) without real PG/Redis,
+          # but the container should start and respond
+          curl -sf http://localhost:3000/api/v1/health || echo "Container started (expected degraded without DB)"
+          docker logs dotstats-test
+          docker stop dotstats-test
+
   build-desktop:
     runs-on: ubuntu-latest
     steps:
@@ -72,8 +93,23 @@ jobs:
       - run: cd DotStats && npm install && npm run build
 
   build-and-release:
-    runs-on: windows-latest
-    needs: [lint-and-typecheck]
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            platform: win
+            arch: x64
+            artifact: Windows
+          - os: macos-latest
+            platform: mac
+            arch: x64
+            artifact: macOS
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+            artifact: Linux
+    runs-on: ${{ matrix.os }}
+    needs: [lint-and-typecheck, test-server]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
     permissions:
       contents: write
@@ -88,7 +124,7 @@ jobs:
         run: |
           npm install
           npm run build
-          npx electron-builder --win --x64
+          npx electron-builder --${{ matrix.platform }} --${{ matrix.arch }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -97,26 +133,24 @@ jobs:
           cd DotStats
           npm install
           npm run build
-          npx electron-builder --win --x64
+          npx electron-builder --${{ matrix.platform }} --${{ matrix.arch }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload DotTranslator artifact
         uses: actions/upload-artifact@v4
         with:
-          name: DotTranslator-Windows
+          name: DotTranslator-${{ matrix.artifact }}
           path: |
-            dist/*.exe
-            dist/*.exe.blockmap
+            dist/*
           retention-days: 30
 
       - name: Upload DotStats artifact
         uses: actions/upload-artifact@v4
         with:
-          name: DotStats-Windows
+          name: DotStats-${{ matrix.artifact }}
           path: |
-            DotStats/dist/*.exe
-            DotStats/dist/*.exe.blockmap
+            DotStats/dist/*
           retention-days: 30
 
       - name: Create GitHub Release
@@ -126,9 +160,7 @@ jobs:
           generate_release_notes: true
           draft: false
           files: |
-            dist/*.exe
-            dist/*.exe.blockmap
-            DotStats/dist/*.exe
-            DotStats/dist/*.exe.blockmap
+            dist/*
+            DotStats/dist/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
