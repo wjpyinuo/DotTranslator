@@ -7,12 +7,24 @@ export class DeepLProvider implements TranslationProvider {
   readonly maxTextLength = 5000;
   readonly requiresApiKey = true;
   readonly supportedLanguages = [
+    { source: 'auto', target: 'zh' },
+    { source: 'auto', target: 'en' },
     { source: 'zh', target: 'en' },
     { source: 'en', target: 'zh' },
     { source: 'ja', target: 'en' },
     { source: 'en', target: 'ja' },
-    { source: 'auto', target: 'zh' },
-    { source: 'auto', target: 'en' },
+    { source: 'de', target: 'en' },
+    { source: 'en', target: 'de' },
+    { source: 'fr', target: 'en' },
+    { source: 'en', target: 'fr' },
+    { source: 'es', target: 'en' },
+    { source: 'en', target: 'es' },
+    { source: 'ru', target: 'en' },
+    { source: 'en', target: 'ru' },
+    { source: 'pt', target: 'en' },
+    { source: 'en', target: 'pt' },
+    { source: 'it', target: 'en' },
+    { source: 'en', target: 'it' },
   ];
 
   private apiKey: string | null = null;

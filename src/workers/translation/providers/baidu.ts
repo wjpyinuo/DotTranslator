@@ -13,6 +13,16 @@ export class BaiduProvider implements TranslationProvider {
     { source: 'en', target: 'zh' },
     { source: 'zh', target: 'ja' },
     { source: 'ja', target: 'zh' },
+    { source: 'zh', target: 'ko' },
+    { source: 'ko', target: 'zh' },
+    { source: 'zh', target: 'fr' },
+    { source: 'fr', target: 'zh' },
+    { source: 'zh', target: 'de' },
+    { source: 'de', target: 'zh' },
+    { source: 'zh', target: 'es' },
+    { source: 'es', target: 'zh' },
+    { source: 'zh', target: 'ru' },
+    { source: 'ru', target: 'zh' },
   ];
 
   private appId = '';
@@ -35,7 +45,11 @@ export class BaiduProvider implements TranslationProvider {
     const salt = Date.now().toString();
     const sign = this.generateSign(params.text, salt);
 
-    const langMap: Record<string, string> = { zh: 'zh', en: 'en', ja: 'jp', ko: 'kor', auto: 'auto' };
+    const langMap: Record<string, string> = {
+      zh: 'zh', en: 'en', ja: 'jp', ko: 'kor',
+      fr: 'fra', de: 'de', es: 'spa', ru: 'ru',
+      pt: 'pt', it: 'it', auto: 'auto',
+    };
     const from = langMap[params.sourceLang] || params.sourceLang;
     const to = langMap[params.targetLang] || params.targetLang;
 
