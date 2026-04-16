@@ -22,6 +22,7 @@ export const envSchema = z.object({
   // Auth
   ADMIN_API_KEY: z.string().min(8).optional(),
   INGEST_API_KEY: z.string().min(8).optional(),
+  STATS_VIEW_KEY: z.string().min(8).optional(),
   WS_TOKEN: z.string().min(8).optional(),
 
   // CORS

@@ -34,6 +34,23 @@ export async function adminAuth(request: FastifyRequest, reply: FastifyReply): P
  * 使用独立的 INGEST_API_KEY，与 admin key 分离（最小权限原则）
  * 如果未配置 INGEST_API_KEY，则拒绝所有请求（安全默认）
  */
+/**
+ * Stats 视图认证 - 用于 /api/v1/stats/* 端点
+ * 如果配置了 STATS_VIEW_KEY 则要求认证；未配置时放行（向后兼容）
+ */
+export async function statsViewAuth(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+  const statsKey = process.env.STATS_VIEW_KEY;
+  if (!statsKey) return; // 未配置则开放访问
+
+  const token = request.headers['x-stats-key'] as string
+    || (request.query as Record<string, unknown>)?.stats_key as string;
+
+  if (!token || !safeCompare(token, statsKey)) {
+    reply.status(401).send({ error: 'Unauthorized: invalid or missing stats key' });
+    return;
+  }
+}
+
 export async function eventAuth(request: FastifyRequest, reply: FastifyReply): Promise<void> {
   const ingestApiKey = process.env.INGEST_API_KEY;
 

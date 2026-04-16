@@ -1,12 +1,16 @@
 import type { FastifyInstance } from 'fastify';
 import { getPool } from '../db/pool';
 import { sendError } from '../utils/reply';
+import { statsViewAuth } from '../middleware/auth';
 import {
   getOnlineCount, getDAU, getWAU, getFeatureCounts,
   getVersionDistribution, getOSDistribution, getEventStream,
 } from '../services/redis';
 
 export async function statsRoutes(app: FastifyInstance): Promise<void> {
+  // 所有 stats 端点共用认证中间件（未配置 STATS_VIEW_KEY 则放行）
+  app.addHook('preHandler', statsViewAuth);
+
   // GET /api/v1/stats/realtime
   app.get('/stats/realtime', async (_request, _reply) => {
     const [onlineNow, todayActive, weekActive, topFeatures, versionDistribution, osDistribution, recentEvents] =
