@@ -60,8 +60,15 @@ export class BaiduProvider implements TranslationProvider {
 
     const data = await res.json();
     if (data.error_code) {
-      if (data.error_code === '54003') throw new Error('Baidu rate limited');
+      const code = String(data.error_code);
+      if (code === '54003') throw new Error('Baidu rate limited');
+      if (code === '52003') throw new Error('Baidu credentials not set');
+      if (code === '54001') throw new Error('Baidu sign error');
       throw new Error(`Baidu error: ${data.error_code} ${data.error_msg}`);
+    }
+
+    if (!Array.isArray(data.trans_result) || data.trans_result.length === 0) {
+      throw new Error('Baidu returned empty translation result');
     }
 
     const text = data.trans_result.map((item: { dst: string }) => item.dst).join('\n');
