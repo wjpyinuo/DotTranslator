@@ -261,14 +261,7 @@ export function App() {
       </div>
 
       <nav className="tab-bar">
-        <button
-          className={`tab-btn donate-tab ${activeTab === 'donate' ? 'active' : ''}`}
-          onClick={() => setActiveTab('donate')}
-        >
-          <span className="tab-icon">☕</span>
-          <span className="tab-label">打赏</span>
-        </button>
-        <span className="tab-sep" />
+        {/* 左侧：主功能 */}
         <button
           className={`tab-btn ${activeTab === 'translate' ? 'active' : ''}`}
           onClick={() => setActiveTab('translate')}
@@ -283,6 +276,15 @@ export function App() {
         >
           <span className="tab-icon">📜</span>
           <span className="tab-label">历史</span>
+        </button>
+        <span className="tab-sep" />
+        {/* 右侧：打赏 → 设置 → 关于 */}
+        <button
+          className={`tab-btn donate-tab ${activeTab === 'donate' ? 'active' : ''}`}
+          onClick={() => setActiveTab('donate')}
+        >
+          <span className="tab-icon">☕</span>
+          <span className="tab-label">打赏</span>
         </button>
         <span className="tab-sep" />
         <button
