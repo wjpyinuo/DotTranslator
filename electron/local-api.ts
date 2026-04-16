@@ -31,6 +31,16 @@ export function startLocalApiServer(): void {
       return;
     }
 
+    // 全局 POST/PUT 请求体大小上限 64KB
+    if (req.method === 'POST' || req.method === 'PUT') {
+      const contentLength = parseInt(req.headers['content-length'] || '0', 10);
+      if (contentLength > 64 * 1024) {
+        res.writeHead(413);
+        res.end(JSON.stringify({ error: 'Payload too large (max 64KB)' }));
+        return;
+      }
+    }
+
     res.setHeader('Content-Type', 'application/json');
 
     const url = new URL(req.url, `http://localhost`);
@@ -53,14 +63,38 @@ export function startLocalApiServer(): void {
         res.writeHead(200);
         res.end(JSON.stringify(providers));
       } else if (pathname === '/api/translate' && req.method === 'POST') {
+        // 请求体大小上限 64KB（翻译文本不应超过此值）
+        const MAX_BODY_BYTES = 64 * 1024;
         let body = '';
-        req.on('data', (chunk: any) => {
-          body += chunk;
+        let bodyBytes = 0;
+        let aborted = false;
+        await new Promise<void>((resolve, reject) => {
+          req.on('data', (chunk: any) => {
+            bodyBytes += chunk.length;
+            if (bodyBytes > MAX_BODY_BYTES) {
+              aborted = true;
+              req.destroy();
+              res.writeHead(413);
+              res.end(JSON.stringify({ error: 'Payload too large (max 64KB)' }));
+              return;
+            }
+            body += chunk;
+          });
+          req.on('end', () => {
+            if (!aborted) resolve();
+          });
+          req.on('error', reject);
         });
-        await new Promise<void>((resolve) => {
-          req.on('end', resolve);
-        });
-        const params = JSON.parse(body);
+        if (aborted) return;
+
+        let params: any;
+        try {
+          params = JSON.parse(body);
+        } catch {
+          res.writeHead(400);
+          res.end(JSON.stringify({ error: 'Invalid JSON' }));
+          return;
+        }
         const { results, errors } = await translationRouter.translateCompare(
           params,
           params.enabledProviders || ['fallback']
