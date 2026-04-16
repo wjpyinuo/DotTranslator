@@ -68,22 +68,30 @@ export function startLocalApiServer(): void {
         let body = '';
         let bodyBytes = 0;
         let aborted = false;
-        await new Promise<void>((resolve, reject) => {
-          req.on('data', (chunk: any) => {
+        await new Promise<void>((resolve) => {
+          const onData = (chunk: any) => {
             bodyBytes += chunk.length;
             if (bodyBytes > MAX_BODY_BYTES) {
               aborted = true;
+              cleanup();
               req.destroy();
               res.writeHead(413);
               res.end(JSON.stringify({ error: 'Payload too large (max 64KB)' }));
+              resolve(); // 不要悬挂
               return;
             }
             body += chunk;
-          });
-          req.on('end', () => {
-            if (!aborted) resolve();
-          });
-          req.on('error', reject);
+          };
+          const onEnd = () => { cleanup(); resolve(); };
+          const onClose = () => { cleanup(); resolve(); }; // destroy() 触发 close
+          const cleanup = () => {
+            req.removeListener('data', onData);
+            req.removeListener('end', onEnd);
+            req.removeListener('close', onClose);
+          };
+          req.on('data', onData);
+          req.on('end', onEnd);
+          req.on('close', onClose);
         });
         if (aborted) return;
 
