@@ -31,8 +31,8 @@ describe('GET /health', () => {
     expect(res.statusCode).toBe(200);
     const body = res.json();
     expect(body.status).toBe('healthy');
-    expect(body.checks.postgres).toBe('ok');
-    expect(body.checks.redis).toBe('ok');
+    expect(body.checks.database).toBe('ok');
+    expect(body.checks.cache).toBe('ok');
     expect(body.timestamp).toBeDefined();
   });
 
@@ -59,6 +59,6 @@ describe('GET /health', () => {
     expect(res.statusCode).toBe(503);
     const body = res.json();
     expect(body.status).toBe('degraded');
-    expect(body.checks.postgres).toBe('error');
+    expect(body.checks.database).toBe('error');
   });
 });

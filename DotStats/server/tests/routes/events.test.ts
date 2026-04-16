@@ -1,13 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Fastify from 'fastify';
 
+// 设置测试环境变量（eventAuth 需要 INGEST_API_KEY）
+process.env.INGEST_API_KEY = 'test-ingest-key';
+
 // Mock 外部依赖
-vi.mock('../../src/db/pool', () => ({
-  getPool: vi.fn(() => ({
-    query: vi.fn().mockResolvedValue({ rows: [] }),
-  })),
-  initDatabase: vi.fn().mockResolvedValue(undefined),
-}));
+vi.mock('../../src/db/pool', () => {
+  const mockQuery = vi.fn().mockResolvedValue({ rows: [] });
+  return {
+    getPool: vi.fn(() => ({
+      query: mockQuery,
+      connect: vi.fn(async () => ({
+        query: mockQuery,
+        release: vi.fn(),
+      })),
+    })),
+    initDatabase: vi.fn().mockResolvedValue(undefined),
+  };
+});
 
 vi.mock('../../src/services/redis', () => ({
   getRedis: vi.fn(() => ({
@@ -26,9 +36,12 @@ vi.mock('../../src/services/redis', () => ({
 vi.mock('../../src/services/websocket', () => ({
   setupWebSocket: vi.fn(),
   broadcastEvent: vi.fn().mockResolvedValue(undefined),
+  broadcastEvents: vi.fn().mockResolvedValue(undefined),
 }));
 
 import { eventRoutes } from '../../src/routes/events';
+
+const AUTH_HEADER = { authorization: 'Bearer test-ingest-key' };
 
 describe('POST /events', () => {
   let app: ReturnType<typeof Fastify>;
@@ -39,10 +52,20 @@ describe('POST /events', () => {
     await app.ready();
   });
 
+  it('应该拒绝无认证请求', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/events',
+      payload: {},
+    });
+    expect(res.statusCode).toBe(401);
+  });
+
   it('应该拒绝空请求体', async () => {
     const res = await app.inject({
       method: 'POST',
       url: '/events',
+      headers: AUTH_HEADER,
       payload: {},
     });
     expect(res.statusCode).toBe(400);
@@ -60,6 +83,7 @@ describe('POST /events', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/events',
+      headers: AUTH_HEADER,
       payload: { events },
     });
     expect(res.statusCode).toBe(400);
@@ -69,6 +93,7 @@ describe('POST /events', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/events',
+      headers: AUTH_HEADER,
       payload: {
         events: [{
           type: 'heartbeat',
@@ -86,6 +111,7 @@ describe('POST /events', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/events',
+      headers: AUTH_HEADER,
       payload: {
         events: [{
           type: 'heartbeat',
@@ -101,6 +127,7 @@ describe('POST /events', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/events',
+      headers: AUTH_HEADER,
       payload: {
         events: [{
           type: 'feature',
@@ -121,6 +148,7 @@ describe('POST /events', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/events',
+      headers: AUTH_HEADER,
       payload: {
         events: [{
           type: 'invalid_type',
@@ -136,7 +164,7 @@ describe('POST /events', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/events',
-      headers: { 'x-instance-id': 'header-instance' },
+      headers: { ...AUTH_HEADER, 'x-instance-id': 'header-instance' },
       payload: {
         events: [{
           type: 'heartbeat',

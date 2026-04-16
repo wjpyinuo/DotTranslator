@@ -206,12 +206,12 @@ function initSchema(): void {
     );
 
     CREATE TABLE IF NOT EXISTS provider_metrics (
-      provider    TEXT NOT NULL,
-      date        TEXT NOT NULL DEFAULT (date('now')),
-      total_calls INTEGER DEFAULT 0,
-      success     INTEGER DEFAULT 0,
-      fail        INTEGER DEFAULT 0,
-      avg_latency REAL DEFAULT 0,
+      provider      TEXT NOT NULL,
+      date          TEXT NOT NULL DEFAULT (date('now')),
+      total_calls   INTEGER DEFAULT 0,
+      success       INTEGER DEFAULT 0,
+      fail          INTEGER DEFAULT 0,
+      total_latency REAL DEFAULT 0,
       PRIMARY KEY (provider, date)
     );
   `);

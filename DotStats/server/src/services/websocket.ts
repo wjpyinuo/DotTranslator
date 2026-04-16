@@ -77,7 +77,7 @@ export async function setupWebSocket(app: FastifyInstance): Promise<void> {
   }, broadcastMs);
 }
 
-// 事件到达时即时广播
+// 事件到达时即时广播（单条）
 export async function broadcastEvent(event: Record<string, unknown>): Promise<void> {
   if (clients.size === 0) return;
 
@@ -85,6 +85,25 @@ export async function broadcastEvent(event: Record<string, unknown>): Promise<vo
     type: 'event',
     timestamp: Date.now(),
     data: event,
+  });
+
+  for (const client of clients) {
+    try {
+      client.send(msg);
+    } catch {
+      clients.delete(client);
+    }
+  }
+}
+
+// 批量广播（合并为单次 WS 推送，减少消息频率）
+export async function broadcastEvents(events: Record<string, unknown>[]): Promise<void> {
+  if (clients.size === 0 || events.length === 0) return;
+
+  const msg = JSON.stringify({
+    type: 'events',
+    timestamp: Date.now(),
+    data: events,
   });
 
   for (const client of clients) {
