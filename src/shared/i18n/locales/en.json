@@ -1,0 +1,56 @@
+{
+  "app.name": "DotTranslator",
+  "app.description": "Instant translation desktop tool",
+
+  "input.placeholder": "Enter text to translate...",
+  "input.translate": "Translate",
+  "input.clear": "Clear",
+  "input.detectedLang": "Detected: {{lang}}",
+
+  "translation.translating": "Translating...",
+  "translation.noResult": "No translation result",
+  "translation.copy": "Copy",
+  "translation.copied": "Copied",
+  "translation.speak": "Speak",
+  "translation.pin": "Pin",
+  "translation.source": "Source",
+  "translation.target": "Target",
+
+  "history.title": "Translation History",
+  "history.empty": "No history yet",
+  "history.search": "Search history...",
+  "history.favorite": "Favorite",
+  "history.delete": "Delete",
+  "history.clearAll": "Clear All",
+
+  "settings.title": "Settings",
+  "settings.theme": "Theme",
+  "settings.theme.light": "Light",
+  "settings.theme.dark": "Dark",
+  "settings.theme.system": "System",
+  "settings.engines": "Translation Engines",
+  "settings.engines.deepl": "DeepL",
+  "settings.engines.youdao": "Youdao",
+  "settings.engines.baidu": "Baidu",
+  "settings.apiKey": "API Key",
+  "settings.apiKey.placeholder": "Enter API Key",
+  "settings.clipboard": "Clipboard Monitor",
+  "settings.privacy": "Privacy Mode",
+  "settings.privacy.desc": "Disable all data logging and telemetry",
+  "settings.language": "Interface Language",
+
+  "tray.show": "Show Window",
+  "tray.settings": "Settings",
+  "tray.quit": "Quit",
+
+  "announce.close": "Close",
+
+  "error.network": "Network connection failed",
+  "error.apiKeyMissing": "Please configure an API Key first",
+  "error.translateFailed": "Translation failed, please retry",
+  "error.clipboard": "Failed to read clipboard",
+
+  "pip.copy": "Copy",
+  "pip.speak": "Speak",
+  "pip.close": "Close"
+}
