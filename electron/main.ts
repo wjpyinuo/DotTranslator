@@ -201,6 +201,15 @@ app.whenReady().then(() => {
   initAutoUpdater(() => mainWindow);
 });
 
+// ========== 全局异常捕获（防止静默崩溃） ==========
+process.on('uncaughtException', (err) => {
+  log.error('[UncaughtException]', err);
+});
+
+process.on('unhandledRejection', (reason) => {
+  log.error('[UnhandledRejection]', reason);
+});
+
 // ========== 生命周期 ==========
 app.on('before-quit', () => {
   isQuitting = true;
