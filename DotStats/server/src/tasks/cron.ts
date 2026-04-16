@@ -27,32 +27,63 @@ export function startCronJobs(): void {
           const { calculateRetention } = await import('../db/lite-pool');
           calculateRetention();
         } else {
-          // PostgreSQL 模式：使用原生 SQL
+          // PostgreSQL 模式：使用增量预聚合优化留存计算
+          // 原方案 LEFT JOIN events 导致全表扫描，改为 CTE 先聚合 cohort 再逐窗口关联
           const pool = getPool();
           await pool.query(`
+            WITH cohorts AS (
+              SELECT
+                TO_CHAR(DATE_TRUNC('week', first_seen), 'IYYY-IWW') AS cohort_week,
+                DATE_TRUNC('week', first_seen) AS cohort_start,
+                instance_id
+              FROM instances
+              WHERE first_seen >= NOW() - INTERVAL '16 weeks'
+            ),
+            cohort_size AS (
+              SELECT cohort_week, cohort_start, COUNT(*) AS size,
+                     ARRAY_AGG(instance_id) AS members
+              FROM cohorts GROUP BY cohort_week, cohort_start
+            ),
+            retention AS (
+              SELECT
+                cs.cohort_week,
+                cs.size AS cohort_size,
+                -- 每个窗口仅扫描 events 表中该时间范围内的数据（利用 received_at 索引）
+                (SELECT COUNT(DISTINCT e.instance_id)
+                   FROM events e
+                  WHERE e.instance_id = ANY(cs.members)
+                    AND e.received_at >= cs.cohort_start + INTERVAL '1 week'
+                    AND e.received_at <  cs.cohort_start + INTERVAL '2 weeks'
+                ) AS w1_retained,
+                (SELECT COUNT(DISTINCT e.instance_id)
+                   FROM events e
+                  WHERE e.instance_id = ANY(cs.members)
+                    AND e.received_at >= cs.cohort_start + INTERVAL '2 weeks'
+                    AND e.received_at <  cs.cohort_start + INTERVAL '3 weeks'
+                ) AS w2_retained,
+                (SELECT COUNT(DISTINCT e.instance_id)
+                   FROM events e
+                  WHERE e.instance_id = ANY(cs.members)
+                    AND e.received_at >= cs.cohort_start + INTERVAL '4 weeks'
+                    AND e.received_at <  cs.cohort_start + INTERVAL '5 weeks'
+                ) AS w4_retained,
+                (SELECT COUNT(DISTINCT e.instance_id)
+                   FROM events e
+                  WHERE e.instance_id = ANY(cs.members)
+                    AND e.received_at >= cs.cohort_start + INTERVAL '8 weeks'
+                    AND e.received_at <  cs.cohort_start + INTERVAL '9 weeks'
+                ) AS w8_retained,
+                (SELECT COUNT(DISTINCT e.instance_id)
+                   FROM events e
+                  WHERE e.instance_id = ANY(cs.members)
+                    AND e.received_at >= cs.cohort_start + INTERVAL '12 weeks'
+                    AND e.received_at <  cs.cohort_start + INTERVAL '13 weeks'
+                ) AS w12_retained
+              FROM cohort_size cs
+            )
             INSERT INTO retention_weekly (cohort_week, cohort_size, w1_retained, w2_retained, w4_retained, w8_retained, w12_retained)
-            SELECT
-              TO_CHAR(DATE_TRUNC('week', first_seen), 'IYYY-IWW') AS cohort_week,
-              COUNT(DISTINCT i.instance_id) AS cohort_size,
-              COUNT(DISTINCT CASE WHEN e.received_at >= DATE_TRUNC('week', i.first_seen) + INTERVAL '1 week'
-                                   AND e.received_at <  DATE_TRUNC('week', i.first_seen) + INTERVAL '2 weeks'
-                THEN e.instance_id END) AS w1_retained,
-              COUNT(DISTINCT CASE WHEN e.received_at >= DATE_TRUNC('week', i.first_seen) + INTERVAL '2 weeks'
-                                   AND e.received_at <  DATE_TRUNC('week', i.first_seen) + INTERVAL '3 weeks'
-                THEN e.instance_id END) AS w2_retained,
-              COUNT(DISTINCT CASE WHEN e.received_at >= DATE_TRUNC('week', i.first_seen) + INTERVAL '4 weeks'
-                                   AND e.received_at <  DATE_TRUNC('week', i.first_seen) + INTERVAL '5 weeks'
-                THEN e.instance_id END) AS w4_retained,
-              COUNT(DISTINCT CASE WHEN e.received_at >= DATE_TRUNC('week', i.first_seen) + INTERVAL '8 weeks'
-                                   AND e.received_at <  DATE_TRUNC('week', i.first_seen) + INTERVAL '9 weeks'
-                THEN e.instance_id END) AS w8_retained,
-              COUNT(DISTINCT CASE WHEN e.received_at >= DATE_TRUNC('week', i.first_seen) + INTERVAL '12 weeks'
-                                   AND e.received_at <  DATE_TRUNC('week', i.first_seen) + INTERVAL '13 weeks'
-                THEN e.instance_id END) AS w12_retained
-            FROM instances i
-            LEFT JOIN events e ON e.instance_id = i.instance_id
-            WHERE i.first_seen >= NOW() - INTERVAL '16 weeks'
-            GROUP BY cohort_week
+            SELECT cohort_week, cohort_size, w1_retained, w2_retained, w4_retained, w8_retained, w12_retained
+            FROM retention
             ON CONFLICT (cohort_week) DO UPDATE SET
               cohort_size = EXCLUDED.cohort_size,
               w1_retained = EXCLUDED.w1_retained,
