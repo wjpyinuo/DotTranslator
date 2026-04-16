@@ -29,14 +29,10 @@ import {
 
 interface WindowRefs {
   mainWindow: BrowserWindow | null;
-  pipWindow: BrowserWindow | null;
-  miniCard: BrowserWindow | null;
 }
 
 interface Setters {
   setMainWindow: (win: BrowserWindow | null) => void;
-  setPipWindow: (win: BrowserWindow | null) => void;
-  setMiniCard: (win: BrowserWindow | null) => void;
   setIsQuitting: (v: boolean) => void;
   getCurrentTheme: () => string;
 }
@@ -63,7 +59,6 @@ export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
 
   ipcMain.on('window:close', () => {
     setters.setIsQuitting(true);
-    if (refs.pipWindow && !refs.pipWindow.isDestroyed()) refs.pipWindow.destroy();
     refs.mainWindow?.close();
   });
 
@@ -96,8 +91,7 @@ export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
   // ========== 主题同步 ==========
   ipcMain.on('theme:changed', (_event, raw) => {
     try {
-      const currentTheme = validateTheme(raw);
-      refs.pipWindow?.webContents.send('theme:changed', currentTheme);
+      validateTheme(raw);
     } catch (err) {
       if (err instanceof ValidationError) console.warn('[IPC:theme] Validation error:', err.message);
     }
@@ -209,56 +203,6 @@ export function registerAllIPC(refs: WindowRefs, setters: Setters): void {
       throw err;
     }
   });
-
-  // ========== PiP 窗口 ==========
-  ipcMain.on('pip:show', (_event, data: { text: string; sourceLang: string; targetLang: string }) => {
-    if (refs.pipWindow && !refs.pipWindow.isDestroyed()) {
-      refs.pipWindow.show();
-      refs.pipWindow.focus();
-      refs.pipWindow.webContents.send('pip:update', data);
-      return;
-    }
-
-    const mainBounds = refs.mainWindow?.getBounds();
-    const pipX = mainBounds ? mainBounds.x + mainBounds.width + 10 : 100;
-    const pipY = mainBounds ? mainBounds.y : 100;
-
-    const pip = new BrowserWindow({
-      width: 320,
-      height: 160,
-      x: pipX,
-      y: pipY,
-      frame: false,
-      transparent: true,
-      resizable: false,
-      alwaysOnTop: true,
-      skipTaskbar: true,
-      roundedCorners: true,
-      backgroundColor: '#00000000',
-      webPreferences: {
-        preload: path.join(__dirname, 'preload.js'),
-        contextIsolation: true,
-        nodeIntegration: false,
-        sandbox: true,
-      },
-    });
-
-    pip.on('closed', () => {
-      refs.pipWindow = null;
-    });
-
-    pip.loadFile(path.join(__dirname, 'aux-windows', 'pip.html'));
-
-    pip.webContents.once('did-finish-load', () => {
-      pip.webContents.send('pip:update', data);
-      pip.webContents.send('theme:changed', setters.getCurrentTheme());
-    });
-
-    refs.pipWindow = pip;
-  });
-
-  ipcMain.on('pip:hide', () => refs.pipWindow?.hide());
-  ipcMain.on('pip:close', () => refs.pipWindow?.close());
 
   // ========== 截图 OCR ==========
   ipcMain.handle('ocr:screenshot', async () => {

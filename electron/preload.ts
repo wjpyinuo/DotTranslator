@@ -23,12 +23,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     isAvailable: () => ipcRenderer.invoke('secure-storage:is-available'),
   },
 
-  pip: {
-    show: (data: { text: string; sourceLang: string; targetLang: string }) => ipcRenderer.send('pip:show', data),
-    hide: () => ipcRenderer.send('pip:hide'),
-    close: () => ipcRenderer.send('pip:close'),
-  },
-
   storage: {
     get: (key: string) => ipcRenderer.invoke('storage:get', key),
     set: (key: string, value: unknown) => ipcRenderer.invoke('storage:set', key, value),
@@ -95,12 +89,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getToken: () => ipcRenderer.invoke('local-api:token'),
   },
 
-  // 内部辅助窗口用（悬浮球/迷你卡片/PiP）
-  // 仅允许白名单 channel，防止渲染进程向任意 channel 发送消息
+  // 内部辅助
   _internal: {
     send: (() => {
       const ALLOWED_CHANNELS = new Set([
-        'pip:update',
         'theme:changed',
       ]);
       return (channel: string, ...args: unknown[]) => {

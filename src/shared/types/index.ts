@@ -80,7 +80,6 @@ export type FeatureName =
   | 'translate_clipboard'
   | 'translate_ocr'
   | 'comparison_view'
-  | 'pip_window'
   | 'tts_play'
   | 'api_called'
   | 'theme_switch'
@@ -184,7 +183,7 @@ export class StubGlossaryEngine implements GlossaryEngine {
 
 // ==================== UI ====================
 
-export type ViewMode = 'main' | 'mini' | 'pip';
+export type ViewMode = 'main';
 
 export interface AppState {
   currentView: ViewMode;

@@ -11,7 +11,6 @@ import { initAutoUpdater } from './auto-updater';
 // ========== 窗口引用 ==========
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
-let pipWindow: BrowserWindow | null = null;
 let isQuitting = false;
 let currentTheme = 'light';
 
@@ -178,15 +177,11 @@ app.whenReady().then(() => {
 
   // 注册 IPC 处理器（来自独立模块）
   registerAllIPC(
-    { mainWindow, pipWindow, miniCard: null },
+    { mainWindow },
     {
       setMainWindow: (win) => {
         mainWindow = win;
       },
-      setPipWindow: (win) => {
-        pipWindow = win;
-      },
-      setMiniCard: () => {},
       setIsQuitting: (v) => {
         isQuitting = v;
       },
@@ -216,7 +211,6 @@ app.on('before-quit', () => {
   stopClipboardMonitor();
   // 异步清理 OCR worker（尽力而为）
   import('./ocr-worker').then((m) => m.destroyOcrWorker()).catch(() => {});
-  if (pipWindow && !pipWindow.isDestroyed()) pipWindow.destroy();
   if (tray && !tray.isDestroyed()) tray.destroy();
 });
 

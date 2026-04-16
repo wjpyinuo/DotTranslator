@@ -81,11 +81,6 @@ export function TranslationPanel() {
     setTimeout(() => setAdoptedIdx(null), 2000);
   }, [results, inputText, sourceLang, targetLang]);
 
-  // 悬浮球 - 发送翻译结果到 PiP 窗口
-  const handlePip = useCallback((text: string) => {
-    window.electronAPI?.pip.show({ text, sourceLang, targetLang });
-  }, [sourceLang, targetLang]);
-
   if (isTranslating) {
     return (
       <div className="translation-panel">

@@ -33,17 +33,6 @@ interface ElectronAPI {
     delete(key: string): Promise<void>;
     isAvailable(): Promise<boolean>;
   };
-  pip: {
-    show(data: { text: string; sourceLang: string; targetLang: string }): void;
-    hide(): void;
-    close(): void;
-  };
-  floating: {
-    update(text: string): void;
-    hide(): void;
-    show(): void;
-    onRequestLastResult(callback: () => void): void;
-  };
   storage: {
     get(key: string): Promise<unknown>;
     set(key: string, value: unknown): Promise<void>;

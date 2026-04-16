@@ -51,8 +51,6 @@ export const DEBOUNCE_TRANSLATE_MS = 300;
 
 // 窗口尺寸
 export const WINDOW_MAIN = { width: 420, height: 560 };
-export const WINDOW_MINI_CARD = { width: 200, height: 80 };
-export const WINDOW_PIP = { width: 320, height: 200 };
 
 // 数据库
 export const DB_FILE = 'dottranslator.db';
