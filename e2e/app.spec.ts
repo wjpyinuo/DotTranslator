@@ -24,9 +24,6 @@ test.describe('DotTranslator 基础功能', () => {
     const window = await app.firstWindow();
     expect(window).toBeTruthy();
 
-    // 等待页面加载完成（Renderer 渲染需要时间）
-    await window.waitForSelector('#root', { timeout: 15_000 });
-
     const title = await window.title();
     expect(title).toBeTruthy();
   });

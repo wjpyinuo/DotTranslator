@@ -102,6 +102,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm install
+      - name: Rebuild native modules for Electron
+        run: npx @electron/rebuild
       - run: npm run build
       - name: Install Playwright browsers
         run: npx playwright install chromium
