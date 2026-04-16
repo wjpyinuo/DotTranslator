@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { APP_VERSION } from '@shared/constants';
 
-const ANNOUNCEMENT_URL = 'https://raw.githubusercontent.com/wjpyinuo/DotTranslator/main/announcement.txt';
-const LOCAL_FILENAME = 'announcement.txt';
+const ANNOUNCEMENT_URL = 'https://raw.githubusercontent.com/wjpyinuo/DotTranslator/main/announcement.md';
+const LOCAL_FILENAME = 'announcement.md';
 
 interface Announcement {
   id: string;
@@ -11,7 +11,6 @@ interface Announcement {
 
 export function AnnouncementBar() {
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
-  const [dismissed, setDismissed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [source, setSource] = useState<'local' | 'remote' | null>(null);
 
@@ -68,22 +67,11 @@ export function AnnouncementBar() {
 
       // 用内容 hash 作为 id，内容变化时重新显示
       const id = btoa(unescape(encodeURIComponent(text))).slice(0, 16);
-      const dismissedId = localStorage.getItem('dot_announcement_dismissed');
-      if (dismissedId !== id) {
-        setAnnouncement({ id, content: text });
-        setDismissed(false);
-      } else {
-        setDismissed(true);
-      }
+      setAnnouncement({ id, content: text });
     } catch {
       // 公告获取失败不阻塞主流程，显示默认公告
       const defaultContent = `欢迎使用 DotTranslator v${APP_VERSION} — 多引擎翻译 · 亮/暗主题 · TM 缓存`;
-      const id = 'default-v020';
-      const dismissedId = localStorage.getItem('dot_announcement_dismissed');
-      if (dismissedId !== id) {
-        setAnnouncement({ id, content: defaultContent });
-        setDismissed(false);
-      }
+      setAnnouncement({ id: 'default-v020', content: defaultContent });
     } finally {
       setLoading(false);
     }
@@ -96,23 +84,13 @@ export function AnnouncementBar() {
     return () => clearInterval(interval);
   }, [fetchAnnouncement]);
 
-  const handleDismiss = () => {
-    if (announcement) {
-      localStorage.setItem('dot_announcement_dismissed', announcement.id);
-    }
-    setDismissed(true);
-  };
-
-  if (loading || dismissed || !announcement) return null;
+  if (loading || !announcement) return null;
 
   return (
     <div className={`announcement-bar ${source === 'local' ? 'announcement-local' : ''}`}>
       <span className="announcement-icon">{source === 'local' ? '📝' : '📢'}</span>
       <span className="announcement-text">{announcement.content}</span>
       {source === 'local' && <span className="announcement-badge">本地测试</span>}
-      <button className="announcement-close" onClick={handleDismiss} title="关闭公告">
-        ✕
-      </button>
     </div>
   );
 }
