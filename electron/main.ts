@@ -237,6 +237,20 @@ app.on('will-quit', () => {
   require('electron').globalShortcut.unregisterAll();
 });
 
+// macOS: 窗口全部关闭不退出（保留 dock 图标，用户可从托盘或 dock 重新打开）
+// Windows/Linux: 所有窗口关闭时退出（托盘菜单的"退出"已设 isQuitting=true）
 app.on('window-all-closed', () => {
-  app.quit();
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
+});
+
+// macOS: 点击 dock 图标时重新打开窗口
+app.on('activate', () => {
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createMainWindow();
+  } else {
+    mainWindow?.show();
+    mainWindow?.focus();
+  }
 });
