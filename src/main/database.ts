@@ -104,14 +104,21 @@ function initSchema(database: Database.Database): void {
 
     -- 引擎性能统计
     CREATE TABLE IF NOT EXISTS provider_metrics (
-      provider    TEXT NOT NULL,
-      date        TEXT NOT NULL,
-      total_calls INTEGER DEFAULT 0,
-      success     INTEGER DEFAULT 0,
-      fail        INTEGER DEFAULT 0,
-      avg_latency REAL DEFAULT 0,
+      provider      TEXT NOT NULL,
+      date          TEXT NOT NULL,
+      total_calls   INTEGER DEFAULT 0,
+      success       INTEGER DEFAULT 0,
+      fail          INTEGER DEFAULT 0,
+      total_latency REAL DEFAULT 0,
       PRIMARY KEY (provider, date)
     );
+    -- 兼容旧表：如果存在 avg_latency 列但缺少 total_latency，添加之
+    -- SQLite 不支持 ALTER TABLE ADD COLUMN IF NOT EXISTS，用 try/catch 忽略重复列错误
+  `);
+
+  // 迁移：旧表只有 avg_latency → 添加 total_latency 列
+  try { database.exec('ALTER TABLE provider_metrics ADD COLUMN total_latency REAL DEFAULT 0'); } catch { /* 列已存在 */ }
+  database.exec(`
   `);
 }
 
@@ -267,13 +274,13 @@ export function recordProviderMetric(provider: string, success: boolean, latency
   const database = getDatabase();
   const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
   database.prepare(`
-    INSERT INTO provider_metrics (provider, date, total_calls, success, fail, avg_latency)
+    INSERT INTO provider_metrics (provider, date, total_calls, success, fail, total_latency)
     VALUES (?, ?, 1, ?, ?, ?)
     ON CONFLICT(provider, date) DO UPDATE SET
       total_calls = total_calls + 1,
       success = success + ?,
       fail = fail + ?,
-      avg_latency = (avg_latency * total_calls + ?) / (total_calls + 1)
+      total_latency = total_latency + ?
   `).run(provider, today, success ? 1 : 0, success ? 0 : 1, latencyMs,
     success ? 1 : 0, success ? 0 : 1, latencyMs);
 }
@@ -283,13 +290,13 @@ export function getProviderMetrics(days = 30): { provider: string; date: string;
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
   const rows = database.prepare(
     'SELECT * FROM provider_metrics WHERE date >= ? ORDER BY date DESC'
-  ).all(since) as { provider: string; date: string; total_calls: number; success: number; fail: number; avg_latency: number }[];
+  ).all(since) as { provider: string; date: string; total_calls: number; success: number; fail: number; total_latency: number }[];
   return rows.map((row) => ({
     provider: row.provider,
     date: row.date,
     totalCalls: row.total_calls,
     success: row.success,
     fail: row.fail,
-    avgLatency: row.avg_latency,
+    avgLatency: row.total_calls > 0 ? row.total_latency / row.total_calls : 0,
   }));
 }
