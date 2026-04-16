@@ -16,6 +16,10 @@ export async function setupWebSocket(app: FastifyInstance): Promise<void> {
 
   const wsToken = process.env.WS_TOKEN; // 可选：设置后要求连接时携带 token
 
+  if (!wsToken) {
+    console.warn('[WS] ⚠️ WS_TOKEN 未设置，WebSocket 端点无认证保护！生产环境请务必配置 WS_TOKEN');
+  }
+
   app.register(async function (fastify) {
     fastify.get('/ws', { websocket: true }, (connection, request) => {
       // Token 校验（如果配置了 WS_TOKEN）
