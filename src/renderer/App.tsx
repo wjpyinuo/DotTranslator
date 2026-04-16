@@ -129,7 +129,7 @@ export function App() {
   const [activeTab, setActiveTab] = useState<Tab>('translate');
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // 窗口自动调整纵向尺寸（仅在内容展开/收起时调整，横向保持不变）
+  // 窗口自动调整纵向尺寸：内容展开/收起时调整，横向固定 420px
   const resizeTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const lastHeightRef = useRef<number>(0);
   const handleResize = useCallback(() => {
@@ -137,19 +137,26 @@ export function App() {
     resizeTimerRef.current = setTimeout(() => {
       const el = containerRef.current;
       if (!el || !window.electronAPI?.window?.resize) return;
-      const scrollH = el.scrollHeight;
-      if (Math.abs(scrollH - lastHeightRef.current) < 3) return;
-      lastHeightRef.current = scrollH;
-      window.electronAPI.window.resize(420, scrollH + 2);
-    }, 150);
+      // 使用 scrollHeight 而非 offsetHeight，确保包含溢出内容
+      const contentH = el.scrollHeight;
+      if (Math.abs(contentH - lastHeightRef.current) < 3) return;
+      lastHeightRef.current = contentH;
+      // 固定横向 420，纵向按内容自适应（上下限 400~900）
+      const clampedH = Math.max(400, Math.min(contentH + 4, 900));
+      window.electronAPI.window.resize(420, clampedH);
+    }, 80);
   }, []);
 
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
+    // ResizeObserver 监听自身尺寸变化
     const observer = new ResizeObserver(handleResize);
     observer.observe(el);
-    return () => observer.disconnect();
+    // MutationObserver 监听子树变化（DOM 增删/属性变化）
+    const mutObserver = new MutationObserver(handleResize);
+    mutObserver.observe(el, { childList: true, subtree: true, attributes: true });
+    return () => { observer.disconnect(); mutObserver.disconnect(); };
   }, [handleResize]);
 
   // 设置持久化：从 SQLite 加载
