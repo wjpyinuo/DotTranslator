@@ -85,10 +85,10 @@ export const useAppStore = create<AppStore>()(
     toggleSettings: () => set((s) => { s.showSettings = !s.showSettings; }),
     swapLanguages: () =>
       set((s) => {
+        // 'auto' 不是有效的目标语言，仅当源语言非 auto 时才交换
         if (s.sourceLang === 'auto') {
-          // 源语言为自动检测时，将当前目标语言作为源语言，原源语言检测结果忽略
+          // 将检测到的目标语言设为源语言，保持目标语言不变
           s.sourceLang = s.targetLang;
-          s.targetLang = 'auto';
         } else {
           const temp = s.sourceLang;
           s.sourceLang = s.targetLang;
