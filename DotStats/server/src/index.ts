@@ -9,6 +9,7 @@ import { initDatabase, getPool } from './db/pool';
 import { initRedis, getRedis } from './services/redis';
 import { setupWebSocket } from './services/websocket';
 import { startCronJobs, stopCronJobs } from './tasks/cron';
+import { setupSwagger } from './swagger';
 
 const SHUTDOWN_TIMEOUT_MS = parseInt(process.env.SHUTDOWN_TIMEOUT_MS || '10000', 10);
 
@@ -60,6 +61,11 @@ async function start(): Promise<void> {
 
   // WebSocket
   setupWebSocket(app);
+
+  // Swagger API 文档（仅非生产环境或明确启用时）
+  if (process.env.NODE_ENV !== 'production' || process.env.ENABLE_SWAGGER === '1') {
+    await setupSwagger(app);
+  }
 
   // 路由
   await app.register(eventRoutes, { prefix: '/api/v1' });
