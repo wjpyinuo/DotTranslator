@@ -229,3 +229,81 @@ function initSchema(): void {
     );
   `);
 }
+
+/**
+ * SQLite 留存计算（替代 PostgreSQL 的复杂 FILTER + DATE_TRUNC 查询）
+ * 计算最近 16 周的周留存快照
+ */
+export function calculateRetention(): void {
+  const database = getDb();
+
+  const isoWeek = (d: Date): string => {
+    const thursday = new Date(d);
+    thursday.setDate(d.getDate() - ((d.getDay() + 6) % 7) + 3);
+    const yearStart = new Date(thursday.getFullYear(), 0, 1);
+    const week = Math.ceil(((thursday.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+    return `${thursday.getFullYear()}-W${String(week).padStart(2, '0')}`;
+  };
+
+  const weekStart = (weekStr: string): Date => {
+    const [yearStr, wStr] = weekStr.split('-W');
+    const year = parseInt(yearStr);
+    const week = parseInt(wStr);
+    const jan4 = new Date(year, 0, 4);
+    const dayOfWeek = (jan4.getDay() + 6) % 7;
+    const weekStartMs = jan4.getTime() - dayOfWeek * 86400000 + (week - 1) * 7 * 86400000;
+    return new Date(weekStartMs);
+  };
+
+  // 获取实例的首次活跃周
+  const instances = database.prepare(
+    "SELECT instance_id, first_seen FROM instances WHERE first_seen >= datetime('now', '-112 days')"
+  ).all() as { instance_id: string; first_seen: string }[];
+
+  if (instances.length === 0) return;
+
+  // 按 cohort week 分组
+  const cohorts = new Map<string, Set<string>>();
+  for (const inst of instances) {
+    const cohort = isoWeek(new Date(inst.first_seen));
+    if (!cohorts.has(cohort)) cohorts.set(cohort, new Set());
+    cohorts.get(cohort)!.add(inst.instance_id);
+  }
+
+  // 获取所有事件的 instance_id + week
+  const events = database.prepare(
+    "SELECT DISTINCT instance_id, strftime('%Y', received_at) as yr, strftime('%W', received_at) as wk FROM events WHERE received_at >= datetime('now', '-112 days')"
+  ).all() as { instance_id: string; yr: string; wk: string }[];
+
+  const activityByWeek = new Map<string, Set<string>>();
+  for (const e of events) {
+    // SQLite %W is Sunday-based (00-53), convert to ISO week approximation
+    const key = `${e.yr}-W${String(parseInt(e.wk) + 1).padStart(2, '0')}`;
+    if (!activityByWeek.has(key)) activityByWeek.set(key, new Set());
+    activityByWeek.get(key)!.add(e.instance_id);
+  }
+
+  // 计算留存
+  const now = new Date();
+  for (const [cohortWeek, cohortInstances] of cohorts) {
+    const cs = weekStart(cohortWeek);
+    const retentionWeeks = [1, 2, 4, 8, 12];
+    const retained: Record<string, number> = {};
+
+    for (const w of retentionWeeks) {
+      const targetDate = new Date(cs.getTime() + w * 7 * 86400000);
+      const targetWeek = isoWeek(targetDate);
+      const activeInWeek = activityByWeek.get(targetWeek) || new Set();
+      retained[`w${w}`] = [...cohortInstances].filter(id => activeInWeek.has(id)).length;
+    }
+
+    database.prepare(`
+      INSERT OR REPLACE INTO retention_weekly (cohort_week, cohort_size, w1_retained, w2_retained, w4_retained, w8_retained, w12_retained)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      cohortWeek,
+      cohortInstances.size,
+      retained.w1, retained.w2, retained.w4, retained.w8, retained.w12
+    );
+  }
+}
