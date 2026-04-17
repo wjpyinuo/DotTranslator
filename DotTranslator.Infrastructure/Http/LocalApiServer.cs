@@ -12,17 +12,17 @@ public class LocalApiServer : IDisposable
 {
     private HttpListener? _listener;
     private readonly string _token;
-    private readonly TranslationRouter _router;
+    private readonly ITranslationService _translationService;
     private readonly ILogger<LocalApiServer> _logger;
     private int _port;
 
     public string Token => _token;
     public int Port => _port;
 
-    public LocalApiServer(TranslationRouter router, ILogger<LocalApiServer> logger)
+    public LocalApiServer(ITranslationService translationService, ILogger<LocalApiServer> logger)
     {
         _token = Convert.ToHexString(RandomNumberGenerator.GetBytes(16));
-        _router = router;
+        _translationService = translationService;
         _logger = logger;
     }
 
@@ -92,7 +92,7 @@ public class LocalApiServer : IDisposable
             }
             else if (req.Url?.AbsolutePath == "/api/providers" && req.HttpMethod == "GET")
             {
-                var providers = _router.GetAllProviders().Select(p => new { id = p.Id, name = p.Name, requiresApiKey = p.RequiresApiKey });
+                var providers = _translationService.GetAllProviders().Select(p => new { id = p.Id, name = p.Name, requiresApiKey = p.RequiresApiKey });
                 await WriteJson(res, 200, providers);
             }
             else if (req.Url?.AbsolutePath == "/api/translate" && req.HttpMethod == "POST")
@@ -105,7 +105,7 @@ public class LocalApiServer : IDisposable
                 var targetLang = doc.RootElement.GetProperty("targetLang").GetString() ?? "zh";
 
                 var parameters = new TranslateParams(text, sourceLang, targetLang);
-                var result = await _router.TranslateCompareAsync(parameters, _router.GetAllProviders().Select(p => p.Id));
+                var result = await _translationService.TranslateCompareAsync(parameters, _translationService.GetAllProviders().Select(p => p.Id));
                 await WriteJson(res, 200, result);
             }
             else

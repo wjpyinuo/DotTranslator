@@ -92,6 +92,7 @@ public partial class App : Application
             services.AddSingleton<ITranslationProvider>(sp => sp.GetRequiredService<FallbackProvider>());
 
             services.AddSingleton<TranslationRouter>();
+            services.AddSingleton<ITranslationService>(sp => sp.GetRequiredService<TranslationRouter>());
             services.AddSingleton<HistoryService>();
             services.AddSingleton<TelemetryReporter>();
 

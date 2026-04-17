@@ -8,7 +8,7 @@ using DotTranslator.Shared.Constants;
 
 namespace DotTranslator.Core.Translation;
 
-public class TranslationRouter
+public class TranslationRouter : ITranslationService
 {
     private readonly Dictionary<string, ITranslationProvider> _providers = new();
     private readonly Dictionary<string, ResiliencePipeline<TranslateResult>> _pipelines = new();
