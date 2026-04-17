@@ -19,12 +19,20 @@
 
 ## 翻译引擎
 
-| 引擎 | 免费 | 需要 API Key | 特点 |
-|------|------|-------------|------|
-| 百度翻译 | 有限免费 | App ID + 密钥 | 中文优化，支持 200+ 语言 |
-| 有道翻译 | 有限免费 | App ID + Secret | 网易有道智云 |
-| DeepL | 有限免费 | API Key | 欧洲语言质量高 |
-| Fallback | ✅ | 不需要 | 未配置引擎时的兜底方案 |
+| 引擎 | 免费额度 | 需要凭证 | 申请地址 |
+|------|---------|---------|---------|
+| Microsoft | 每月 200 万字符（Azure 免费层） | API Key + Region | [azure.microsoft.com](https://azure.microsoft.com/products/ai-services/ai-translator) |
+| Amazon | 每月 200 万字符（12 个月内） | AccessKey + Secret + Region | [aws.amazon.com](https://aws.amazon.com/translate/) |
+| DeepL | 每月 50 万字符（API Free） | API Key | [deepl.com/pro-api](https://www.deepl.com/pro-api) |
+| 百度翻译 | 每月 5 万字符 | App ID + 密钥 | [fanyi-api.baidu.com](https://fanyi-api.baidu.com) |
+| 阿里翻译 | 每月 100 万字符（通用版） | AccessKey ID + Secret | [aliyun.com](https://www.aliyun.com/product/nls/trans) |
+| 有道翻译 | 注册送 100 元体验金 | App ID + Secret | [ai.youdao.com](https://ai.youdao.com) |
+| 腾讯翻译 | 每月 500 万字符 | SecretId + SecretKey + Region | [cloud.tencent.com](https://cloud.tencent.com/product/tmt) |
+| 小牛翻译 | 每天 20 万字符 | API Key | [niutrans.com](https://niutrans.com) |
+| 彩云小译 | 每月 100 万字符 | Token | [fanyi.caiyunapp.com](https://fanyi.caiyunapp.com) |
+| 火山翻译 | 每月 200 万字符 | AccessKey + Secret + Region | [volcengine.com](https://www.volcengine.com/product/imagetrans) |
+| 讯飞翻译V2 | 每天 2 万字符 | App ID + API Key + API Secret | [xfyun.cn](https://www.xfyun.cn/service/translation) |
+| Fallback | ✅ 无限制 | 不需要 | — |
 
 ## 项目架构
 
