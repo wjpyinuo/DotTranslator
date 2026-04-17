@@ -1,7 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:DotTranslator.App.ViewModels"
-        xmlns:models="using:DotTranslator.Shared.Models"
+             xmlns:models="using:DotTranslator.Shared.Models"
              x:Class="DotTranslator.App.Views.HistoryView"
              x:DataType="vm:HistoryViewModel">
 
@@ -36,10 +36,10 @@
                                Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
                   </StackPanel>
                 </StackPanel>
-                <Button Grid.Column="1" Content="⭐" Command="{Binding $parent[UserControl].((vm:HistoryViewModel)DataContext).ToggleFavoriteCommand}"
-                        CommandParameter="{Binding Id}" FontSize="14" />
-                <Button Grid.Column="2" Content="✕" Command="{Binding $parent[UserControl].((vm:HistoryViewModel)DataContext).DeleteEntryCommand}"
-                        CommandParameter="{Binding Id}" FontSize="14" />
+                <Button Grid.Column="1" Content="⭐" Click="OnToggleFavorite"
+                        Tag="{Binding Id}" FontSize="14" />
+                <Button Grid.Column="2" Content="✕" Click="OnDeleteEntry"
+                        Tag="{Binding Id}" FontSize="14" />
               </Grid>
             </Border>
           </DataTemplate>

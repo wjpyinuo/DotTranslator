@@ -4,8 +4,9 @@
              Height="36" Background="Transparent">
 
   <Grid ColumnDefinitions="*,Auto,Auto,Auto">
-    <!-- Drag area -->
-    <Border Grid.Column="0" x:Name="DragArea" Background="Transparent" />
+    <!-- Drag area for frameless window -->
+    <Border Grid.Column="0" Background="Transparent"
+            PointerPressed="OnDragStart" />
 
     <!-- Window controls -->
     <Button Grid.Column="1" Content="—"

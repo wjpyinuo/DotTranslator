@@ -1,4 +1,6 @@
 using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 
 namespace DotTranslator.App.Controls;
 
@@ -9,13 +11,22 @@ public partial class TitleBar : UserControl
         InitializeComponent();
     }
 
-    private void OnMinimize(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void OnDragStart(object? sender, PointerPressedEventArgs e)
+    {
+        if (TopLevel.GetTopLevel(this) is Window window
+            && e.GetCurrentPoint(window).Properties.IsLeftButtonPressed)
+        {
+            window.BeginMoveDrag(e);
+        }
+    }
+
+    private void OnMinimize(object? sender, RoutedEventArgs e)
     {
         if (TopLevel.GetTopLevel(this) is Window window)
             window.WindowState = WindowState.Minimized;
     }
 
-    private void OnMaximize(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void OnMaximize(object? sender, RoutedEventArgs e)
     {
         if (TopLevel.GetTopLevel(this) is Window window)
         {
@@ -24,7 +35,7 @@ public partial class TitleBar : UserControl
         }
     }
 
-    private void OnClose(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void OnClose(object? sender, RoutedEventArgs e)
     {
         if (TopLevel.GetTopLevel(this) is Window window)
             window.Close();
