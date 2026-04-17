@@ -47,7 +47,7 @@ public partial class ProviderCredentialItem : ObservableObject
 
 public partial class SettingsViewModel : ObservableObject
 {
-    private readonly ApiKeyVault _vault;
+    private readonly IApiKeyStore _vault;
     private readonly SqliteRepository _repo;
     private readonly LocalApiServer _localApi;
     private readonly AutoUpdater _autoUpdater;
@@ -63,7 +63,7 @@ public partial class SettingsViewModel : ObservableObject
     public ObservableCollection<ProviderCredentialItem> ProviderCredentials { get; } = new();
 
     public SettingsViewModel(
-        ApiKeyVault vault,
+        IApiKeyStore vault,
         SqliteRepository repo,
         LocalApiServer localApi,
         AutoUpdater autoUpdater)

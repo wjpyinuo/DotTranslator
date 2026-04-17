@@ -8,6 +8,7 @@ using DotTranslator.Core.Translation;
 using DotTranslator.Core.Translation.Providers;
 using DotTranslator.Core.History;
 using DotTranslator.Core.Security;
+using DotTranslator.Infrastructure.Security;
 using DotTranslator.Core.Telemetry;
 using DotTranslator.Infrastructure.Data;
 using DotTranslator.Infrastructure.Http;
@@ -100,7 +101,9 @@ public partial class App : Application
             var vaultPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "DotTranslator", "encrypted_keys.dat");
-            services.AddSingleton(new ApiKeyVault(vaultPath));
+            var vault = new ApiKeyVault(vaultPath);
+            services.AddSingleton(vault);
+            services.AddSingleton<IApiKeyStore>(vault);
 
             // Local API
             services.AddSingleton<LocalApiServer>();
@@ -119,7 +122,6 @@ public partial class App : Application
             Services = services.BuildServiceProvider();
 
             // 4. Restore API keys from vault → apply to providers
-            var vault = Services.GetRequiredService<ApiKeyVault>();
             RestoreCredentials(vault);
 
             // 5. Create main window
