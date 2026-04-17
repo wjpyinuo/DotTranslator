@@ -107,67 +107,6 @@ public class SqliteRepository : IHistoryRepository, ITranslationMemory
         _db.SaveChanges();
     }
 
-    // Settings
-    public string? GetSetting(string key) => _db.Settings.Find(key)?.Value;
-    public void SetSetting(string key, string value)
-    {
-        var existing = _db.Settings.Find(key);
-        if (existing != null) existing.Value = value;
-        else _db.Settings.Add(new SettingsRow { Key = key, Value = value });
-        _db.SaveChanges();
-    }
-
-    // Local stats
-    public void RecordStat(LocalStatsRecord record)
-    {
-        _db.LocalStats.Add(new LocalStatsRow
-        {
-            Id = record.Id,
-            Feature = record.Feature,
-            Provider = record.Provider,
-            SourceLang = record.SourceLang,
-            TargetLang = record.TargetLang,
-            CharCount = record.CharCount,
-            LatencyMs = record.LatencyMs,
-            TmHit = record.TmHit,
-            CreatedAt = new DateTimeOffset(record.CreatedAt).ToUnixTimeMilliseconds()
-        });
-        _db.SaveChanges();
-    }
-
-    public IReadOnlyList<LocalStatsRecord> GetStats(int days = 30)
-    {
-        var since = DateTimeOffset.UtcNow.AddDays(-days).ToUnixTimeMilliseconds();
-        return _db.LocalStats.Where(s => s.CreatedAt > since).OrderByDescending(s => s.CreatedAt)
-            .Select(s => new LocalStatsRecord(s.Id, s.Feature, s.Provider, s.SourceLang, s.TargetLang, s.CharCount, s.LatencyMs, s.TmHit, DateTimeOffset.FromUnixTimeMilliseconds(s.CreatedAt).DateTime))
-            .ToList();
-    }
-
-    public void RecordProviderMetric(string provider, bool success, long latencyMs)
-    {
-        var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
-        var existing = _db.ProviderMetrics.Find(provider, today);
-        if (existing != null)
-        {
-            existing.TotalCalls++;
-            if (success) existing.Success++; else existing.Fail++;
-            existing.TotalLatency += latencyMs;
-        }
-        else
-        {
-            _db.ProviderMetrics.Add(new ProviderMetricRow
-            {
-                Provider = provider,
-                Date = today,
-                TotalCalls = 1,
-                Success = success ? 1 : 0,
-                Fail = success ? 0 : 1,
-                TotalLatency = latencyMs
-            });
-        }
-        _db.SaveChanges();
-    }
-
     private static HistoryEntry MapToEntry(HistoryRow r) => new(
         r.Id, r.SourceText, r.TargetText, r.SourceLang, r.TargetLang, r.Provider, r.IsFavorite,
         DateTimeOffset.FromUnixTimeMilliseconds(r.CreatedAt).DateTime);

@@ -1,8 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DotTranslator.Core.History;
 using DotTranslator.Core.Security;
+using DotTranslator.Core.Settings;
 using DotTranslator.Core.Translation.Providers;
-using DotTranslator.Infrastructure.Data;
 using DotTranslator.Infrastructure.Http;
 using DotTranslator.Infrastructure.Update;
 using DotTranslator.Shared.Constants;
@@ -48,7 +49,8 @@ public partial class ProviderCredentialItem : ObservableObject
 public partial class SettingsViewModel : ObservableObject
 {
     private readonly IApiKeyStore _vault;
-    private readonly SqliteRepository _repo;
+    private readonly ISettingsRepository _settingsRepo;
+    private readonly IHistoryRepository _historyRepo;
     private readonly LocalApiServer _localApi;
     private readonly AutoUpdater _autoUpdater;
 
@@ -64,12 +66,14 @@ public partial class SettingsViewModel : ObservableObject
 
     public SettingsViewModel(
         IApiKeyStore vault,
-        SqliteRepository repo,
+        ISettingsRepository settingsRepo,
+        IHistoryRepository historyRepo,
         LocalApiServer localApi,
         AutoUpdater autoUpdater)
     {
         _vault = vault;
-        _repo = repo;
+        _settingsRepo = settingsRepo;
+        _historyRepo = historyRepo;
         _localApi = localApi;
         _autoUpdater = autoUpdater;
         LoadSettings();
@@ -77,7 +81,7 @@ public partial class SettingsViewModel : ObservableObject
 
     private void LoadSettings()
     {
-        Theme = _repo.GetSetting("theme") ?? "light";
+        Theme = _settingsRepo.GetSetting("theme") ?? "light";
 
         if (_localApi.Port > 0)
             LocalApiInfo = $"http://127.0.0.1:{_localApi.Port}  Token: {_localApi.Token}";
@@ -196,7 +200,7 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private void SaveTheme()
     {
-        _repo.SetSetting("theme", Theme);
+        _settingsRepo.SetSetting("theme", Theme);
         App.SwitchTheme(Theme);
         StatusMessage = $"主题已切换为: {Theme}";
     }
@@ -204,7 +208,7 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private void ClearAllData()
     {
-        _repo.ClearAll();
+        _historyRepo.ClearAll();
         StatusMessage = "所有翻译历史已清除";
     }
 

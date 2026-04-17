@@ -9,6 +9,8 @@ using DotTranslator.Core.Translation.Providers;
 using DotTranslator.Core.History;
 using DotTranslator.Core.Security;
 using DotTranslator.Infrastructure.Security;
+using DotTranslator.Core.Settings;
+using DotTranslator.Core.Stats;
 using DotTranslator.Core.Telemetry;
 using DotTranslator.Infrastructure.Data;
 using DotTranslator.Infrastructure.Http;
@@ -46,6 +48,9 @@ public partial class App : Application
             context.InitializeDatabase();
 
             var repo = new SqliteRepository(context);
+            var settingsRepo = new SqliteSettingsRepository(context);
+            var statsRepo = new SqliteStatsRepository(context);
+            var metricsRepo = new SqliteMetricsRepository(context);
 
             // 2. Register ALL services
             var services = new ServiceCollection();
@@ -54,7 +59,9 @@ public partial class App : Application
             services.AddSingleton(context);
             services.AddSingleton<IHistoryRepository>(repo);
             services.AddSingleton<ITranslationMemory>(repo);
-            services.AddSingleton(repo);
+            services.AddSingleton<ISettingsRepository>(settingsRepo);
+            services.AddSingleton<IStatsRepository>(statsRepo);
+            services.AddSingleton<IMetricsRepository>(metricsRepo);
 
             // HTTP clients (one per provider)
             var providerNames = new[] {
@@ -133,8 +140,8 @@ public partial class App : Application
             localApi.Start();
 
             var telemetry = Services.GetRequiredService<TelemetryReporter>();
-            var instanceId = repo.GetSetting("instanceId") ?? Guid.NewGuid().ToString();
-            repo.SetSetting("instanceId", instanceId);
+            var instanceId = settingsRepo.GetSetting("instanceId") ?? Guid.NewGuid().ToString();
+            settingsRepo.SetSetting("instanceId", instanceId);
             telemetry.Start(instanceId, false);
         }
 
