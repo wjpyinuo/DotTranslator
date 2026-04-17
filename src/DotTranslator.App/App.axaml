@@ -1,0 +1,20 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="DotTranslator.App.App"
+             xmlns:vm="using:DotTranslator.App.ViewModels"
+             xmlns:views="using:DotTranslator.App.Views">
+  <Application.Styles>
+    <FluentTheme />
+  </Application.Styles>
+  <Application.DataTemplates>
+    <DataTemplate DataType="{x:Type vm:MainWindowViewModel}">
+      <views:MainWindow />
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+      <views:SettingsView />
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:HistoryViewModel}">
+      <views:HistoryView />
+    </DataTemplate>
+  </Application.DataTemplates>
+</Application>
