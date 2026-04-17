@@ -1,10 +1,11 @@
-using System.Net.Http.Json;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 
 namespace DotTranslator.Infrastructure.Update;
 
-public record UpdateInfo(string Version, string DownloadUrl, string? ReleaseNotes);
+public record UpdateInfo(string Version, string DownloadUrl, string? ReleaseNotes, string? ChecksumUrl = null);
 
 public class AutoUpdater
 {
@@ -35,20 +36,23 @@ public class AutoUpdater
 
             var assets = json.GetProperty("assets");
             string? downloadUrl = null;
+            string? checksumUrl = null;
+
             foreach (var asset in assets.EnumerateArray())
             {
                 var name = asset.GetProperty("name").GetString();
-                if (name != null && name.EndsWith(".zip"))
-                {
-                    downloadUrl = asset.GetProperty("browser_download_url").GetString();
-                    break;
-                }
+                if (name == null) continue;
+
+                if (name.EndsWith(".zip"))
+                    downloadUrl ??= asset.GetProperty("browser_download_url").GetString();
+                else if (name.EndsWith(".sha256") || name.Contains("checksum"))
+                    checksumUrl ??= asset.GetProperty("browser_download_url").GetString();
             }
 
             if (downloadUrl == null) return null;
 
             var notes = json.GetProperty("body").GetString();
-            return new UpdateInfo(tagName, downloadUrl, notes);
+            return new UpdateInfo(tagName, downloadUrl, notes, checksumUrl);
         }
         catch (Exception ex)
         {
@@ -77,5 +81,57 @@ public class AutoUpdater
             if (totalBytes > 0)
                 progress?.Report((double)totalRead / totalBytes);
         }
+    }
+
+    /// <summary>
+    /// 下载并校验文件完整性。如果提供了 checksumUrl，则下载校验文件并验证 SHA256。
+    /// </summary>
+    /// <returns>校验通过返回 true；无校验文件时返回 null（不验证）；校验失败抛出异常。</returns>
+    public async Task<bool?> DownloadAndVerifyAsync(
+        string downloadUrl, string destinationPath,
+        string? checksumUrl = null, IProgress<double>? progress = null)
+    {
+        await DownloadAsync(downloadUrl, destinationPath, progress);
+
+        if (string.IsNullOrEmpty(checksumUrl))
+        {
+            _logger.LogWarning("[AutoUpdater] No checksum file available for this release, skipping verification");
+            return null;
+        }
+
+        // 下载校验文件
+        string expectedHash;
+        try
+        {
+            var checksumContent = await _httpClient.GetStringAsync(checksumUrl);
+            // 支持两种格式: "hash  filename" 或 纯 hash
+            expectedHash = checksumContent.Trim().Split(' ')[0].Trim().ToLowerInvariant();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "[AutoUpdater] Failed to download checksum file");
+            return null;
+        }
+
+        // 计算实际文件 SHA256
+        var actualHash = await ComputeSha256Async(destinationPath);
+
+        if (!string.Equals(expectedHash, actualHash, StringComparison.OrdinalIgnoreCase))
+        {
+            // 删除不完整的/被篡改的文件
+            try { File.Delete(destinationPath); } catch { /* best effort */ }
+            throw new InvalidOperationException(
+                $"[AutoUpdater] SHA256 mismatch! Expected: {expectedHash}, Got: {actualHash}");
+        }
+
+        _logger.LogInformation("[AutoUpdater] SHA256 verification passed: {Hash}", actualHash);
+        return true;
+    }
+
+    private static async Task<string> ComputeSha256Async(string filePath)
+    {
+        await using var stream = File.OpenRead(filePath);
+        var hash = await SHA256.HashDataAsync(stream);
+        return Convert.ToHexStringLower(hash);
     }
 }
