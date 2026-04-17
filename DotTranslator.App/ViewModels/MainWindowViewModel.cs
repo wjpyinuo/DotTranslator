@@ -2,11 +2,14 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DotTranslator.Core.Translation;
 using DotTranslator.Core.History;
-using DotTranslator.Core.Security;
+using DotTranslator.Core.Telemetry;
+using DotTranslator.Infrastructure.Data;
+using DotTranslator.App.Platform.Windows;
 using DotTranslator.Shared.Models;
 using DotTranslator.Shared.Constants;
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,6 +19,9 @@ public partial class MainWindowViewModel : ObservableObject
 {
     private readonly TranslationRouter _router;
     private readonly HistoryService _historyService;
+    private readonly TelemetryReporter _telemetry;
+    private readonly SqliteRepository _repo;
+    private GlobalClipboard? _clipboard;
 
     [ObservableProperty] private string _sourceText = string.Empty;
     [ObservableProperty] private string _translatedText = string.Empty;
@@ -37,16 +43,41 @@ public partial class MainWindowViewModel : ObservableObject
     public MainWindowViewModel(
         TranslationRouter router,
         HistoryService historyService,
+        TelemetryReporter telemetry,
+        SqliteRepository repo,
         HistoryViewModel historyViewModel,
         SettingsViewModel settingsViewModel)
     {
         _router = router;
         _historyService = historyService;
+        _telemetry = telemetry;
+        _repo = repo;
         History = historyViewModel;
         Settings = settingsViewModel;
 
         LoadProviders();
         LoadRecentHistory();
+        InitClipboardMonitor();
+    }
+
+    private void InitClipboardMonitor()
+    {
+        if (!OperatingSystem.IsWindows()) return;
+
+        _clipboard = new GlobalClipboard();
+        _clipboard.TextChanged += OnClipboardTextChanged;
+        _clipboard.Start();
+    }
+
+    private async void OnClipboardTextChanged(string text)
+    {
+        if (!ClipboardMonitorEnabled) return;
+        if (string.IsNullOrWhiteSpace(text) || text.Length > AppConstants.MaxTranslationLength) return;
+
+        // Switch to translate tab and fill source
+        SelectedTab = "translate";
+        SourceText = text;
+        await TranslateAsync();
     }
 
     private void LoadProviders()
@@ -78,39 +109,81 @@ public partial class MainWindowViewModel : ObservableObject
 
         try
         {
-            var parameters = new TranslateParams(SourceText, SourceLang, TargetLang);
+            // 1. Check TM cache first
+            var tmHit = _historyService.LookupTM(SourceLang, TargetLang, SourceText);
+            if (tmHit != null)
+            {
+                TranslatedText = tmHit.TargetText;
+                TranslationResults.Add(new TranslateResult(
+                    "tm-cache", tmHit.TargetText, SourceLang, TargetLang, 0, FromCache: true));
+                StatusMessage = $"翻译完成 (缓存命中, 已用 {tmHit.UsageCount} 次)";
+
+                // Record stat
+                _repo.RecordStat(new LocalStatsRecord(
+                    Guid.NewGuid().ToString(), FeatureNames.TranslateManual,
+                    "tm-cache", SourceLang, TargetLang, SourceText.Length, 0, true, DateTime.UtcNow));
+                _repo.RecordProviderMetric("tm-cache", true, 0);
+
+                _historyService.AddEntry(SourceText, TranslatedText, SourceLang, TargetLang, "tm-cache");
+                LoadRecentHistory();
+                History.Refresh();
+                IsTranslating = false;
+                return;
+            }
+
+            // 2. Get available providers
             var providerIds = _router.GetAllProviders()
-                .Where(p => p.Id != "fallback" && p.Id != "baidu" && p.Id != "youdao" && p.Id != "deepl")
+                .Where(p => p.Id != "fallback")
                 .Select(p => p.Id)
                 .ToList();
 
-            // Include providers that have credentials set
-            foreach (var p in _router.GetAllProviders())
+            // Filter to only those with credentials / available
+            var availableIds = new List<string>();
+            foreach (var id in providerIds)
             {
-                if (p.Id == "fallback") continue;
-                if (await p.IsAvailableAsync() && !providerIds.Contains(p.Id))
-                    providerIds.Add(p.Id);
+                var provider = _router.GetProvider(id);
+                if (provider != null && await provider.IsAvailableAsync())
+                    availableIds.Add(id);
             }
+            if (availableIds.Count == 0) availableIds.Add("fallback");
 
-            if (providerIds.Count == 0) providerIds.Add("fallback");
-
-            var result = await _router.TranslateCompareAsync(parameters, providerIds);
+            // 3. Translate with timing
+            var sw = Stopwatch.StartNew();
+            var parameters = new TranslateParams(SourceText, SourceLang, TargetLang);
+            var result = await _router.TranslateCompareAsync(parameters, availableIds);
+            sw.Stop();
 
             foreach (var r in result.Results)
             {
                 TranslationResults.Add(r);
+                // Record provider metric
+                _repo.RecordProviderMetric(r.Provider, true, r.LatencyMs);
+            }
+            foreach (var e in result.Errors)
+            {
+                _repo.RecordProviderMetric(e.ProviderId, false, 0);
             }
 
             if (result.Results.Count > 0)
             {
                 TranslatedText = result.Results[0].TranslatedText;
-                _historyService.AddEntry(SourceText, TranslatedText, SourceLang, TargetLang, result.Results[0].Provider);
+                var provider = result.Results[0].Provider;
+
+                // Save to history + TM
+                _historyService.AddEntry(SourceText, TranslatedText, SourceLang, TargetLang, provider);
                 LoadRecentHistory();
                 History.Refresh();
+
+                // Record telemetry + stats
+                _telemetry.RecordTranslation(new TranslationDetail(
+                    provider, SourceLang, TargetLang, SourceText.Length, sw.ElapsedMilliseconds, true));
+                _repo.RecordStat(new LocalStatsRecord(
+                    Guid.NewGuid().ToString(), FeatureNames.TranslateManual,
+                    provider, SourceLang, TargetLang, SourceText.Length, sw.ElapsedMilliseconds, false, DateTime.UtcNow));
             }
 
             StatusMessage = result.Results.Count > 0
-                ? $"翻译完成 ({result.Results.Count} 个引擎)"
+                ? $"翻译完成 ({result.Results.Count} 个引擎, {sw.ElapsedMilliseconds}ms)"
                 : $"翻译失败: {string.Join(", ", result.Errors.Select(e => e.Error))}";
         }
         catch (Exception ex)
@@ -158,6 +231,7 @@ public partial class MainWindowViewModel : ObservableObject
     private void ToggleClipboardMonitor()
     {
         ClipboardMonitorEnabled = !ClipboardMonitorEnabled;
+        if (_clipboard != null) _clipboard.Enabled = ClipboardMonitorEnabled;
         StatusMessage = ClipboardMonitorEnabled ? "剪贴板监听已开启" : "剪贴板监听已关闭";
     }
 
