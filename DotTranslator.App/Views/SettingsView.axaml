@@ -11,35 +11,53 @@
       <!-- API Keys Section -->
       <Border Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
               CornerRadius="8" Padding="16">
-        <StackPanel Spacing="12">
-          <TextBlock Text="🔑 API Key 配置" FontSize="16" FontWeight="SemiBold" />
+        <StackPanel Spacing="16">
+          <TextBlock Text="🔑 翻译引擎凭证" FontSize="16" FontWeight="SemiBold" />
+          <TextBlock Text="配置任意一个引擎即可使用，配多个可并行对比。" FontSize="12"
+                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
 
-          <StackPanel>
-            <TextBlock Text="DeepL API Key" FontSize="12" />
-            <TextBox Text="{Binding DeeplApiKey}" PasswordChar="*" Watermark="输入 DeepL API Key" />
-          </StackPanel>
+          <ItemsControl ItemsSource="{Binding ProviderCredentials}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:ProviderCredentialItem">
+                <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                        BorderThickness="0,0,0,1" Padding="0,0,0,12" Margin="0,0,0,8">
+                  <StackPanel Spacing="6">
+                    <!-- Provider name + free quota -->
+                    <TextBlock FontSize="14" FontWeight="SemiBold">
+                      <Run Text="{Binding Meta.Name}" />
+                    </TextBlock>
+                    <TextBlock FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}">
+                      <Run Text="免费额度: " />
+                      <Run Text="{Binding Meta.FreeQuota}" />
+                    </TextBlock>
+                    <TextBlock FontSize="11">
+                      <Run Text="申请地址: " />
+                      <Run Text="{Binding Meta.ApplyUrl}" Foreground="{DynamicResource SystemControlForegroundAccentBrush}" />
+                    </TextBlock>
+                    <TextBlock FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                               TextWrapping="Wrap">
+                      <Run Text="{Binding Meta.FieldHints}" />
+                    </TextBlock>
 
-          <StackPanel>
-            <TextBlock Text="有道 App ID" FontSize="12" />
-            <TextBox Text="{Binding YoudaoAppId}" Watermark="输入有道智云 App ID" />
-          </StackPanel>
+                    <!-- Input fields -->
+                    <StackPanel Spacing="4">
+                      <TextBox Watermark="{Binding Field1Label}" Text="{Binding Value1}"
+                               IsVisible="{Binding Field1Label, Converter={x:Static vm:Converters.StringNotEmptyConverter}}" />
+                      <TextBox Watermark="{Binding Field2Label}" Text="{Binding Value2}"
+                               IsVisible="{Binding HasField2}" />
+                      <TextBox Watermark="{Binding Field3Label}" Text="{Binding Value3}"
+                               IsVisible="{Binding HasField3}" />
+                      <TextBox Watermark="{Binding Field4Label}" Text="{Binding Value4}"
+                               IsVisible="{Binding HasField4}" />
+                    </StackPanel>
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
 
-          <StackPanel>
-            <TextBlock Text="有道 App Secret" FontSize="12" />
-            <TextBox Text="{Binding YoudaoAppSecret}" PasswordChar="*" Watermark="输入有道智云 App Secret" />
-          </StackPanel>
-
-          <StackPanel>
-            <TextBlock Text="百度 App ID" FontSize="12" />
-            <TextBox Text="{Binding BaiduAppId}" Watermark="输入百度翻译 App ID" />
-          </StackPanel>
-
-          <StackPanel>
-            <TextBlock Text="百度密钥" FontSize="12" />
-            <TextBox Text="{Binding BaiduSecretKey}" PasswordChar="*" Watermark="输入百度翻译密钥" />
-          </StackPanel>
-
-          <Button Content="保存 API Keys" Command="{Binding SaveApiKeysCommand}" HorizontalAlignment="Left" />
+          <Button Content="保存所有凭证" Command="{Binding SaveAllCredentialsCommand}"
+                  HorizontalAlignment="Left" Classes="accent" />
         </StackPanel>
       </Border>
 
