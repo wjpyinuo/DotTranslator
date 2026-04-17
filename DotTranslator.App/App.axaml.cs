@@ -71,33 +71,17 @@ public partial class App : Application
             foreach (var name in providerNames)
                 services.AddHttpClient(name, c => c.Timeout = TimeSpan.FromSeconds(15));
 
-            // Translation providers (as concrete types for DI)
-            services.AddSingleton<DeepLProvider>();
-            services.AddSingleton<BaiduProvider>();
-            services.AddSingleton<YoudaoProvider>();
-            services.AddSingleton<MicrosoftProvider>();
-            services.AddSingleton<AmazonProvider>();
-            services.AddSingleton<AlibabaProvider>();
-            services.AddSingleton<TencentProvider>();
-            services.AddSingleton<NiutransProvider>();
-            services.AddSingleton<CaiyunProvider>();
-            services.AddSingleton<VolcEngineProvider>();
-            services.AddSingleton<IFlytekProvider>();
-            services.AddSingleton<FallbackProvider>();
+            // Translation providers — auto-discovered via reflection
+            var providerAssembly = typeof(ITranslationProvider).Assembly;
+            var providerTypes = providerAssembly.GetTypes()
+                .Where(t => typeof(ITranslationProvider).IsAssignableFrom(t)
+                            && t is { IsInterface: false, IsAbstract: false });
 
-            // Also register as ITranslationProvider
-            services.AddSingleton<ITranslationProvider>(sp => sp.GetRequiredService<DeepLProvider>());
-            services.AddSingleton<ITranslationProvider>(sp => sp.GetRequiredService<BaiduProvider>());
-            services.AddSingleton<ITranslationProvider>(sp => sp.GetRequiredService<YoudaoProvider>());
-            services.AddSingleton<ITranslationProvider>(sp => sp.GetRequiredService<MicrosoftProvider>());
-            services.AddSingleton<ITranslationProvider>(sp => sp.GetRequiredService<AmazonProvider>());
-            services.AddSingleton<ITranslationProvider>(sp => sp.GetRequiredService<AlibabaProvider>());
-            services.AddSingleton<ITranslationProvider>(sp => sp.GetRequiredService<TencentProvider>());
-            services.AddSingleton<ITranslationProvider>(sp => sp.GetRequiredService<NiutransProvider>());
-            services.AddSingleton<ITranslationProvider>(sp => sp.GetRequiredService<CaiyunProvider>());
-            services.AddSingleton<ITranslationProvider>(sp => sp.GetRequiredService<VolcEngineProvider>());
-            services.AddSingleton<ITranslationProvider>(sp => sp.GetRequiredService<IFlytekProvider>());
-            services.AddSingleton<ITranslationProvider>(sp => sp.GetRequiredService<FallbackProvider>());
+            foreach (var type in providerTypes)
+            {
+                services.AddSingleton(type);
+                services.AddSingleton<ITranslationProvider>(sp => (ITranslationProvider)sp.GetRequiredService(type));
+            }
 
             services.AddSingleton<TranslationRouter>();
             services.AddSingleton<ITranslationService>(sp => sp.GetRequiredService<TranslationRouter>());
@@ -148,7 +132,7 @@ public partial class App : Application
         base.OnFrameworkInitializationCompleted();
     }
 
-    private static void RestoreCredentials(ApiKeyVault vault)
+    private static void RestoreCredentials(IApiKeyStore vault)
     {
         var v = (string key) => vault.Get(key) ?? "";
 
