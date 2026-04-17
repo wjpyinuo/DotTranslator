@@ -40,8 +40,9 @@ public class LocalApiServer : IDisposable
                 _ = ListenLoop();
                 return;
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogDebug(ex, "[LocalAPI] Failed to bind to port {Port}, trying next", port);
                 _listener?.Close();
                 _listener = null;
             }

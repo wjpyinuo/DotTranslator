@@ -194,7 +194,10 @@ public partial class SettingsViewModel : ObservableObject
             if (aws != null && !string.IsNullOrEmpty(g("amazonAccessKeyId")))
                 aws.SetCredentials(g("amazonAccessKeyId"), g("amazonSecretAccessKey"), g("amazonRegion"));
         }
-        catch { /* Non-critical */ }
+        catch (Exception ex)
+        {
+            StatusMessage = $"凭证应用部分失败: {ex.Message}";
+        }
     }
 
     [RelayCommand]

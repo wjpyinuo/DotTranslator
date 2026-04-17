@@ -45,7 +45,7 @@ public class GlobalClipboard : IDisposable
                 }
             }
         }
-        catch { /* clipboard locked */ }
+        catch (Exception) { /* clipboard locked by another process, retry on next poll */ }
     }
 
     [DllImport("user32.dll")]
