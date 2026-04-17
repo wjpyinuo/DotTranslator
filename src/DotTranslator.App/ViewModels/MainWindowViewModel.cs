@@ -5,7 +5,6 @@ using DotTranslator.Core.History;
 using DotTranslator.Core.Security;
 using DotTranslator.Shared.Models;
 using DotTranslator.Shared.Constants;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -17,7 +16,6 @@ public partial class MainWindowViewModel : ObservableObject
 {
     private readonly TranslationRouter _router;
     private readonly HistoryService _historyService;
-    private readonly ApiKeyVault _vault;
 
     [ObservableProperty] private string _sourceText = string.Empty;
     [ObservableProperty] private string _translatedText = string.Empty;
@@ -33,11 +31,19 @@ public partial class MainWindowViewModel : ObservableObject
     public ObservableCollection<ProviderInfo> AvailableProviders { get; } = new();
     public ObservableCollection<HistoryEntry> RecentHistory { get; } = new();
 
-    public MainWindowViewModel(TranslationRouter router, HistoryService historyService, ApiKeyVault vault)
+    public HistoryViewModel History { get; }
+    public SettingsViewModel Settings { get; }
+
+    public MainWindowViewModel(
+        TranslationRouter router,
+        HistoryService historyService,
+        HistoryViewModel historyViewModel,
+        SettingsViewModel settingsViewModel)
     {
         _router = router;
         _historyService = historyService;
-        _vault = vault;
+        History = historyViewModel;
+        Settings = settingsViewModel;
 
         LoadProviders();
         LoadRecentHistory();
@@ -73,7 +79,19 @@ public partial class MainWindowViewModel : ObservableObject
         try
         {
             var parameters = new TranslateParams(SourceText, SourceLang, TargetLang);
-            var providerIds = _router.GetAllProviders().Where(p => p.Id != "fallback").Select(p => p.Id).ToList();
+            var providerIds = _router.GetAllProviders()
+                .Where(p => p.Id != "fallback" && p.Id != "baidu" && p.Id != "youdao" && p.Id != "deepl")
+                .Select(p => p.Id)
+                .ToList();
+
+            // Include providers that have credentials set
+            foreach (var p in _router.GetAllProviders())
+            {
+                if (p.Id == "fallback") continue;
+                if (await p.IsAvailableAsync() && !providerIds.Contains(p.Id))
+                    providerIds.Add(p.Id);
+            }
+
             if (providerIds.Count == 0) providerIds.Add("fallback");
 
             var result = await _router.TranslateCompareAsync(parameters, providerIds);
@@ -88,12 +106,12 @@ public partial class MainWindowViewModel : ObservableObject
                 TranslatedText = result.Results[0].TranslatedText;
                 _historyService.AddEntry(SourceText, TranslatedText, SourceLang, TargetLang, result.Results[0].Provider);
                 LoadRecentHistory();
+                History.Refresh();
             }
 
-            var errors = result.Errors;
             StatusMessage = result.Results.Count > 0
                 ? $"翻译完成 ({result.Results.Count} 个引擎)"
-                : $"翻译失败: {string.Join(", ", errors.Select(e => e.Error))}";
+                : $"翻译失败: {string.Join(", ", result.Errors.Select(e => e.Error))}";
         }
         catch (Exception ex)
         {
@@ -152,8 +170,9 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void SelectTab(string tab)
+    private void SelectTab(string? tab)
     {
-        SelectedTab = tab;
+        if (!string.IsNullOrEmpty(tab))
+            SelectedTab = tab;
     }
 }

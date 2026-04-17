@@ -1,6 +1,4 @@
 using Avalonia.Data.Converters;
-using System;
-using System.Globalization;
 
 namespace DotTranslator.App.ViewModels;
 
@@ -17,4 +15,7 @@ public static class Converters
     public static readonly IValueConverter ThemeSystemConverter = new FuncValueConverter<string?, bool>(
         value => value == "default",
         (bool isChecked) => isChecked ? "default" : "");
+
+    public static readonly IValueConverter NullToBoolConverter = new FuncValueConverter<object?, bool>(
+        value => value != null);
 }

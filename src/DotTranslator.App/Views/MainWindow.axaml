@@ -15,7 +15,6 @@
         WindowStartupLocation="CenterScreen">
 
   <Panel>
-    <!-- Background with acrylic -->
     <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
             CornerRadius="8"
             BoxShadow="0 2 8 0 #20000000">
@@ -24,34 +23,35 @@
         <!-- Custom Title Bar -->
         <controls:TitleBar DockPanel.Dock="Top" />
 
-        <!-- Navigation Tabs -->
-        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="12,4">
-          <Button Content="翻译" Command="{Binding SelectTabCommand}" CommandParameter="translate"
-                  Classes="tab {Binding SelectedTab, Converter={x:Static controls:Converters.TabClassConverter}, ConverterParameter=translate}" />
-          <Button Content="历史" Command="{Binding SelectTabCommand}" CommandParameter="history"
-                  Classes="tab {Binding SelectedTab, Converter={x:Static controls:Converters.TabClassConverter}, ConverterParameter=history}" />
-          <Button Content="设置" Command="{Binding SelectTabCommand}" CommandParameter="settings"
-                  Classes="tab {Binding SelectedTab, Converter={x:Static controls:Converters.TabClassConverter}, ConverterParameter=settings}" />
-        </StackPanel>
+        <!-- Bottom status -->
+        <Border DockPanel.Dock="Bottom" Padding="8,4"
+                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <TextBlock Text="DotTranslator" FontSize="11" />
+            <TextBlock Text="{Binding StatusMessage}" FontSize="11"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+          </StackPanel>
+        </Border>
 
-        <!-- Content Area -->
-        <Panel Margin="12,0">
+        <!-- Tab content area -->
+        <Panel>
           <!-- Translate Tab -->
           <Panel IsVisible="{Binding SelectedTab, Converter={x:Static controls:Converters.EqualConverter}, ConverterParameter=translate}">
-            <Grid RowDefinitions="Auto,*,Auto,*,Auto">
+            <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
               <!-- Source Text -->
               <Border Grid.Row="0" Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
-                      CornerRadius="8" Padding="8" Margin="0,0,0,8">
+                      CornerRadius="8" Padding="8" Margin="12,8">
                 <TextBox Text="{Binding SourceText, Mode=TwoWay}"
                          Watermark="输入要翻译的文本..."
                          AcceptsReturn="True"
                          TextWrapping="Wrap"
-                         MinHeight="100"
-                         MaxHeight="200" />
+                         MinHeight="80"
+                         MaxHeight="180" />
               </Border>
 
               <!-- Language selector -->
-              <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" Margin="0,4">
+              <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8"
+                          HorizontalAlignment="Center" Margin="0,4">
                 <ComboBox SelectedItem="{Binding SourceLang}" Width="100">
                   <ComboBoxItem Content="auto" />
                   <ComboBoxItem Content="zh" />
@@ -73,7 +73,8 @@
               </StackPanel>
 
               <!-- Translate button + actions -->
-              <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" Margin="0,8">
+              <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8"
+                          HorizontalAlignment="Center" Margin="0,4">
                 <Button Content="翻译" Command="{Binding TranslateCommand}"
                         Classes="accent" IsEnabled="{Binding !IsTranslating}" />
                 <Button Content="📋 复制" Command="{Binding CopyTranslationCommand}" />
@@ -82,7 +83,7 @@
 
               <!-- Translation Results -->
               <Border Grid.Row="3" Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
-                      CornerRadius="8" Padding="8" Margin="0,0,0,8">
+                      CornerRadius="8" Padding="8" Margin="12,4,12,8">
                 <ScrollViewer>
                   <ItemsControl ItemsSource="{Binding TranslationResults}">
                     <ItemsControl.ItemTemplate>
@@ -95,7 +96,8 @@
                                        Foreground="{DynamicResource SystemControlForegroundAccentBrush}" />
                             <TextBlock Text="{Binding TranslatedText}" TextWrapping="Wrap" Margin="0,4" />
                             <TextBlock Text="{Binding LatencyMs, StringFormat='{}{0}ms'}"
-                                       FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                                       FontSize="11"
+                                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
                           </StackPanel>
                         </Border>
                       </DataTemplate>
@@ -104,41 +106,24 @@
                 </ScrollViewer>
               </Border>
 
-              <!-- Status Bar -->
+              <!-- Status -->
               <TextBlock Grid.Row="4" Text="{Binding StatusMessage}" FontSize="11"
+                         Margin="12,0,0,4"
                          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
             </Grid>
           </Panel>
 
           <!-- History Tab -->
           <Panel IsVisible="{Binding SelectedTab, Converter={x:Static controls:Converters.EqualConverter}, ConverterParameter=history}">
-            <ContentControl Content="{Binding}" ContentTemplate="{StaticResource HistoryViewTemplate}" />
+            <ContentControl Content="{Binding History}" Margin="12,8" />
           </Panel>
 
           <!-- Settings Tab -->
           <Panel IsVisible="{Binding SelectedTab, Converter={x:Static controls:Converters.EqualConverter}, ConverterParameter=settings}">
-            <ContentControl Content="{Binding}" ContentTemplate="{StaticResource SettingsViewTemplate}" />
+            <ContentControl Content="{Binding Settings}" />
           </Panel>
         </Panel>
-
-        <!-- Bottom status -->
-        <Border DockPanel.Dock="Bottom" Padding="8,4" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
-          <StackPanel Orientation="Horizontal" Spacing="12">
-            <TextBlock Text="DotTranslator" FontSize="11" />
-            <TextBlock Text="{Binding StatusMessage}" FontSize="11"
-                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-          </StackPanel>
-        </Border>
       </DockPanel>
     </Border>
   </Panel>
-
-  <Window.DataTemplates>
-    <DataTemplate x:Key="HistoryViewTemplate">
-      <TextBlock Text="历史记录" />
-    </DataTemplate>
-    <DataTemplate x:Key="SettingsViewTemplate">
-      <TextBlock Text="设置" />
-    </DataTemplate>
-  </Window.DataTemplates>
 </Window>

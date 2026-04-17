@@ -5,7 +5,35 @@
              xmlns:views="using:DotTranslator.App.Views">
   <Application.Styles>
     <FluentTheme />
+
+    <!-- Tab button style -->
+    <Style Selector="Button.tab">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Padding" Value="12,6" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="FontSize" Value="13" />
+    </Style>
+    <Style Selector="Button.tab:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}" />
+    </Style>
+    <Style Selector="Button.tab.active">
+      <Setter Property="Background" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+
+    <!-- Accent button style -->
+    <Style Selector="Button.accent">
+      <Setter Property="Background" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="Padding" Value="16,8" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.accent:pointerover">
+      <Setter Property="Opacity" Value="0.9" />
+    </Style>
   </Application.Styles>
+
   <Application.DataTemplates>
     <DataTemplate DataType="{x:Type vm:MainWindowViewModel}">
       <views:MainWindow />

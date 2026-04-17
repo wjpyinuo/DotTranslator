@@ -1,10 +1,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DotTranslator.Core.Security;
+using DotTranslator.Core.Translation.Providers;
 using DotTranslator.Infrastructure.Data;
 using DotTranslator.Shared.Constants;
+using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Threading.Tasks;
 
 namespace DotTranslator.App.ViewModels;
 
@@ -18,7 +19,6 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private string _youdaoAppSecret = string.Empty;
     [ObservableProperty] private string _baiduAppId = string.Empty;
     [ObservableProperty] private string _baiduSecretKey = string.Empty;
-    [ObservableProperty] private bool _telemetryEnabled;
     [ObservableProperty] private string _theme = "light";
     [ObservableProperty] private string _statusMessage = string.Empty;
 
@@ -45,17 +45,26 @@ public partial class SettingsViewModel : ObservableObject
     private void SaveApiKeys()
     {
         if (!string.IsNullOrWhiteSpace(DeeplApiKey))
+        {
             _vault.Set("deeplApiKey", DeeplApiKey);
-        if (!string.IsNullOrWhiteSpace(YoudaoAppId))
-            _vault.Set("youdaoAppId", YoudaoAppId);
-        if (!string.IsNullOrWhiteSpace(YoudaoAppSecret))
-            _vault.Set("youdaoAppSecret", YoudaoAppSecret);
-        if (!string.IsNullOrWhiteSpace(BaiduAppId))
-            _vault.Set("baiduAppId", BaiduAppId);
-        if (!string.IsNullOrWhiteSpace(BaiduSecretKey))
-            _vault.Set("baiduSecretKey", BaiduSecretKey);
+            App.Services.GetService<DeepLProvider>()?.SetApiKey(DeeplApiKey);
+        }
 
-        StatusMessage = "API Key 已保存（加密存储）";
+        if (!string.IsNullOrWhiteSpace(YoudaoAppId) && !string.IsNullOrWhiteSpace(YoudaoAppSecret))
+        {
+            _vault.Set("youdaoAppId", YoudaoAppId);
+            _vault.Set("youdaoAppSecret", YoudaoAppSecret);
+            App.Services.GetService<YoudaoProvider>()?.SetCredentials(YoudaoAppId, YoudaoAppSecret);
+        }
+
+        if (!string.IsNullOrWhiteSpace(BaiduAppId) && !string.IsNullOrWhiteSpace(BaiduSecretKey))
+        {
+            _vault.Set("baiduAppId", BaiduAppId);
+            _vault.Set("baiduSecretKey", BaiduSecretKey);
+            App.Services.GetService<BaiduProvider>()?.SetCredentials(BaiduAppId, BaiduSecretKey);
+        }
+
+        StatusMessage = "API Key 已保存并生效";
     }
 
     [RelayCommand]

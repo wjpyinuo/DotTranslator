@@ -4,6 +4,7 @@ using DotTranslator.Core.History;
 using DotTranslator.Shared.Models;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace DotTranslator.App.ViewModels;
 
@@ -21,6 +22,8 @@ public partial class HistoryViewModel : ObservableObject
         _historyService = historyService;
         LoadHistory();
     }
+
+    public void Refresh() => LoadHistory();
 
     private void LoadHistory()
     {
@@ -47,8 +50,9 @@ public partial class HistoryViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ToggleFavorite(string id)
+    private void ToggleFavorite(string? id)
     {
+        if (string.IsNullOrEmpty(id)) return;
         var entry = Entries.FirstOrDefault(e => e.Id == id);
         if (entry != null)
         {
@@ -58,8 +62,9 @@ public partial class HistoryViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void DeleteEntry(string id)
+    private void DeleteEntry(string? id)
     {
+        if (string.IsNullOrEmpty(id)) return;
         _historyService.Delete(id);
         LoadHistory();
     }

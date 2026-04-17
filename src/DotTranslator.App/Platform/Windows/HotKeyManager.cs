@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace DotTranslator.App.Platform.Windows;
 
@@ -18,7 +19,10 @@ public class HotKeyManager : IDisposable
     private const uint MOD_WIN = 0x0008;
 
     private readonly Dictionary<int, Action> _callbacks = new();
+    private readonly List<int> _registeredIds = new();
     private int _nextId = 9000;
+    private Timer? _pollTimer;
+    private bool _hookInstalled;
 
     public int Register(uint modifiers, uint vk, Action callback)
     {
@@ -26,34 +30,33 @@ public class HotKeyManager : IDisposable
         if (RegisterHotKey(IntPtr.Zero, id, modifiers, vk))
         {
             _callbacks[id] = callback;
-            // In Avalonia, we need to hook into the message loop
-            // For simplicity, we use a polling approach or subclass
-            SetupMessageHook();
+            _registeredIds.Add(id);
+            EnsurePolling();
         }
         return id;
     }
 
-    private bool _hookInstalled;
-    private void SetupMessageHook()
+    private void EnsurePolling()
     {
         if (_hookInstalled) return;
         _hookInstalled = true;
 
-        // Use a timer to poll for hotkey messages
-        var timer = new System.Threading.Timer(_ =>
+        _pollTimer = new Timer(_ => PollHotKeys(), null, 100, 100);
+    }
+
+    private void PollHotKeys()
+    {
+        while (PeekMessage(out var msg, IntPtr.Zero, 0x0312, 0x0312, 1 /* PM_REMOVE */))
         {
-            // MSG structure: 4 IntPtr fields
-            while (PeekMessage(out var msg, IntPtr.Zero, 0x0312, 0x0312, 1) /* PM_REMOVE */)
-            {
-                var id = msg.WParam.ToInt32();
-                if (_callbacks.TryGetValue(id, out var cb))
-                    cb();
-            }
-        }, null, 100, 100);
+            var id = msg.WParam.ToInt32();
+            if (_callbacks.TryGetValue(id, out var cb))
+                cb();
+        }
     }
 
     [DllImport("user32.dll")]
-    private static extern bool PeekMessage(out MSG lpMsg, IntPtr hWnd, uint wMsgFilterMin, uint wMsgFilterMax, uint wRemoveMsg);
+    private static extern bool PeekMessage(out MSG lpMsg, IntPtr hWnd,
+        uint wMsgFilterMin, uint wMsgFilterMax, uint wRemoveMsg);
 
     [StructLayout(LayoutKind.Sequential)]
     private struct MSG
@@ -71,8 +74,10 @@ public class HotKeyManager : IDisposable
 
     public void Dispose()
     {
-        foreach (var id in _callbacks.Keys)
+        _pollTimer?.Dispose();
+        foreach (var id in _registeredIds)
             UnregisterHotKey(IntPtr.Zero, id);
         _callbacks.Clear();
+        _registeredIds.Clear();
     }
 }
