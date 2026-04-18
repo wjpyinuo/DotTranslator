@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7C5CFC"/>
+      <stop offset="100%" stop-color="#5A3FD6"/>
+    </linearGradient>
+    <linearGradient id="bubble1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E8E4F5"/>
+    </linearGradient>
+    <linearGradient id="bubble2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#E0DBFF"/>
+      <stop offset="100%" stop-color="#C8BFFF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect x="32" y="32" width="448" height="448" rx="96" ry="96" fill="url(#bg)"/>
+
+  <!-- Speech bubble top-left (source language) -->
+  <g transform="translate(88, 100)">
+    <path d="M10,0 H150 Q160,0 160,10 V90 Q160,100 150,100 H60 L30,125 L40,100 H10 Q0,100 0,90 V10 Q0,0 10,0 Z" fill="url(#bubble1)" opacity="0.95"/>
+    <!-- "A" text -->
+    <text x="80" y="72" text-anchor="middle" font-family="Inter, Arial Black, sans-serif" font-weight="800" font-size="52" fill="#5A3FD6">A</text>
+  </g>
+
+  <!-- Speech bubble bottom-right (target language) -->
+  <g transform="translate(255, 240)">
+    <path d="M10,0 H150 Q160,0 160,10 V90 Q160,100 150,100 H140 L170,125 L100,100 H10 Q0,100 0,90 V10 Q0,0 10,0 Z" fill="url(#bubble2)" opacity="0.95"/>
+    <!-- "文" text -->
+    <text x="80" y="72" text-anchor="middle" font-family="PingFang SC, Microsoft YaHei, Noto Sans SC, sans-serif" font-weight="800" font-size="50" fill="#5A3FD6">文</text>
+  </g>
+
+  <!-- Translation arrows between bubbles -->
+  <g stroke="#FFFFFF" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+    <!-- Arrow: top-left to bottom-right -->
+    <path d="M220,160 L290,290"/>
+    <polygon points="290,290 276,272 296,278" fill="#FFFFFF" stroke="none"/>
+    <!-- Arrow: bottom-right to top-left -->
+    <path d="M290,200 L220,330"/>
+    <polygon points="220,330 234,348 214,342" fill="#FFFFFF" stroke="none"/>
+  </g>
+
+  <!-- Small decorative dots -->
+  <circle cx="395" cy="130" r="6" fill="#FFFFFF" opacity="0.4"/>
+  <circle cx="410" cy="150" r="4" fill="#FFFFFF" opacity="0.3"/>
+  <circle cx="110" cy="370" r="5" fill="#FFFFFF" opacity="0.3"/>
+</svg>

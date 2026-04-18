@@ -1,0 +1,3353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DotTranslator UI Preview</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #E0E5EC;
+    --shadow-light: #FFFFFF;
+    --shadow-dark: #B8C0CC;
+    --text-primary: #2D3436;
+    --text-secondary: #636E72;
+    --accent: #6C5CE7;
+    --accent-hover: #5A4BD1;
+    --success: #00B894;
+    --warning: #FDCB6E;
+    --error: #E17055;
+    --card-bg: #E0E5EC;
+    --input-bg: #E0E5EC;
+    --inset-shadow: inset 4px 4px 8px #B8C0CC, inset -4px -4px 8px #FFFFFF;
+    --outset-shadow: 6px 6px 12px #B8C0CC, -6px -6px 12px #FFFFFF;
+    --outset-shadow-sm: 3px 3px 6px #B8C0CC, -3px -3px 6px #FFFFFF;
+    --outset-shadow-hover: 8px 8px 16px #B8C0CC, -8px -8px 16px #FFFFFF;
+    --inset-shadow-deep: inset 6px 6px 12px #B8C0CC, inset -6px -6px 12px #FFFFFF;
+  }
+
+  [data-theme="dark"] {
+    --bg: #2B2D42;
+    --shadow-light: #383A54;
+    --shadow-dark: #1E2030;
+    --text-primary: #DFE6E9;
+    --text-secondary: #B2BEC3;
+    --accent: #A29BFE;
+    --accent-hover: #8B83F6;
+    --success: #55EFC4;
+    --warning: #FFEAA7;
+    --error: #FF7675;
+    --card-bg: #2B2D42;
+    --input-bg: #2B2D42;
+    --inset-shadow: inset 4px 4px 8px #1E2030, inset -4px -4px 8px #383A54;
+    --outset-shadow: 6px 6px 12px #1E2030, -6px -6px 12px #383A54;
+    --outset-shadow-sm: 3px 3px 6px #1E2030, -3px -3px 6px #383A54;
+    --outset-shadow-hover: 8px 8px 16px #1E2030, -8px -8px 16px #383A54;
+    --inset-shadow-deep: inset 6px 6px 12px #1E2030, inset -6px -6px 12px #383A54;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: #8a8fa0;
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    padding: 40px 20px;
+    min-height: 100vh;
+    transition: background 0.3s;
+  }
+
+  h1 {
+    color: var(--text-primary);
+    font-size: 28px;
+    font-weight: 700;
+    text-align: center;
+    transition: color 0.3s;
+  }
+
+  h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+  }
+
+  /* ===== Window Controls ===== */
+  .titlebar-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .win-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: none;
+    background: var(--bg);
+    box-shadow: var(--outset-shadow-sm);
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    transition: all 0.15s;
+    font-family: inherit;
+    padding: 0;
+  }
+  .win-btn:hover {
+    box-shadow: var(--outset-shadow-hover);
+    color: var(--text-primary);
+  }
+  .win-btn:active {
+    box-shadow: var(--inset-shadow);
+  }
+  .win-btn-close:hover {
+    background: var(--error);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(225,112,85,0.4);
+  }
+  .win-btn-theme {
+    font-size: 15px;
+  }
+  .win-btn-pin {
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+  .win-btn-pin.pinned {
+    color: var(--accent);
+    box-shadow: var(--inset-shadow);
+    background: var(--bg);
+  }
+  .win-btn-pin.pinned:hover {
+    box-shadow: var(--inset-shadow);
+    color: var(--accent-hover);
+  }
+  .win-btn-divider {
+    width: 1px;
+    height: 18px;
+    background: rgba(0,0,0,0.08);
+    margin: 0 2px;
+  }
+  [data-theme="dark"] .win-btn-divider {
+    background: rgba(255,255,255,0.08);
+  }
+
+  /* ===== Window Frame ===== */
+  .window {
+    background: var(--bg);
+    border-radius: 20px;
+    box-shadow: var(--outset-shadow);
+    overflow: hidden;
+    width: 760px;
+    transition: all 0.3s;
+  }
+  .window.small { width: 500px; }
+  .window.popup {
+    position: relative;
+    width: 500px;
+  }
+
+  /* Title Bar */
+  .titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    user-select: none;
+  }
+  [data-theme="dark"] .titlebar { border-bottom-color: rgba(255,255,255,0.05); }
+
+  .titlebar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .titlebar-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-left: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .app-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    vertical-align: middle;
+  }
+  .titlebar-version {
+    font-size: 11px;
+    color: var(--text-secondary);
+    opacity: 0.7;
+    font-weight: 400;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    padding: 12px 20px 0;
+  }
+  .tab-spacer {
+    flex: 1;
+  }
+  .tab {
+    padding: 10px 22px;
+    border-radius: 12px 12px 0 0;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--text-secondary);
+    background: var(--bg);
+    box-shadow: var(--inset-shadow);
+    transition: all 0.2s;
+    border: none;
+    font-family: inherit;
+  }
+  .tab.active {
+    box-shadow: var(--outset-shadow-sm);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .tab:hover:not(.active) { color: var(--text-primary); }
+
+  /* Content */
+  .content {
+    padding: 20px;
+  }
+
+  /* ===== Translation Page ===== */
+  .lang-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .lang-select {
+    background: var(--input-bg);
+    box-shadow: var(--inset-shadow);
+    border: none;
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-size: 13px;
+    color: var(--text-primary);
+    font-family: inherit;
+    cursor: pointer;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23636E72' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px;
+  }
+  [data-theme="dark"] .lang-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23B2BEC3' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  }
+  .lang-arrow {
+    color: var(--accent);
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .dual-panel {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .panel {
+    flex: 1;
+    background: var(--input-bg);
+    box-shadow: var(--inset-shadow-deep);
+    border-radius: 14px;
+    padding: 16px;
+    min-height: 160px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text-primary);
+    position: relative;
+  }
+  .panel-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .panel-text {
+    color: var(--text-primary);
+    line-height: 1.8;
+  }
+  .panel-placeholder {
+    color: var(--text-secondary);
+    font-style: italic;
+    opacity: 0.6;
+  }
+
+  .action-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .action-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  /* Neumorphism Buttons */
+  .btn {
+    background: var(--bg);
+    box-shadow: var(--outset-shadow-sm);
+    border: none;
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .btn:hover {
+    box-shadow: var(--outset-shadow-hover);
+    transform: translateY(-1px);
+  }
+  .btn:active, .btn.pressed {
+    box-shadow: var(--inset-shadow);
+    transform: translateY(0);
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 4px 4px 8px var(--shadow-dark), -2px -2px 6px var(--shadow-light);
+    font-weight: 600;
+    font-size: 13px;
+    padding: 10px 24px;
+  }
+  .btn-primary:hover {
+    background: var(--accent-hover);
+    box-shadow: 6px 6px 12px var(--shadow-dark), -3px -3px 8px var(--shadow-light);
+  }
+  .btn-primary:active {
+    box-shadow: inset 3px 3px 6px rgba(0,0,0,0.2);
+  }
+  .btn-sm {
+    padding: 6px 12px;
+    font-size: 11px;
+    border-radius: 8px;
+  }
+  .btn-icon {
+    padding: 8px;
+    font-size: 15px;
+    border-radius: 10px;
+    min-width: 36px;
+    justify-content: center;
+  }
+
+  .engine-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  /* Toggle Switch */
+  .toggle-switch {
+    position: relative;
+    width: 40px;
+    height: 22px;
+  }
+  .toggle-switch input { display: none; }
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--input-bg);
+    box-shadow: var(--inset-shadow);
+    border-radius: 22px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    left: 3px;
+    top: 3px;
+    background: var(--bg);
+    box-shadow: var(--outset-shadow-sm);
+    border-radius: 50%;
+    transition: all 0.3s;
+  }
+  .toggle-switch input:checked + .toggle-slider {
+    background: var(--accent);
+    box-shadow: inset 2px 2px 4px rgba(0,0,0,0.15);
+  }
+  .toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(18px);
+    background: #fff;
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.15);
+  }
+
+  /* Announcement Bar */
+  .announcement {
+    background: var(--input-bg);
+    box-shadow: var(--inset-shadow);
+    border-radius: 10px;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow: hidden;
+    margin-top: 12px;
+  }
+  .announcement-icon { font-size: 14px; flex-shrink: 0; }
+  .announcement-text-wrap {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+  .announcement-text {
+    font-size: 12px;
+    color: var(--accent);
+    white-space: nowrap;
+    display: inline-block;
+    animation: marquee 20s linear infinite;
+    padding-left: 100%;
+  }
+  .announcement-text-wrap:hover .announcement-text {
+    animation-play-state: paused;
+  }
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+  }
+
+  /* ===== Comparison Cards ===== */
+  .comparison-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+  }
+  [data-theme="dark"] .comparison-header { border-bottom-color: rgba(255,255,255,0.05); }
+
+  .comparison-title {
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .progress-badge {
+    font-size: 11px;
+    color: var(--accent);
+    background: var(--bg);
+    box-shadow: var(--outset-shadow-sm);
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-weight: 500;
+  }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .comparison-card {
+    background: var(--bg);
+    box-shadow: var(--outset-shadow);
+    border-radius: 14px;
+    padding: 14px;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    min-height: 160px;
+  }
+  .comparison-card:hover {
+    box-shadow: var(--outset-shadow-hover);
+    transform: translateY(-2px);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+  }
+  [data-theme="dark"] .card-header { border-bottom-color: rgba(255,255,255,0.04); }
+
+  .card-engine {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .card-engine-icon { font-size: 16px; }
+  .card-latency {
+    font-size: 10px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .latency-fast { color: var(--success); }
+
+  .card-text {
+    flex: 1;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+  }
+  .card-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: auto;
+  }
+  .card-stars {
+    font-size: 12px;
+    color: var(--warning);
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .crown { font-size: 13px; }
+
+  .card-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--error);
+    font-size: 13px;
+  }
+
+  .comparison-footer {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* ===== Settings Page ===== */
+  .settings-section {
+    margin-bottom: 24px;
+  }
+  .settings-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--bg);
+    box-shadow: var(--outset-shadow-sm);
+    border-radius: 10px;
+    margin-bottom: 8px;
+  }
+  .setting-label {
+    font-size: 13px;
+    color: var(--text-primary);
+  }
+  .setting-desc {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  .engine-item {
+    display: flex;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--bg);
+    box-shadow: var(--outset-shadow-sm);
+    border-radius: 10px;
+    margin-bottom: 8px;
+  }
+  .engine-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .engine-icon { font-size: 28px; }
+  .engine-name {
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .engine-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: var(--accent);
+    color: #fff;
+    white-space: nowrap;
+  }
+  .engine-name-block {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .engine-inline-quota {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+  .engine-inline-quota b { color: var(--text-primary); }
+  .engine-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 6px;
+  }
+  .engine-quota {
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+  .engine-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+  .status-ok { background: var(--success); }
+  .status-warn { background: var(--warning); }
+
+  .quota-bar {
+    width: 100px;
+    height: 6px;
+    background: var(--input-bg);
+    box-shadow: var(--inset-shadow);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .quota-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s;
+  }
+  .quota-fill.green { background: var(--success); }
+  .quota-fill.yellow { background: var(--warning); }
+  .quota-fill.red { background: var(--error); }
+
+  /* ===== History Page ===== */
+  .history-item {
+    display: flex;
+    align-items: stretch;
+    background: var(--bg);
+    box-shadow: var(--outset-shadow-sm);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: all 0.2s;
+  }
+  .history-item:hover {
+    box-shadow: var(--outset-shadow);
+    transform: translateY(-1px);
+  }
+  .history-source {
+    flex: 1;
+    padding: 14px;
+    font-size: 13px;
+    line-height: 1.6;
+    border-right: 1px solid rgba(0,0,0,0.04);
+  }
+  [data-theme="dark"] .history-source { border-right-color: rgba(255,255,255,0.04); }
+
+  .history-target {
+    flex: 1;
+    padding: 14px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .history-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+  .history-tag {
+    background: var(--input-bg);
+    box-shadow: var(--inset-shadow);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+  }
+
+  /* ===== About Page ===== */
+  .about-center {
+    text-align: center;
+    padding: 30px 20px;
+  }
+  .about-logo {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
+  .about-name {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .about-version {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+  }
+  .about-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* ===== Donate Popup ===== */
+  .overlay {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  .overlay-bg {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    border-radius: 20px;
+  }
+  .donate-window {
+    position: relative;
+    z-index: 1;
+    margin: 40px auto;
+    background: var(--bg);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    border-radius: 20px;
+    padding: 32px;
+    width: 460px;
+    text-align: center;
+  }
+  .donate-close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .donate-close:hover {
+    background: var(--input-bg);
+    box-shadow: var(--inset-shadow);
+    color: var(--text-primary);
+  }
+  .donate-icon { font-size: 42px; margin-bottom: 8px; }
+  .donate-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .donate-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 8px;
+  }
+  .donate-desc-accent {
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .donate-qr-grid {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin: 20px 0;
+  }
+  .donate-qr-item {
+    text-align: center;
+  }
+  .donate-qr-box {
+    width: 160px;
+    height: 160px;
+    background: var(--input-bg);
+    box-shadow: var(--inset-shadow-deep);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+  .qr-placeholder {
+    text-align: center;
+    color: var(--text-secondary);
+  }
+  .qr-placeholder .qr-icon { font-size: 48px; display: block; margin-bottom: 4px; }
+  .qr-placeholder .qr-text { font-size: 11px; }
+  .donate-qr-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  /* ===== Section Labels ===== */
+  .section-label {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .section-sublabel {
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  /* ===== Skeleton Loading ===== */
+  .skeleton {
+    background: linear-gradient(90deg, var(--bg) 25%, rgba(255,255,255,0.1) 50%, var(--bg) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 8px;
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  .skeleton-line {
+    height: 14px;
+    margin-bottom: 8px;
+  }
+  .skeleton-line:last-child { width: 60%; }
+
+  /* ===== Diff View ===== */
+  .diff-section {
+    background: var(--bg);
+    box-shadow: var(--outset-shadow);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .diff-header {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .diff-word {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 6px;
+    margin: 2px;
+    font-size: 12px;
+  }
+  .diff-match {
+    background: rgba(0,184,148,0.15);
+    color: var(--success);
+  }
+  .diff-diff {
+    background: rgba(225,112,85,0.15);
+    color: var(--error);
+  }
+  .diff-alt {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-left: 4px;
+  }
+
+  /* ===== Similarity Matrix ===== */
+  .matrix-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 4px;
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+  .matrix-table th {
+    padding: 8px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-align: center;
+    font-size: 11px;
+  }
+  .matrix-table td {
+    padding: 8px;
+    text-align: center;
+    background: var(--bg);
+    box-shadow: var(--outset-shadow-sm);
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 12px;
+  }
+  .matrix-table td.high { color: var(--success); }
+  .matrix-table td.mid { color: var(--warning); }
+  .matrix-table td.low { color: var(--error); }
+  .matrix-table td.diag {
+    color: var(--text-secondary);
+    opacity: 0.5;
+  }
+
+  .label-tag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+  .tag-accent {
+    background: rgba(108,92,231,0.15);
+    color: var(--accent);
+  }
+  .tag-success {
+    background: rgba(0,184,148,0.15);
+    color: var(--success);
+  }
+
+  /* ===== Onboarding ===== */
+  .onboarding-step {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+  .onboarding-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--shadow-dark);
+    box-shadow: var(--outset-shadow-sm);
+  }
+  .onboarding-dot.active {
+    background: var(--accent);
+  }
+  .onboarding-dot.done {
+    background: var(--success);
+  }
+  .onboarding-title {
+    font-size: 22px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .onboarding-subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .engine-check-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border-radius: 12px;
+    box-shadow: var(--inset-shadow);
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+  .engine-check-item input[type="checkbox"] {
+    accent-color: var(--accent);
+    width: 16px; height: 16px;
+  }
+  .engine-check-item .engine-free {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  /* ===== Key Input ===== */
+  .key-input-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .key-input-row .key-label {
+    font-size: 12px;
+    width: 70px;
+    color: var(--text-secondary);
+  }
+  .key-input {
+    flex: 1;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 8px;
+    box-shadow: var(--inset-shadow);
+    background: var(--input-bg);
+    color: var(--text-primary);
+    font-size: 12px;
+    font-family: 'SF Mono', 'Consolas', monospace;
+    outline: none;
+  }
+  .key-status {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+  .key-status-ok {
+    background: rgba(0,184,148,0.15);
+    color: var(--success);
+  }
+  .key-status-err {
+    background: rgba(225,112,85,0.15);
+    color: var(--error);
+  }
+  .key-status-pending {
+    background: rgba(253,203,110,0.15);
+    color: var(--warning);
+  }
+
+  /* ===== Error Dialog ===== */
+  .error-dialog {
+    border-radius: 16px;
+    box-shadow: var(--outset-shadow);
+    padding: 24px;
+    text-align: center;
+    max-width: 340px;
+    margin: 0 auto;
+  }
+  .error-dialog-icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+  }
+  .error-dialog-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .error-dialog-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+  .error-dialog-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  /* ===== Recommendation Tags ===== */
+  .rec-gold {
+    border: 2px solid #f0c040 !important;
+    position: relative;
+  }
+  .rec-gold::after {
+    content: '🏆 推荐';
+    position: absolute;
+    top: -10px; right: 12px;
+    background: #f0c040;
+    color: #333;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+  }
+  .rec-warn {
+    border: 2px solid var(--warning) !important;
+  }
+  .rec-bad {
+    border: 2px solid var(--error) !important;
+  }
+
+  /* ===== Score Breakdown ===== */
+  .score-breakdown {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 12px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(0,0,0,0.06);
+  }
+  .score-bar {
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(0,0,0,0.08);
+    overflow: hidden;
+    flex: 1;
+  }
+  .score-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--accent);
+  }
+  .score-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .score-item-label {
+    width: 48px;
+    white-space: nowrap;
+  }
+
+  /* ===== Feedback Form ===== */
+  .feedback-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .feedback-type-row {
+    display: flex;
+    gap: 8px;
+  }
+  .feedback-type-btn {
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: none;
+    background: var(--bg);
+    box-shadow: var(--outset-shadow-sm);
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--text-primary);
+    font-family: inherit;
+  }
+  .feedback-type-btn.active {
+    box-shadow: var(--inset-shadow);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .feedback-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 10px;
+    box-shadow: var(--inset-shadow);
+    background: var(--input-bg);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    resize: vertical;
+  }
+  .feedback-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .feedback-check input {
+    accent-color: var(--accent);
+  }
+
+  /* ===== Card with unsup lang ===== */
+  .card-unsupported {
+    opacity: 0.4;
+    border: 1px dashed var(--shadow-dark) !important;
+  }
+  .card-unsupported .card-text {
+    font-style: italic;
+    color: var(--text-secondary);
+  }
+
+  /* ===== API Key Setting Row ===== */
+  .engine-key-setting {
+    padding: 12px 16px;
+    border-radius: 12px;
+    box-shadow: var(--outset-shadow-sm);
+    margin-bottom: 10px;
+  }
+  .engine-key-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .engine-key-name {
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .engine-key-quota {
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+</style>
+</head>
+<body>
+
+<h1><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM3QzVDRkMiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNUEzRkQ2Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUxIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNGRkZGRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjRThFNEY1Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUyIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNFMERCRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjQzhCRkZGIi8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KCiAgPCEtLSBSb3VuZGVkIHNxdWFyZSBiYWNrZ3JvdW5kIC0tPgogIDxyZWN0IHg9IjMyIiB5PSIzMiIgd2lkdGg9IjQ0OCIgaGVpZ2h0PSI0NDgiIHJ4PSI5NiIgcnk9Ijk2IiBmaWxsPSJ1cmwoI2JnKSIvPgoKICA8IS0tIFNwZWVjaCBidWJibGUgdG9wLWxlZnQgKHNvdXJjZSBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoODgsIDEwMCkiPgogICAgPHBhdGggZD0iTTEwLDAgSDE1MCBRMTYwLDAgMTYwLDEwIFY5MCBRMTYwLDEwMCAxNTAsMTAwIEg2MCBMMzAsMTI1IEw0MCwxMDAgSDEwIFEwLDEwMCAwLDkwIFYxMCBRMCwwIDEwLDAgWiIgZmlsbD0idXJsKCNidWJibGUxKSIgb3BhY2l0eT0iMC45NSIvPgogICAgPCEtLSAiQSIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkludGVyLCBBcmlhbCBCbGFjaywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MiIgZmlsbD0iIzVBM0ZENiI+QTwvdGV4dD4KICA8L2c+CgogIDwhLS0gU3BlZWNoIGJ1YmJsZSBib3R0b20tcmlnaHQgKHRhcmdldCBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjU1LCAyNDApIj4KICAgIDxwYXRoIGQ9Ik0xMCwwIEgxNTAgUTE2MCwwIDE2MCwxMCBWOTAgUTE2MCwxMDAgMTUwLDEwMCBIMTQwIEwxNzAsMTI1IEwxMDAsMTAwIEgxMCBRMCwxMDAgMCw5MCBWMTAgUTAsMCAxMCwwIFoiIGZpbGw9InVybCgjYnViYmxlMikiIG9wYWNpdHk9IjAuOTUiLz4KICAgIDwhLS0gIuaWhyIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IlBpbmdGYW5nIFNDLCBNaWNyb3NvZnQgWWFIZWksIE5vdG8gU2FucyBTQywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MCIgZmlsbD0iIzVBM0ZENiI+5paHPC90ZXh0PgogIDwvZz4KCiAgPCEtLSBUcmFuc2xhdGlvbiBhcnJvd3MgYmV0d2VlbiBidWJibGVzIC0tPgogIDxnIHN0cm9rZT0iI0ZGRkZGRiIgc3Ryb2tlLXdpZHRoPSI2IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIG9wYWNpdHk9IjAuOSI+CiAgICA8IS0tIEFycm93OiB0b3AtbGVmdCB0byBib3R0b20tcmlnaHQgLS0+CiAgICA8cGF0aCBkPSJNMjIwLDE2MCBMMjkwLDI5MCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyOTAsMjkwIDI3NiwyNzIgMjk2LDI3OCIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgICA8IS0tIEFycm93OiBib3R0b20tcmlnaHQgdG8gdG9wLWxlZnQgLS0+CiAgICA8cGF0aCBkPSJNMjkwLDIwMCBMMjIwLDMzMCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyMjAsMzMwIDIzNCwzNDggMjE0LDM0MiIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgPC9nPgoKICA8IS0tIFNtYWxsIGRlY29yYXRpdmUgZG90cyAtLT4KICA8Y2lyY2xlIGN4PSIzOTUiIGN5PSIxMzAiIHI9IjYiIGZpbGw9IiNGRkZGRkYiIG9wYWNpdHk9IjAuNCIvPgogIDxjaXJjbGUgY3g9IjQxMCIgY3k9IjE1MCIgcj0iNCIgZmlsbD0iI0ZGRkZGRiIgb3BhY2l0eT0iMC4zIi8+CiAgPGNpcmNsZSBjeD0iMTEwIiBjeT0iMzcwIiByPSI1IiBmaWxsPSIjRkZGRkZGIiBvcGFjaXR5PSIwLjMiLz4KPC9zdmc+Cg==" alt="" style="width:36px; height:36px; border-radius:8px; vertical-align:middle; margin-right:8px;">DotTranslator UI Preview</h1>
+
+<!-- ==================== 1. Main Window - Translation ==================== -->
+<style>
+  /* ===== Redesigned Translation Page ===== */
+  .translate-page {
+    padding: 0;
+  }
+  .lang-bar-v2 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 16px 24px 12px;
+  }
+  .lang-swap {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--bg);
+    box-shadow: var(--outset-shadow-sm);
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    transition: all 0.2s;
+  }
+  .lang-swap:hover {
+    box-shadow: var(--outset-shadow-hover);
+    transform: rotate(180deg);
+  }
+  .lang-swap:active {
+    box-shadow: var(--inset-shadow);
+    transform: rotate(180deg);
+  }
+  .input-zone {
+    padding: 0 24px;
+  }
+  .input-area {
+    background: var(--input-bg);
+    box-shadow: var(--inset-shadow-deep);
+    border-radius: 16px;
+    padding: 18px 20px;
+    min-height: 150px;
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--text-primary);
+    position: relative;
+  }
+  .input-placeholder {
+    color: var(--text-secondary);
+    opacity: 0.5;
+    font-size: 14px;
+  }
+  .input-text {
+    font-size: 15px;
+    line-height: 1.8;
+  }
+  .input-hint {
+    position: absolute;
+    bottom: 10px;
+    right: 14px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    opacity: 0.5;
+  }
+  .translate-btn-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 16px 0;
+  }
+  .translate-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    padding: 14px 56px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 4px 15px rgba(108,92,231,0.4), var(--outset-shadow-sm);
+    transition: all 0.2s;
+    letter-spacing: 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .translate-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(108,92,231,0.5), var(--outset-shadow);
+  }
+  .translate-btn:active {
+    transform: translateY(0);
+    box-shadow: inset 3px 3px 6px rgba(0,0,0,0.2);
+  }
+  [data-theme="dark"] .translate-btn {
+    box-shadow: 0 4px 15px rgba(162,155,254,0.3), var(--outset-shadow-sm);
+  }
+  [data-theme="dark"] .translate-btn:hover {
+    box-shadow: 0 6px 20px rgba(162,155,254,0.4), var(--outset-shadow);
+  }
+
+  /* Result Card */
+  .result-zone {
+    padding: 0 24px 8px;
+  }
+  .result-card {
+    background: var(--bg);
+    box-shadow: var(--outset-shadow);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.2s;
+  }
+  .result-card:hover {
+    box-shadow: var(--outset-shadow-hover);
+  }
+  .result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+  }
+  [data-theme="dark"] .result-header { border-bottom-color: rgba(255,255,255,0.04); }
+
+  .result-engine {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .result-engine-icon { font-size: 16px; }
+  .result-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+  .badge-success {
+    background: rgba(0,184,148,0.15);
+    color: var(--success);
+  }
+  .result-body {
+    padding: 20px 18px;
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--text-primary);
+    min-height: 80px;
+  }
+  .result-body .translated {
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .result-body .placeholder-text {
+    color: var(--text-secondary);
+    opacity: 0.5;
+    font-style: italic;
+    font-size: 14px;
+  }
+  .result-actions {
+    display: flex;
+    gap: 8px;
+    padding: 10px 18px 14px;
+    border-top: 1px solid rgba(0,0,0,0.04);
+    flex-wrap: wrap;
+  }
+  [data-theme="dark"] .result-actions { border-top-color: rgba(255,255,255,0.04); }
+
+  .result-btn {
+    background: var(--bg);
+    box-shadow: var(--outset-shadow-sm);
+    border: none;
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .result-btn:hover {
+    box-shadow: var(--outset-shadow-hover);
+    transform: translateY(-1px);
+  }
+  .result-btn:active {
+    box-shadow: var(--inset-shadow);
+  }
+  .result-btn-accent {
+    color: var(--accent);
+    font-weight: 600;
+  }
+</style>
+
+<div class="section-label">① 主窗口 — 翻译页签（重设计）</div>
+<div class="section-sublabel">大输入区 · 突出翻译按钮 · 结果卡片</div>
+
+<div class="window">
+  <div class="titlebar">
+    <div class="titlebar-left">
+      <span class="titlebar-title"><img class="app-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM3QzVDRkMiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNUEzRkQ2Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUxIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNGRkZGRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjRThFNEY1Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUyIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNFMERCRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjQzhCRkZGIi8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KCiAgPCEtLSBSb3VuZGVkIHNxdWFyZSBiYWNrZ3JvdW5kIC0tPgogIDxyZWN0IHg9IjMyIiB5PSIzMiIgd2lkdGg9IjQ0OCIgaGVpZ2h0PSI0NDgiIHJ4PSI5NiIgcnk9Ijk2IiBmaWxsPSJ1cmwoI2JnKSIvPgoKICA8IS0tIFNwZWVjaCBidWJibGUgdG9wLWxlZnQgKHNvdXJjZSBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoODgsIDEwMCkiPgogICAgPHBhdGggZD0iTTEwLDAgSDE1MCBRMTYwLDAgMTYwLDEwIFY5MCBRMTYwLDEwMCAxNTAsMTAwIEg2MCBMMzAsMTI1IEw0MCwxMDAgSDEwIFEwLDEwMCAwLDkwIFYxMCBRMCwwIDEwLDAgWiIgZmlsbD0idXJsKCNidWJibGUxKSIgb3BhY2l0eT0iMC45NSIvPgogICAgPCEtLSAiQSIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkludGVyLCBBcmlhbCBCbGFjaywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MiIgZmlsbD0iIzVBM0ZENiI+QTwvdGV4dD4KICA8L2c+CgogIDwhLS0gU3BlZWNoIGJ1YmJsZSBib3R0b20tcmlnaHQgKHRhcmdldCBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjU1LCAyNDApIj4KICAgIDxwYXRoIGQ9Ik0xMCwwIEgxNTAgUTE2MCwwIDE2MCwxMCBWOTAgUTE2MCwxMDAgMTUwLDEwMCBIMTQwIEwxNzAsMTI1IEwxMDAsMTAwIEgxMCBRMCwxMDAgMCw5MCBWMTAgUTAsMCAxMCwwIFoiIGZpbGw9InVybCgjYnViYmxlMikiIG9wYWNpdHk9IjAuOTUiLz4KICAgIDwhLS0gIuaWhyIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IlBpbmdGYW5nIFNDLCBNaWNyb3NvZnQgWWFIZWksIE5vdG8gU2FucyBTQywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MCIgZmlsbD0iIzVBM0ZENiI+5paHPC90ZXh0PgogIDwvZz4KCiAgPCEtLSBUcmFuc2xhdGlvbiBhcnJvd3MgYmV0d2VlbiBidWJibGVzIC0tPgogIDxnIHN0cm9rZT0iI0ZGRkZGRiIgc3Ryb2tlLXdpZHRoPSI2IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIG9wYWNpdHk9IjAuOSI+CiAgICA8IS0tIEFycm93OiB0b3AtbGVmdCB0byBib3R0b20tcmlnaHQgLS0+CiAgICA8cGF0aCBkPSJNMjIwLDE2MCBMMjkwLDI5MCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyOTAsMjkwIDI3NiwyNzIgMjk2LDI3OCIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgICA8IS0tIEFycm93OiBib3R0b20tcmlnaHQgdG8gdG9wLWxlZnQgLS0+CiAgICA8cGF0aCBkPSJNMjkwLDIwMCBMMjIwLDMzMCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyMjAsMzMwIDIzNCwzNDggMjE0LDM0MiIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgPC9nPgoKICA8IS0tIFNtYWxsIGRlY29yYXRpdmUgZG90cyAtLT4KICA8Y2lyY2xlIGN4PSIzOTUiIGN5PSIxMzAiIHI9IjYiIGZpbGw9IiNGRkZGRkYiIG9wYWNpdHk9IjAuNCIvPgogIDxjaXJjbGUgY3g9IjQxMCIgY3k9IjE1MCIgcj0iNCIgZmlsbD0iI0ZGRkZGRiIgb3BhY2l0eT0iMC4zIi8+CiAgPGNpcmNsZSBjeD0iMTEwIiBjeT0iMzcwIiByPSI1IiBmaWxsPSIjRkZGRkZGIiBvcGFjaXR5PSIwLjMiLz4KPC9zdmc+Cg==" alt="DotTranslator"> DotTranslator <span class="titlebar-version">v1.0.0</span></span>
+    </div>
+    <div class="titlebar-controls">
+      <button class="win-btn win-btn-theme" title="切换主题" onclick="toggleTheme()">🌙</button>
+      <button class="win-btn win-btn-pin" title="置顶" onclick="this.classList.toggle('pinned'); this.textContent=this.classList.contains('pinned')?'📍':'📌'; this.title=this.classList.contains('pinned')?'取消置顶':'置顶'">📌</button>
+      <div class="win-btn-divider"></div>
+      <button class="win-btn" title="最小化">─</button>
+      <button class="win-btn" title="最大化">□</button>
+      <button class="win-btn win-btn-close" title="关闭">✕</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active">🌍 翻译</button>
+    <button class="tab">⭐ 收藏</button>
+    <button class="tab">📋 历史</button>
+    <div class="tab-spacer"></div>
+    <button class="tab">⚙️ 设置</button>
+    <button class="tab">ℹ️ 关于</button>
+    <button class="tab">☕ 打赏</button>
+  </div>
+
+  <div class="translate-page">
+    <!-- Language Bar -->
+    <div class="lang-bar-v2">
+      <select class="lang-select" style="min-width: 140px;">
+        <option>自动检测</option>
+      </select>
+      <button class="lang-swap" title="交换语言">⇄</button>
+      <select class="lang-select" style="min-width: 140px;">
+        <option>英语</option>
+      </select>
+    </div>
+
+    <!-- Input Area -->
+    <div class="input-zone" style="position: relative;">
+      <div class="input-area">
+        <div class="input-text">The quick brown fox jumps over the lazy dog.</div>
+        <div class="input-hint">44 字符</div>
+      </div>
+      <button class="btn btn-sm" title="清空" style="position: absolute; top: 12px; right: 36px; font-size: 11px; opacity: 0.5; transition: opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.5">清空</button>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="translate-btn-wrap">
+      <button class="translate-btn">⚡ 翻 译</button>
+    </div>
+
+    <!-- Result Card (Translated) -->
+    <div class="result-zone">
+      <div class="result-card">
+        <div class="result-header">
+          <div class="result-engine">
+            <span class="result-engine-icon">🔥</span>
+            火山翻译
+            <span class="result-badge badge-success">⚡ 287ms</span>
+          </div>
+          <div style="display:flex; align-items:center; gap: 10px;">
+            <div class="toggle-row" style="font-size: 11px;">
+              <span>多引擎对比</span>
+              <label class="toggle-switch" style="width: 34px; height: 18px;">
+                <input type="checkbox">
+                <span class="toggle-slider" style="border-radius: 18px;"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="result-body">
+          <span class="translated">敏捷的棕色狐狸跳过了懒惰的狗。</span>
+        </div>
+        <div class="result-actions">
+          <button class="result-btn">🔊 朗读</button>
+          <button class="result-btn">📋 复制</button>
+          <button class="result-btn">⭐ 收藏</button>
+          <button class="result-btn result-btn-accent">⚡ 多引擎对比</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty Result Card (Before Translation) -->
+    <div class="result-zone" style="margin-top: 20px; opacity: 0.5;">
+      <div style="text-align: center; font-size: 13px; color: var(--text-secondary); margin-bottom: 10px; font-weight: 500;">↑ 翻译前 · 空状态</div>
+      <div class="result-card">
+        <div class="result-header">
+          <div class="result-engine">
+            <span class="result-engine-icon">🌍</span>
+            等待翻译
+          </div>
+        </div>
+        <div class="result-body">
+          <span class="placeholder-text">译文将在此处显示...</span>
+        </div>
+        <div class="result-actions">
+          <button class="result-btn" disabled style="opacity: 0.4; cursor: default;">🔊 朗读</button>
+          <button class="result-btn" disabled style="opacity: 0.4; cursor: default;">📋 复制</button>
+          <button class="result-btn" disabled style="opacity: 0.4; cursor: default;">⭐ 收藏</button>
+          <button class="result-btn result-btn-accent" disabled style="opacity: 0.4; cursor: default;">⚡ 多引擎对比</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Announcement Bar -->
+    <div style="display: flex; align-items: center; gap: 0; padding: 0 24px; margin-top: 12px;">
+      <div class="announcement" style="flex: 1; margin: 0; gap: 10px;">
+        <span class="announcement-icon">📢</span>
+        <div class="announcement-text-wrap">
+          <span class="announcement-text">DotTranslator v1.1 已发布，新增多引擎并行对比功能，支持 AI 翻译模式，欢迎体验！</span>
+        </div>
+      </div>
+
+      <!-- 公告栏 -->
+      <div style="display: flex; align-items: center; gap: 6px; padding: 6px 14px; background: var(--bg); box-shadow: var(--inset-shadow); border-radius: 10px; margin-top: 12px; font-size: 12px; color: var(--accent); overflow: hidden;">
+        <span>📢</span>
+        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">DotTranslator v1.1 已发布，新增多引擎并行对比、AI 翻译模式、DeepSeek-R1 支持…</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 2. Multi-Engine Comparison ==================== -->
+<div class="section-label" style="margin-top: 20px;">② 多引擎并行对比 — 核心功能</div>
+<div class="section-sublabel">渐进式渲染 · 差异视图 · 相似度矩阵</div>
+
+<div class="window">
+  <div class="titlebar">
+    <div class="titlebar-left">
+      <span class="titlebar-title"><img class="app-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM3QzVDRkMiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNUEzRkQ2Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUxIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNGRkZGRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjRThFNEY1Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUyIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNFMERCRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjQzhCRkZGIi8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KCiAgPCEtLSBSb3VuZGVkIHNxdWFyZSBiYWNrZ3JvdW5kIC0tPgogIDxyZWN0IHg9IjMyIiB5PSIzMiIgd2lkdGg9IjQ0OCIgaGVpZ2h0PSI0NDgiIHJ4PSI5NiIgcnk9Ijk2IiBmaWxsPSJ1cmwoI2JnKSIvPgoKICA8IS0tIFNwZWVjaCBidWJibGUgdG9wLWxlZnQgKHNvdXJjZSBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoODgsIDEwMCkiPgogICAgPHBhdGggZD0iTTEwLDAgSDE1MCBRMTYwLDAgMTYwLDEwIFY5MCBRMTYwLDEwMCAxNTAsMTAwIEg2MCBMMzAsMTI1IEw0MCwxMDAgSDEwIFEwLDEwMCAwLDkwIFYxMCBRMCwwIDEwLDAgWiIgZmlsbD0idXJsKCNidWJibGUxKSIgb3BhY2l0eT0iMC45NSIvPgogICAgPCEtLSAiQSIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkludGVyLCBBcmlhbCBCbGFjaywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MiIgZmlsbD0iIzVBM0ZENiI+QTwvdGV4dD4KICA8L2c+CgogIDwhLS0gU3BlZWNoIGJ1YmJsZSBib3R0b20tcmlnaHQgKHRhcmdldCBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjU1LCAyNDApIj4KICAgIDxwYXRoIGQ9Ik0xMCwwIEgxNTAgUTE2MCwwIDE2MCwxMCBWOTAgUTE2MCwxMDAgMTUwLDEwMCBIMTQwIEwxNzAsMTI1IEwxMDAsMTAwIEgxMCBRMCwxMDAgMCw5MCBWMTAgUTAsMCAxMCwwIFoiIGZpbGw9InVybCgjYnViYmxlMikiIG9wYWNpdHk9IjAuOTUiLz4KICAgIDwhLS0gIuaWhyIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IlBpbmdGYW5nIFNDLCBNaWNyb3NvZnQgWWFIZWksIE5vdG8gU2FucyBTQywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MCIgZmlsbD0iIzVBM0ZENiI+5paHPC90ZXh0PgogIDwvZz4KCiAgPCEtLSBUcmFuc2xhdGlvbiBhcnJvd3MgYmV0d2VlbiBidWJibGVzIC0tPgogIDxnIHN0cm9rZT0iI0ZGRkZGRiIgc3Ryb2tlLXdpZHRoPSI2IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIG9wYWNpdHk9IjAuOSI+CiAgICA8IS0tIEFycm93OiB0b3AtbGVmdCB0byBib3R0b20tcmlnaHQgLS0+CiAgICA8cGF0aCBkPSJNMjIwLDE2MCBMMjkwLDI5MCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyOTAsMjkwIDI3NiwyNzIgMjk2LDI3OCIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgICA8IS0tIEFycm93OiBib3R0b20tcmlnaHQgdG8gdG9wLWxlZnQgLS0+CiAgICA8cGF0aCBkPSJNMjkwLDIwMCBMMjIwLDMzMCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyMjAsMzMwIDIzNCwzNDggMjE0LDM0MiIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgPC9nPgoKICA8IS0tIFNtYWxsIGRlY29yYXRpdmUgZG90cyAtLT4KICA8Y2lyY2xlIGN4PSIzOTUiIGN5PSIxMzAiIHI9IjYiIGZpbGw9IiNGRkZGRkYiIG9wYWNpdHk9IjAuNCIvPgogIDxjaXJjbGUgY3g9IjQxMCIgY3k9IjE1MCIgcj0iNCIgZmlsbD0iI0ZGRkZGRiIgb3BhY2l0eT0iMC4zIi8+CiAgPGNpcmNsZSBjeD0iMTEwIiBjeT0iMzcwIiByPSI1IiBmaWxsPSIjRkZGRkZGIiBvcGFjaXR5PSIwLjMiLz4KPC9zdmc+Cg==" alt="DotTranslator"> DotTranslator — 多引擎对比</span>
+    </div>
+    <div class="titlebar-controls">
+      <button class="win-btn win-btn-theme" title="切换主题" onclick="toggleTheme()">🌙</button>
+      <button class="win-btn win-btn-pin" title="置顶" onclick="this.classList.toggle('pinned'); this.textContent=this.classList.contains('pinned')?'📍':'📌'; this.title=this.classList.contains('pinned')?'取消置顶':'置顶'">📌</button>
+      <div class="win-btn-divider"></div>
+      <button class="win-btn" title="最小化">─</button>
+      <button class="win-btn" title="最大化">□</button>
+      <button class="win-btn win-btn-close" title="关闭">✕</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Source -->
+    <div style="margin-bottom: 16px;">
+      <div class="panel-label">原文</div>
+      <div style="font-size: 14px; padding: 10px 0; line-height: 1.6;">The quick brown fox jumps over the lazy dog.</div>
+    </div>
+
+    <!-- Comparison Header -->
+    <div class="comparison-header">
+      <div class="comparison-title">
+        ⚡ 多引擎对比
+        <span class="progress-badge">✅ 5/5 已完成</span>
+      </div>
+      <div class="action-group">
+        <button class="btn btn-sm">📄 导出</button>
+        <button class="btn btn-sm">📋 全部复制</button>
+      </div>
+    </div>
+
+    <!-- Cards Grid - Row 1 -->
+    <div class="cards-grid">
+      <div class="comparison-card">
+        <div class="card-header">
+          <div class="card-engine">
+            <span class="card-engine-icon">🔥</span> 火山翻译
+          </div>
+          <div class="card-latency latency-fast">⚡ 287ms</div>
+        </div>
+        <div class="card-text">敏捷的棕色狐狸跳过了懒惰的狗。</div>
+        <div class="card-stars">★★★★☆</div>
+        <div class="card-actions">
+          <button class="btn btn-icon btn-sm" title="复制">📋</button>
+          <button class="btn btn-icon btn-sm" title="朗读">🔊</button>
+          <button class="btn btn-icon btn-sm" title="收藏">⭐</button>
+          <button class="btn btn-icon btn-sm" title="查差异">📏</button>
+        </div>
+      </div>
+
+      <div class="comparison-card">
+        <div class="card-header">
+          <div class="card-engine">
+            <span class="card-engine-icon">🐧</span> 腾讯翻译
+          </div>
+          <div class="card-latency">412ms</div>
+        </div>
+        <div class="card-text">那只敏捷的棕色狐狸跳过了那只懒惰的狗。</div>
+        <div class="card-stars">★★★☆☆</div>
+        <div class="card-actions">
+          <button class="btn btn-icon btn-sm">📋</button>
+          <button class="btn btn-icon btn-sm">🔊</button>
+          <button class="btn btn-icon btn-sm">⭐</button>
+          <button class="btn btn-icon btn-sm">📏</button>
+        </div>
+      </div>
+
+      <div class="comparison-card">
+        <div class="card-header">
+          <div class="card-engine">
+            <span class="card-engine-icon">🐻</span> 百度翻译
+          </div>
+          <div class="card-latency">523ms</div>
+        </div>
+        <div class="card-text">敏捷的棕色狐狸跳过了懒狗。</div>
+        <div class="card-stars">★★★★☆</div>
+        <div class="card-actions">
+          <button class="btn btn-icon btn-sm">📋</button>
+          <button class="btn btn-icon btn-sm">🔊</button>
+          <button class="btn btn-icon btn-sm">⭐</button>
+          <button class="btn btn-icon btn-sm">📏</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cards Grid - Row 2 -->
+    <div class="cards-grid" style="grid-template-columns: repeat(2, 1fr);">
+      <div class="comparison-card rec-gold">
+        <div class="card-header">
+          <div class="card-engine">
+            <span class="card-engine-icon">☁️</span> 彩云小译
+          </div>
+          <div class="card-latency latency-fast">⚡ 301ms</div>
+        </div>
+        <div class="card-text">那只敏捷的棕色狐狸跳过了那只懒惰的狗。</div>
+        <div class="card-stars">★★★★★ 综合: <strong style="color: var(--accent);">0.91</strong></div>
+        <div class="score-breakdown">
+          <div class="score-item"><span class="score-item-label">流畅度</span><div class="score-bar"><div class="score-bar-fill" style="width:95%; background:var(--success);"></div></div><span>0.95</span></div>
+          <div class="score-item"><span class="score-item-label">语义</span><div class="score-bar"><div class="score-bar-fill" style="width:88%; background:var(--accent);"></div></div><span>0.88</span></div>
+          <div class="score-item"><span class="score-item-label">偏好</span><div class="score-bar"><div class="score-bar-fill" style="width:92%; background:var(--warning);"></div></div><span>0.92</span></div>
+          <div class="score-item"><span class="score-item-label">速度</span><div class="score-bar"><div class="score-bar-fill" style="width:94%; background:var(--success);"></div></div><span>0.94</span></div>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-icon btn-sm">📋</button>
+          <button class="btn btn-icon btn-sm">🔊</button>
+          <button class="btn btn-icon btn-sm" style="color: var(--warning);">⭐</button>
+          <button class="btn btn-icon btn-sm">📏</button>
+        </div>
+      </div>
+
+      <div class="comparison-card rec-warn">
+        <div class="card-header">
+          <div class="card-engine">
+            <span class="card-engine-icon">🐮</span> 小牛翻译
+          </div>
+          <div class="card-latency">890ms</div>
+        </div>
+        <div class="card-text">敏捷的棕色狐狸跳过了懒惰的狗。</div>
+        <div class="card-stars">★★★☆☆ 综合: <strong style="color: var(--warning);">0.63</strong></div>
+        <div class="score-breakdown">
+          <div class="score-item"><span class="score-item-label">流畅度</span><div class="score-bar"><div class="score-bar-fill" style="width:72%; background:var(--warning);"></div></div><span>0.72</span></div>
+          <div class="score-item"><span class="score-item-label">语义</span><div class="score-bar"><div class="score-bar-fill" style="width:55%; background:var(--warning);"></div></div><span>0.55</span></div>
+          <div class="score-item"><span class="score-item-label">偏好</span><div class="score-bar"><div class="score-bar-fill" style="width:48%; background:var(--error);"></div></div><span>0.48</span></div>
+          <div class="score-item"><span class="score-item-label">速度</span><div class="score-bar"><div class="score-bar-fill" style="width:82%; background:var(--accent);"></div></div><span>0.82</span></div>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-icon btn-sm">📋</button>
+          <button class="btn btn-icon btn-sm">🔊</button>
+          <button class="btn btn-icon btn-sm">⭐</button>
+          <button class="btn btn-icon btn-sm">📏</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Card Example -->
+    <div class="cards-grid" style="grid-template-columns: repeat(2, 1fr);">
+      <div class="comparison-card" style="border: 2px solid var(--error);">
+        <div class="card-header">
+          <div class="card-engine" style="color: var(--error);">
+            <span class="card-engine-icon">❌</span> 超时示例
+          </div>
+          <div class="card-latency" style="color: var(--error);">>10s</div>
+        </div>
+        <div class="card-error">
+          <span>⚠️ 响应超时 (>10s)</span>
+          <button class="btn btn-sm">🔄 重试</button>
+        </div>
+      </div>
+
+      <div class="comparison-card" style="border: 2px solid var(--warning);">
+        <div class="card-header">
+          <div class="card-engine" style="color: var(--warning);">
+            <span class="card-engine-icon">⚠️</span> 额度耗尽示例
+          </div>
+        </div>
+        <div class="card-error" style="color: var(--warning);">
+          <span>本月额度已耗尽</span>
+          <span style="font-size: 11px; color: var(--text-secondary);">已自动切换至下一引擎</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Diff View -->
+    <div class="diff-section">
+      <div class="diff-header">📏 差异对比 — 火山翻译 vs 其他引擎</div>
+      <div style="font-size: 13px; line-height: 2;">
+        <span class="diff-word diff-match">敏捷的</span>
+        <span class="diff-word diff-diff">棕色<span class="diff-alt">← 腾讯: 棕色的</span></span>
+        <span class="diff-word diff-match">狐狸</span>
+        <span class="diff-word diff-match">跳过了</span>
+        <span class="diff-word diff-diff">懒惰的狗<span class="diff-alt">← 百度: 懒狗</span></span>
+      </div>
+      <div style="margin-top: 10px; font-size: 12px; color: var(--text-secondary);">
+        差异词汇: 2 处 · 一致度: <span style="color: var(--success); font-weight: 600;">78%</span>
+      </div>
+    </div>
+
+    <!-- Similarity Matrix -->
+    <div class="diff-section">
+      <div class="diff-header">📊 相似度矩阵</div>
+      <table class="matrix-table">
+        <tr>
+          <th></th><th>火山</th><th>腾讯</th><th>百度</th><th>彩云</th><th>小牛</th>
+        </tr>
+        <tr>
+          <th>火山</th>
+          <td class="diag">—</td><td class="mid">0.82</td><td class="high">0.95</td><td class="mid">0.78</td><td class="high">0.91</td>
+        </tr>
+        <tr>
+          <th>腾讯</th>
+          <td class="mid">0.82</td><td class="diag">—</td><td class="mid">0.80</td><td class="mid">0.85</td><td class="mid">0.79</td>
+        </tr>
+        <tr>
+          <th>百度</th>
+          <td class="high">0.95</td><td class="mid">0.80</td><td class="diag">—</td><td class="mid">0.76</td><td class="high">0.93</td>
+        </tr>
+        <tr>
+          <th>彩云</th>
+          <td class="mid">0.78</td><td class="mid">0.85</td><td class="mid">0.76</td><td class="diag">—</td><td class="mid">0.77</td>
+        </tr>
+        <tr>
+          <th>小牛</th>
+          <td class="high">0.91</td><td class="mid">0.79</td><td class="high">0.93</td><td class="mid">0.77</td><td class="diag">—</td>
+        </tr>
+      </table>
+      <div style="font-size: 12px; color: var(--text-secondary); padding: 8px 14px; background: var(--bg); box-shadow: var(--inset-shadow); border-radius: 10px;">
+        📊 结论：火山 ≈ 百度 ≈ 小牛（高度一致），腾讯和彩云翻译风格更独立<br>
+        🏆 推荐：彩云小译 — 与多数差异最大，可能是更优的意译
+      </div>
+    </div>
+
+    <!-- Footer Actions -->
+    <div class="comparison-footer">
+      <button class="btn">⚡ AI 对比</button>
+      <button class="btn">📊 相似度</button>
+      <button class="btn btn-primary">📋 复制最优</button>
+      <button class="btn">📄 导出报告</button>
+      <button class="btn">🔄 重新翻译</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 2b. AI Comparison Mode (Toggled View) ==================== -->
+<div class="section-label" style="margin-top: 20px;">②-b AI 模式对比 — 点击「⚡AI 对比」后切换</div>
+<div class="section-sublabel">普通卡片替换为 AI 引擎卡片 · 顶部显示「返回普通对比」</div>
+
+<div class="window">
+  <div class="titlebar">
+    <div class="titlebar-left">
+      <span class="titlebar-title"><img class="app-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM3QzVDRkMiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNUEzRkQ2Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUxIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNGRkZGRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjRThFNEY1Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUyIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNFMERCRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjQzhCRkZGIi8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KCiAgPCEtLSBSb3VuZGVkIHNxdWFyZSBiYWNrZ3JvdW5kIC0tPgogIDxyZWN0IHg9IjMyIiB5PSIzMiIgd2lkdGg9IjQ0OCIgaGVpZ2h0PSI0NDgiIHJ4PSI5NiIgcnk9Ijk2IiBmaWxsPSJ1cmwoI2JnKSIvPgoKICA8IS0tIFNwZWVjaCBidWJibGUgdG9wLWxlZnQgKHNvdXJjZSBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoODgsIDEwMCkiPgogICAgPHBhdGggZD0iTTEwLDAgSDE1MCBRMTYwLDAgMTYwLDEwIFY5MCBRMTYwLDEwMCAxNTAsMTAwIEg2MCBMMzAsMTI1IEw0MCwxMDAgSDEwIFEwLDEwMCAwLDkwIFYxMCBRMCwwIDEwLDAgWiIgZmlsbD0idXJsKCNidWJibGUxKSIgb3BhY2l0eT0iMC45NSIvPgogICAgPCEtLSAiQSIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkludGVyLCBBcmlhbCBCbGFjaywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MiIgZmlsbD0iIzVBM0ZENiI+QTwvdGV4dD4KICA8L2c+CgogIDwhLS0gU3BlZWNoIGJ1YmJsZSBib3R0b20tcmlnaHQgKHRhcmdldCBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjU1LCAyNDApIj4KICAgIDxwYXRoIGQ9Ik0xMCwwIEgxNTAgUTE2MCwwIDE2MCwxMCBWOTAgUTE2MCwxMDAgMTUwLDEwMCBIMTQwIEwxNzAsMTI1IEwxMDAsMTAwIEgxMCBRMCwxMDAgMCw5MCBWMTAgUTAsMCAxMCwwIFoiIGZpbGw9InVybCgjYnViYmxlMikiIG9wYWNpdHk9IjAuOTUiLz4KICAgIDwhLS0gIuaWhyIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IlBpbmdGYW5nIFNDLCBNaWNyb3NvZnQgWWFIZWksIE5vdG8gU2FucyBTQywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MCIgZmlsbD0iIzVBM0ZENiI+5paHPC90ZXh0PgogIDwvZz4KCiAgPCEtLSBUcmFuc2xhdGlvbiBhcnJvd3MgYmV0d2VlbiBidWJibGVzIC0tPgogIDxnIHN0cm9rZT0iI0ZGRkZGRiIgc3Ryb2tlLXdpZHRoPSI2IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIG9wYWNpdHk9IjAuOSI+CiAgICA8IS0tIEFycm93OiB0b3AtbGVmdCB0byBib3R0b20tcmlnaHQgLS0+CiAgICA8cGF0aCBkPSJNMjIwLDE2MCBMMjkwLDI5MCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyOTAsMjkwIDI3NiwyNzIgMjk2LDI3OCIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgICA8IS0tIEFycm93OiBib3R0b20tcmlnaHQgdG8gdG9wLWxlZnQgLS0+CiAgICA8cGF0aCBkPSJNMjkwLDIwMCBMMjIwLDMzMCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyMjAsMzMwIDIzNCwzNDggMjE0LDM0MiIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgPC9nPgoKICA8IS0tIFNtYWxsIGRlY29yYXRpdmUgZG90cyAtLT4KICA8Y2lyY2xlIGN4PSIzOTUiIGN5PSIxMzAiIHI9IjYiIGZpbGw9IiNGRkZGRkYiIG9wYWNpdHk9IjAuNCIvPgogIDxjaXJjbGUgY3g9IjQxMCIgY3k9IjE1MCIgcj0iNCIgZmlsbD0iI0ZGRkZGRiIgb3BhY2l0eT0iMC4zIi8+CiAgPGNpcmNsZSBjeD0iMTEwIiBjeT0iMzcwIiByPSI1IiBmaWxsPSIjRkZGRkZGIiBvcGFjaXR5PSIwLjMiLz4KPC9zdmc+Cg==" alt="DotTranslator"> DotTranslator — AI 模式对比（4 引擎）</span>
+    </div>
+    <div class="titlebar-controls">
+      <button class="win-btn win-btn-theme" title="切换主题" onclick="toggleTheme()">🌙</button>
+      <button class="win-btn win-btn-pin" title="置顶" onclick="this.classList.toggle('pinned'); this.textContent=this.classList.contains('pinned')?'📍':'📌'; this.title=this.classList.contains('pinned')?'取消置顶':'置顶'">📌</button>
+      <div class="win-btn-divider"></div>
+      <button class="win-btn" title="最小化">─</button>
+      <button class="win-btn" title="最大化">□</button>
+      <button class="win-btn win-btn-close" title="关闭">✕</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Source -->
+    <div style="margin-bottom: 16px;">
+      <div class="panel-label">原文</div>
+      <div style="font-size: 14px; padding: 10px 0; line-height: 1.6;">The quick brown fox jumps over the lazy dog.</div>
+    </div>
+
+    <!-- AI Mode Header -->
+    <div class="comparison-header">
+      <div class="comparison-title">
+        ⚡ AI 模式对比
+        <span class="progress-badge">✅ 4/4 已完成</span>
+      </div>
+      <div class="action-group">
+        <button class="btn btn-sm">🔥 返回普通对比</button>
+        <button class="btn btn-sm">📄 导出</button>
+      </div>
+    </div>
+
+    <!-- AI Cards -->
+    <div class="cards-grid" style="grid-template-columns: repeat(3, 1fr);">
+      <div class="comparison-card">
+        <div class="card-header">
+          <div class="card-engine">
+            <span class="card-engine-icon">🧠</span> DeepSeek-V3
+            <span class="label-tag" style="margin-left: 4px; font-size: 9px; opacity: 0.7;">默认</span>
+          </div>
+          <div class="card-latency">1.2s</div>
+        </div>
+        <div class="card-text">一只敏捷的棕色狐狸从懒洋洋的狗身上跳了过去。</div>
+        <div class="card-stars">★★★★★ <span class="crown">👑</span> <span class="label-tag tag-accent">推荐</span></div>
+        <div class="card-actions">
+          <button class="btn btn-icon btn-sm">📋</button>
+          <button class="btn btn-icon btn-sm">🔊</button>
+          <button class="btn btn-icon btn-sm" style="color: var(--warning);">⭐</button>
+        </div>
+      </div>
+
+      <div class="comparison-card">
+        <div class="card-header">
+          <div class="card-engine">
+            <span class="card-engine-icon">🔮</span> 通义千问
+          </div>
+          <div class="card-latency latency-fast">⚡ 0.8s</div>
+        </div>
+        <div class="card-text">那只棕色狐狸很是敏捷，一跃而过那条懒狗。</div>
+        <div class="card-stars">★★★★☆</div>
+        <div class="card-actions">
+          <button class="btn btn-icon btn-sm">📋</button>
+          <button class="btn btn-icon btn-sm">🔊</button>
+          <button class="btn btn-icon btn-sm">⭐</button>
+        </div>
+      </div>
+
+      <div class="comparison-card">
+        <div class="card-header">
+          <div class="card-engine">
+            <span class="card-engine-icon">🌙</span> Kimi（Moonshot）
+          </div>
+          <div class="card-latency">2.1s</div>
+        </div>
+        <div class="card-text">敏捷的棕色狐狸纵身一跳，越过了那只懒洋洋的狗。</div>
+        <div class="card-stars">★★★★☆</div>
+        <div class="card-actions">
+          <button class="btn btn-icon btn-sm">📋</button>
+          <button class="btn btn-icon btn-sm">🔊</button>
+          <button class="btn btn-icon btn-sm">⭐</button>
+        </div>
+      </div>
+
+      <div class="comparison-card">
+        <div class="card-header">
+          <div class="card-engine">
+            <span class="card-engine-icon">🔬</span> DeepSeek-R1
+            <span class="label-tag" style="margin-left: 4px; font-size: 9px; opacity: 0.7;">推理</span>
+          </div>
+          <div class="card-latency">1.8s</div>
+        </div>
+        <div class="card-text">那只动作敏捷的棕色狐狸，一跃而过那条懒惰的狗。</div>
+        <div class="card-stars">★★★★★ <span class="label-tag tag-accent" style="font-size: 10px;">严谨</span></div>
+        <div class="card-actions">
+          <button class="btn btn-icon btn-sm">📋</button>
+          <button class="btn btn-icon btn-sm">🔊</button>
+          <button class="btn btn-icon btn-sm">⭐</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-size: 12px; color: var(--text-secondary); padding: 10px 14px; background: var(--bg); box-shadow: var(--inset-shadow); border-radius: 10px; margin-top: 4px;">
+      🏆 推荐：DeepSeek-V3 — 翻译最完整自然，保留了原文的动态感<br>
+      🔬 最严谨：DeepSeek-R1 — 逻辑推理最强，适合法律/学术文本<br>
+      ⚡ 最快：通义千问 — 0.8s 响应，适合需要快速反馈的场景
+    </div>
+
+    <!-- Footer Actions -->
+    <div class="comparison-footer" style="margin-top: 16px;">
+      <button class="btn">🔥 返回普通对比</button>
+      <button class="btn">💬 AI 自评</button>
+      <button class="btn btn-primary">📋 复制最优</button>
+      <button class="btn">📄 导出报告</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 3. Settings ==================== -->
+<div class="section-label" style="margin-top: 20px;">③ 设置页签</div>
+
+<div class="window">
+  <div class="titlebar">
+    <div class="titlebar-left">
+      <span class="titlebar-title"><img class="app-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM3QzVDRkMiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNUEzRkQ2Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUxIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNGRkZGRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjRThFNEY1Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUyIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNFMERCRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjQzhCRkZGIi8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KCiAgPCEtLSBSb3VuZGVkIHNxdWFyZSBiYWNrZ3JvdW5kIC0tPgogIDxyZWN0IHg9IjMyIiB5PSIzMiIgd2lkdGg9IjQ0OCIgaGVpZ2h0PSI0NDgiIHJ4PSI5NiIgcnk9Ijk2IiBmaWxsPSJ1cmwoI2JnKSIvPgoKICA8IS0tIFNwZWVjaCBidWJibGUgdG9wLWxlZnQgKHNvdXJjZSBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoODgsIDEwMCkiPgogICAgPHBhdGggZD0iTTEwLDAgSDE1MCBRMTYwLDAgMTYwLDEwIFY5MCBRMTYwLDEwMCAxNTAsMTAwIEg2MCBMMzAsMTI1IEw0MCwxMDAgSDEwIFEwLDEwMCAwLDkwIFYxMCBRMCwwIDEwLDAgWiIgZmlsbD0idXJsKCNidWJibGUxKSIgb3BhY2l0eT0iMC45NSIvPgogICAgPCEtLSAiQSIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkludGVyLCBBcmlhbCBCbGFjaywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MiIgZmlsbD0iIzVBM0ZENiI+QTwvdGV4dD4KICA8L2c+CgogIDwhLS0gU3BlZWNoIGJ1YmJsZSBib3R0b20tcmlnaHQgKHRhcmdldCBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjU1LCAyNDApIj4KICAgIDxwYXRoIGQ9Ik0xMCwwIEgxNTAgUTE2MCwwIDE2MCwxMCBWOTAgUTE2MCwxMDAgMTUwLDEwMCBIMTQwIEwxNzAsMTI1IEwxMDAsMTAwIEgxMCBRMCwxMDAgMCw5MCBWMTAgUTAsMCAxMCwwIFoiIGZpbGw9InVybCgjYnViYmxlMikiIG9wYWNpdHk9IjAuOTUiLz4KICAgIDwhLS0gIuaWhyIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IlBpbmdGYW5nIFNDLCBNaWNyb3NvZnQgWWFIZWksIE5vdG8gU2FucyBTQywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MCIgZmlsbD0iIzVBM0ZENiI+5paHPC90ZXh0PgogIDwvZz4KCiAgPCEtLSBUcmFuc2xhdGlvbiBhcnJvd3MgYmV0d2VlbiBidWJibGVzIC0tPgogIDxnIHN0cm9rZT0iI0ZGRkZGRiIgc3Ryb2tlLXdpZHRoPSI2IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIG9wYWNpdHk9IjAuOSI+CiAgICA8IS0tIEFycm93OiB0b3AtbGVmdCB0byBib3R0b20tcmlnaHQgLS0+CiAgICA8cGF0aCBkPSJNMjIwLDE2MCBMMjkwLDI5MCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyOTAsMjkwIDI3NiwyNzIgMjk2LDI3OCIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgICA8IS0tIEFycm93OiBib3R0b20tcmlnaHQgdG8gdG9wLWxlZnQgLS0+CiAgICA8cGF0aCBkPSJNMjkwLDIwMCBMMjIwLDMzMCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyMjAsMzMwIDIzNCwzNDggMjE0LDM0MiIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgPC9nPgoKICA8IS0tIFNtYWxsIGRlY29yYXRpdmUgZG90cyAtLT4KICA8Y2lyY2xlIGN4PSIzOTUiIGN5PSIxMzAiIHI9IjYiIGZpbGw9IiNGRkZGRkYiIG9wYWNpdHk9IjAuNCIvPgogIDxjaXJjbGUgY3g9IjQxMCIgY3k9IjE1MCIgcj0iNCIgZmlsbD0iI0ZGRkZGRiIgb3BhY2l0eT0iMC4zIi8+CiAgPGNpcmNsZSBjeD0iMTEwIiBjeT0iMzcwIiByPSI1IiBmaWxsPSIjRkZGRkZGIiBvcGFjaXR5PSIwLjMiLz4KPC9zdmc+Cg==" alt="DotTranslator"> DotTranslator — 设置</span>
+    </div>
+    <div class="titlebar-controls">
+      <button class="win-btn win-btn-theme" title="切换主题" onclick="toggleTheme()">🌙</button>
+      <button class="win-btn win-btn-pin" title="置顶" onclick="this.classList.toggle('pinned'); this.textContent=this.classList.contains('pinned')?'📍':'📌'; this.title=this.classList.contains('pinned')?'取消置顶':'置顶'">📌</button>
+      <div class="win-btn-divider"></div>
+      <button class="win-btn" title="最小化">─</button>
+      <button class="win-btn" title="最大化">□</button>
+      <button class="win-btn win-btn-close" title="关闭">✕</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab">🌍 翻译</button>
+    <button class="tab">⭐ 收藏</button>
+    <button class="tab">📋 历史</button>
+    <div class="tab-spacer"></div>
+    <button class="tab active">⚙️ 设置</button>
+    <button class="tab">ℹ️ 关于</button>
+    <button class="tab">☕ 打赏</button>
+  </div>
+  <div class="content">
+
+    <!-- Basic Settings -->
+    <div class="settings-section">
+      <div class="settings-section-title">⚙️ 基础设置</div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">默认源语言</div>
+        </div>
+        <select class="lang-select" style="font-size: 12px; padding: 6px 28px 6px 10px;">
+          <option>自动检测</option>
+        </select>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">默认目标语言</div>
+        </div>
+        <select class="lang-select" style="font-size: 12px; padding: 6px 28px 6px 10px;">
+          <option>英语</option>
+        </select>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">默认模式</div>
+        </div>
+        <div class="action-group">
+          <button class="btn btn-sm pressed">普通</button>
+          <button class="btn btn-sm">AI</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">主题</div>
+        </div>
+        <div class="action-group">
+          <button class="btn btn-sm pressed">浅色</button>
+          <button class="btn btn-sm">深色</button>
+          <button class="btn btn-sm">跟随系统</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">字体大小</div>
+        </div>
+        <div class="action-group">
+          <button class="btn btn-sm">12</button>
+          <button class="btn btn-sm pressed">14</button>
+          <button class="btn btn-sm">16</button>
+          <button class="btn btn-sm">18</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">开机自启</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">多引擎对比模式</div>
+          <div class="setting-desc">翻译时自动发起多引擎并行对比</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">动画效果</div>
+          <div class="setting-desc">卡片滑入、骨架屏脉冲等过渡动画</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">界面语言</div>
+        </div>
+        <select class="lang-select" style="font-size: 12px; padding: 6px 28px 6px 10px;">
+          <option>简体中文</option>
+          <option>English (预留)</option>
+        </select>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">打赏提醒</div>
+          <div class="setting-desc">首次 30 天后弹出一次，之后不再打扰</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Clipboard Monitor Settings -->
+    <div class="settings-section">
+      <div class="settings-section-title">📋 剪贴板监听</div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">启用剪贴板监听</div>
+          <div class="setting-desc">监听系统剪贴板变化，复制文本后自动触发翻译</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">自动翻译</div>
+          <div class="setting-desc">关闭则复制后仅填入输入框，等你确认再翻译</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">主窗口隐藏时弹出浮窗</div>
+          <div class="setting-desc">剪贴板翻译触发时弹出迷你翻译浮窗</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">翻译完成后自动复制译文</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">智能语言交换</div>
+          <div class="setting-desc">检测到源语言=目标语言时自动交换翻译方向</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">防抖间隔</div>
+          <div class="setting-desc">连续复制时的去抖延迟（避免频繁触发）</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <input type="range" min="200" max="2000" value="800" step="100" style="width: 120px;">
+          <span style="font-size: 12px; color: var(--text-secondary);">800 ms</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Engine Management -->
+            <div class="settings-section">
+      <div class="settings-section-title">🔧 引擎管理 — 普通模式</div>
+      <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 12px;">≡ 拖拽调整引擎优先级 · 故障时自动按顺序切换</div>
+
+      <div class="engine-item">
+        <div class="engine-top-row">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="engine-icon" style="flex-shrink: 0;">🔥</span>
+            <div class="engine-name-block">
+              <span class="engine-name">火山翻译</span>
+              <span class="engine-badge">200万/月</span>
+              <span class="engine-inline-quota">本月 <b>1,234,567</b> / 2,000,000</span>
+              <div class="quota-bar" style="width: 80px;"><div class="quota-fill yellow" style="width: 62%;"></div></div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+            <span style="font-size: 11px; color: var(--success); white-space: nowrap;">✅ 已连接 287ms</span>
+            <div class="status-dot status-ok"></div>
+            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+        <div class="key-input-row" style="margin-top: 8px; width: 100%;">
+          <span class="key-label">API Key</span>
+          <input class="key-input" type="password" value="ak-****3x7k" readonly>
+          <button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">👁</button><button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">📋</button><button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">🔑 测试</button>
+        </div>
+        <div class="key-input-row" style="margin-top: 8px; width: 100%;">
+          <span class="key-label">Secret</span>
+          <input class="key-input" type="password" value="sk-****ef9a" readonly>
+          <button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">👁</button><button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">📋</button><button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">📖 申请指南</button>
+        </div>
+      </div>
+      <div class="engine-item">
+        <div class="engine-top-row">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="engine-icon" style="flex-shrink: 0;">🐧</span>
+            <div class="engine-name-block">
+              <span class="engine-name">腾讯翻译君</span>
+              <span class="engine-badge">500万/月</span>
+              <span class="engine-inline-quota">本月 <b>4,567,890</b> / 5,000,000</span>
+              <div class="quota-bar" style="width: 80px;"><div class="quota-fill red" style="width: 91%;"></div></div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+            <span style="font-size: 11px; color: var(--warning); white-space: nowrap;">⚠️ 额度 91%</span>
+            <div class="status-dot status-warn"></div>
+            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+        <div class="key-input-row" style="margin-top: 8px; width: 100%;">
+          <span class="key-label">SecretId</span>
+          <input class="key-input" type="password" value="AKID****xyz" readonly>
+          <button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">📋</button><button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">🔑 测试</button>
+        </div>
+        <div class="key-input-row" style="margin-top: 8px; width: 100%;">
+          <span class="key-label">SecretKey</span>
+          <input class="key-input" type="password" value="sk-****7k2m" readonly>
+          <button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">👁</button><button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">📋</button><button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">📖 申请指南</button>
+        </div>
+      </div>
+      <div class="engine-item">
+        <div class="engine-top-row">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="engine-icon" style="flex-shrink: 0;">🐻</span>
+            <div class="engine-name-block">
+              <span class="engine-name">百度翻译</span>
+              <span class="engine-badge">100万/月</span>
+              <span class="engine-inline-quota">本月 <b>890,123</b> / 1,000,000</span>
+              <div class="quota-bar" style="width: 80px;"><div class="quota-fill yellow" style="width: 89%;"></div></div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+            <span style="font-size: 11px; color: var(--text-secondary); white-space: nowrap;">⏳ 未验证</span>
+            <div class="status-dot status-ok"></div>
+            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+        <div class="key-input-row" style="margin-top: 8px; width: 100%;">
+          <span class="key-label">AppId</span>
+          <input class="key-input" type="password" value="2024****001" readonly>
+          <button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">📋</button><button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">🔑 测试</button>
+        </div>
+        <div class="key-input-row" style="margin-top: 8px; width: 100%;">
+          <span class="key-label">Secret</span>
+          <input class="key-input" type="password" placeholder="粘贴 Secret...">
+          <button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">👁</button><button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">📋</button><button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">📖 申请指南</button>
+        </div>
+      </div>
+      <div class="engine-item">
+        <div class="engine-top-row">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="engine-icon" style="flex-shrink: 0;">☁️</span>
+            <div class="engine-name-block">
+              <span class="engine-name">彩云小译</span>
+              <span class="engine-badge">100万/月</span>
+              <span class="engine-inline-quota">本月 <b>456,789</b> / 1,000,000</span>
+              <div class="quota-bar" style="width: 80px;"><div class="quota-fill green" style="width: 46%;"></div></div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+            <span style="font-size: 11px; color: var(--success); white-space: nowrap;">✅ 已连接 301ms</span>
+            <div class="status-dot status-ok"></div>
+            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+        <div class="key-input-row" style="margin-top: 8px; width: 100%;">
+          <span class="key-label">Token</span>
+          <input class="key-input" type="password" value="cy-****ab12" readonly>
+          <button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">👁</button><button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">📋</button><button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">🔑 测试</button>
+        </div>
+        <div style="font-size: 10px; color: var(--text-secondary); margin-top: 4px; margin-left: 52px;">需发邮件申请 API Token，非即时获取</div>
+      </div>
+      <div class="engine-item">
+        <div class="engine-top-row">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="engine-icon" style="flex-shrink: 0;">🐮</span>
+            <div class="engine-name-block">
+              <span class="engine-name">小牛翻译</span>
+              <span class="engine-badge">每天20-50万</span>
+              <span class="engine-inline-quota">今日 <b>123,456</b> / 500,000</span>
+              <div class="quota-bar" style="width: 80px;"><div class="quota-fill green" style="width: 25%;"></div></div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+            <span style="font-size: 11px; color: var(--text-secondary); white-space: nowrap;">⏳ 未验证</span>
+            <div class="status-dot status-ok"></div>
+            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+        <div class="key-input-row" style="margin-top: 8px; width: 100%;">
+          <span class="key-label">AppId</span>
+          <input class="key-input" type="text" placeholder="粘贴 AppId...">
+          <button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">📋</button><button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">🔑 测试</button>
+        </div>
+        <div class="key-input-row" style="margin-top: 8px; width: 100%;">
+          <span class="key-label">API Key</span>
+          <input class="key-input" type="password" placeholder="粘贴 API Key...">
+          <button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">👁</button><button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">📋</button><button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">📖 申请指南</button>
+        </div>
+      </div>
+    </div>
+
+<div class="settings-section">
+      <div class="settings-section-title">🤖 引擎管理 — AI 模式</div>
+
+      <div class="engine-item">
+        <div class="engine-top-row">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="engine-icon" style="flex-shrink: 0;">🧠</span>
+            <div class="engine-name-block">
+              <span class="engine-name">DeepSeek</span>
+              <span class="engine-badge">V3/R1</span>
+              <span class="engine-inline-quota">¥2-8/百万(V3) · ¥1-4/百万(R1)</span>
+              <div class="quota-bar" style="width: 80px;"><div class="quota-fill green" style="width: 0%;"></div></div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+            <span style="font-size: 11px; color: var(--success); white-space: nowrap;">✅ 已连接 1.1s</span>
+            <div class="status-dot status-ok"></div>
+            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+        <div class="key-input-row" style="margin-top: 8px; width: 100%;">
+          <span class="key-label">API Key</span>
+          <input class="key-input" type="password" value="sk-****d8f2" readonly>
+          <button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">👁</button><button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">📋</button><button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">🔑 测试</button>
+        </div>
+        <div style="font-size: 10px; color: var(--text-secondary); margin-top: 4px; margin-left: 52px;">V3 + R1 共用同一 API Key，切换模型无需重新填写</div>
+      </div>
+      <div class="engine-item">
+        <div class="engine-top-row">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="engine-icon" style="flex-shrink: 0;">🔮</span>
+            <div class="engine-name-block">
+              <span class="engine-name">通义千问-plus</span>
+              <span class="engine-badge">qwen-plus</span>
+              <span class="engine-inline-quota">¥0.8/百万(入) · ¥2/百万(出)</span>
+              <div class="quota-bar" style="width: 80px;"><div class="quota-fill green" style="width: 0%;"></div></div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+            <span style="font-size: 11px; color: var(--text-secondary); white-space: nowrap;">⏳ 未验证</span>
+            <div class="status-dot status-ok"></div>
+            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+        <div class="key-input-row" style="margin-top: 8px; width: 100%;">
+          <span class="key-label">API Key</span>
+          <input class="key-input" type="password" placeholder="粘贴 API Key...">
+          <button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">👁</button><button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">📋</button><button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">🔑 测试</button>
+        </div>
+      </div>
+      <div class="engine-item">
+        <div class="engine-top-row">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="engine-icon" style="flex-shrink: 0;">🌙</span>
+            <div class="engine-name-block">
+              <span class="engine-name">Kimi（Moonshot）</span>
+              <span class="engine-badge">128k</span>
+              <span class="engine-inline-quota">¥60/百万 · 200K汉字</span>
+              <div class="quota-bar" style="width: 80px;"><div class="quota-fill green" style="width: 0%;"></div></div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+            <span style="font-size: 11px; color: var(--text-secondary); white-space: nowrap;">⏳ 未验证</span>
+            <div class="status-dot status-ok"></div>
+            <label class="toggle-switch"><input type="checkbox" ><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+        <div class="key-input-row" style="margin-top: 8px; width: 100%;">
+          <span class="key-label">API Key</span>
+          <input class="key-input" type="password" placeholder="粘贴 API Key...">
+          <button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">👁</button><button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">📋</button><button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">🔑 测试</button>
+        </div>
+      </div>
+    </div>
+
+<!-- Glossary Settings -->
+    <div class="settings-section">
+      <div class="settings-section-title">📖 术语表</div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">启用术语表</div>
+          <div class="setting-desc">翻译时优先使用自定义术语替换</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="engine-item">
+        <div class="engine-info">
+          <span class="engine-icon">📖</span>
+          <div>
+            <div class="engine-name">当前术语表</div>
+            <div class="engine-quota">已导入 42 条术语 · 最后更新 04-18</div>
+          </div>
+        </div>
+        <div class="engine-status">
+          <button class="btn btn-sm">导入</button>
+          <button class="btn btn-sm">导出</button>
+          <button class="btn btn-sm">管理</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Diagnostics -->
+    <div class="settings-section">
+      <div class="settings-section-title">🩺 诊断</div>
+
+      <!-- 引擎状态面板 -->
+      <div style="font-size: 12px; margin-bottom: 10px; color: var(--text-secondary);">引擎状态</div>
+      <div class="engine-item">
+        <div class="engine-info">
+          <span class="engine-icon">🔥</span>
+          <div>
+            <div class="engine-name">火山翻译</div>
+            <div class="engine-quota">✅ 正常 · 延迟: 287ms · 本月已用: 1,234,567 / 2,000,000</div>
+          </div>
+        </div>
+      </div>
+      <div class="engine-item">
+        <div class="engine-info">
+          <span class="engine-icon">🐧</span>
+          <div>
+            <div class="engine-name">腾讯翻译君</div>
+            <div class="engine-quota">⚠️ 降级 · 延迟: 1,203ms · 连续失败: 2</div>
+          </div>
+        </div>
+      </div>
+      <div class="engine-item">
+        <div class="engine-info">
+          <span class="engine-icon">🧠</span>
+          <div>
+            <div class="engine-name">DeepSeek-V3</div>
+            <div class="engine-quota">✅ 正常 · 延迟: 1.1s · 熔断器: Closed</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 性能监控 -->
+      <div style="font-size: 12px; margin: 14px 0 10px; color: var(--text-secondary);">性能监控</div>
+      <div class="engine-item">
+        <div class="engine-info">
+          <span class="engine-icon">📊</span>
+          <div>
+            <div class="engine-name">实时指标</div>
+            <div class="engine-quota">
+              启动: 2.1s ✅ · 内存: 67MB ✅ · CPU: 0.3% ✅ · P95: 1.8s ✅ · 缓存命中: 34.2%
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 缓存 -->
+      <div class="setting-row" style="margin-top: 10px;">
+        <div>
+          <div class="setting-label">缓存: 3,456 / 10,000 条 · 命中率 34.2%</div>
+        </div>
+        <button class="btn btn-sm">🧹 清除缓存</button>
+      </div>
+
+      <!-- 日志 -->
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">日志级别</div>
+        </div>
+        <select class="lang-select" style="font-size: 12px; padding: 6px 28px 6px 10px;">
+          <option>Info</option>
+          <option>Debug</option>
+          <option>Warning</option>
+          <option>Error</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">最近日志</div>
+          <div class="setting-desc">应用内查看最近 50 条（脱敏显示）</div>
+        </div>
+        <button class="btn btn-sm">📋 查看</button>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">打开日志目录</div>
+        </div>
+        <button class="btn btn-sm">📂 打开</button>
+      </div>
+
+      <!-- 操作按钮 -->
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">引擎健康检查</div>
+          <div class="setting-desc">测试所有已启用引擎的连通性</div>
+        </div>
+        <button class="btn btn-sm">🔄 一键检查</button>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">导出诊断报告</div>
+          <div class="setting-desc">导出引擎状态/熔断器/缓存/日志摘要（JSON），方便反馈 Bug</div>
+        </div>
+        <button class="btn btn-sm">📄 导出</button>
+      </div>
+    </div>
+
+    <!-- Keyboard Shortcuts -->
+    <div class="settings-section">
+      <div class="settings-section-title">⌨️ 快捷键</div>
+      <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 10px;">点击「修改」可自定义，修改时自动检测系统快捷键冲突</div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">剪贴板翻译</div>
+          <div class="setting-desc">唤出主窗口并翻译剪贴板内容</div>
+        </div>
+        <div class="action-group">
+          <button class="btn btn-sm pressed" style="font-family: monospace; min-width: 140px;">Ctrl+Shift+T</button>
+          <button class="btn btn-sm">修改</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">复制译文</div>
+          <div class="setting-desc">一键复制当前翻译结果</div>
+        </div>
+        <div class="action-group">
+          <button class="btn btn-sm pressed" style="font-family: monospace; min-width: 140px;">Ctrl+Shift+C</button>
+          <button class="btn btn-sm">修改</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">翻译朗读</div>
+          <div class="setting-desc">翻译并自动朗读结果</div>
+        </div>
+        <div class="action-group">
+          <button class="btn btn-sm pressed" style="font-family: monospace; min-width: 140px;">Ctrl+Shift+R</button>
+          <button class="btn btn-sm">修改</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">多引擎对比</div>
+          <div class="setting-desc">展开多引擎并行对比</div>
+        </div>
+        <div class="action-group">
+          <button class="btn btn-sm pressed" style="font-family: monospace; min-width: 140px;">Ctrl+Shift+M</button>
+          <button class="btn btn-sm">修改</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">打开翻译窗口</div>
+        </div>
+        <div class="action-group">
+          <button class="btn btn-sm pressed" style="font-family: monospace; min-width: 140px;">Ctrl+N</button>
+          <button class="btn btn-sm">修改</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">打开设置</div>
+        </div>
+        <div class="action-group">
+          <button class="btn btn-sm pressed" style="font-family: monospace; min-width: 140px;">Ctrl+,</button>
+          <button class="btn btn-sm">修改</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">打开历史</div>
+        </div>
+        <div class="action-group">
+          <button class="btn btn-sm pressed" style="font-family: monospace; min-width: 140px;">Ctrl+H</button>
+          <button class="btn btn-sm">修改</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">退出应用</div>
+        </div>
+        <div class="action-group">
+          <button class="btn btn-sm pressed" style="font-family: monospace; min-width: 140px;">Ctrl+Q</button>
+          <button class="btn btn-sm">修改</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">帮助 / 快捷键列表</div>
+        </div>
+        <div class="action-group">
+          <button class="btn btn-sm pressed" style="font-family: monospace; min-width: 140px;">F1</button>
+          <button class="btn btn-sm" disabled style="opacity: 0.5;">系统保留</button>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 12px;">
+        <button class="btn btn-sm">🔄 恢复默认</button>
+      </div>
+    </div>
+
+    <!-- TTS Settings -->
+    <div class="settings-section">
+      <div class="settings-section-title">🔊 TTS 设置</div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">默认引擎</div>
+        </div>
+        <div class="action-group">
+          <button class="btn btn-sm pressed">讯飞 TTS</button>
+          <button class="btn btn-sm">Edge TTS</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Edge TTS 音色</div>
+        </div>
+        <select class="lang-select" style="font-size: 12px; padding: 6px 28px 6px 10px;">
+          <option>zh-CN-XiaoxiaoNeural（晓晓·女声·温柔）</option>
+          <option>zh-CN-YunxiNeural（云希·男声·自然）</option>
+          <option>zh-CN-YunyangNeural（云扬·男声·新闻）</option>
+        </select>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">语速</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 11px; color: var(--text-secondary);">0.5x</span>
+          <input type="range" min="50" max="200" value="100" style="width: 120px; accent-color: var(--accent);">
+          <span style="font-size: 11px; color: var(--text-secondary);">2.0x</span>
+          <span style="font-size: 12px; color: var(--accent); font-weight: 600;">1.0x</span>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">音量</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 11px; color: var(--text-secondary);">🔇</span>
+          <input type="range" min="0" max="100" value="80" style="width: 120px; accent-color: var(--accent);">
+          <span style="font-size: 11px; color: var(--text-secondary);">🔊</span>
+          <span style="font-size: 12px; color: var(--accent); font-weight: 600;">80%</span>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">自动朗读</div>
+          <div class="setting-desc">翻译完成后自动朗读译文</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">额度耗尽策略</div>
+          <div class="setting-desc">讯飞 TTS 今日 2 万次用完后的处理方式</div>
+        </div>
+        <select class="lang-select" style="font-size: 12px; padding: 6px 28px 6px 10px;">
+          <option selected>自动切换到 Edge TTS</option>
+          <option>静默失败（不朗读）</option>
+          <option>弹窗提醒</option>
+        </select>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">额度耗尽自动切换</div>
+          <div class="setting-desc">讯飞额度耗尽时自动切换到 Edge TTS</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- History Settings -->
+    <div class="settings-section">
+      <div class="settings-section-title">📜 翻译历史</div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">保留条数</div>
+          <div class="setting-desc">超出后自动删除最旧记录（收藏不受影响）</div>
+        </div>
+        <select class="lang-select" style="font-size: 12px; padding: 6px 28px 6px 10px;">
+          <option>100 条</option>
+          <option>500 条</option>
+          <option selected>1000 条</option>
+          <option>5000 条</option>
+          <option>不限制</option>
+        </select>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">导出全部</div>
+        </div>
+        <div class="action-group">
+          <button class="btn btn-sm">TXT</button>
+          <button class="btn btn-sm">CSV</button>
+          <button class="btn btn-sm">XLSX</button>
+          <button class="btn btn-sm">Markdown</button>
+          <button class="btn btn-sm">JSON</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">导出收藏</div>
+        </div>
+        <div class="action-group">
+          <button class="btn btn-sm">TXT</button>
+          <button class="btn btn-sm">CSV</button>
+          <button class="btn btn-sm">XLSX</button>
+          <button class="btn btn-sm">Markdown</button>
+          <button class="btn btn-sm">JSON</button>
+          <button class="btn btn-sm">Anki</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">清空历史</div>
+          <div class="setting-desc">删除所有未收藏的翻译记录</div>
+        </div>
+        <button class="btn btn-sm" style="color: var(--error);">🗑️ 清空</button>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">收藏时自动调整引擎优先级</div>
+          <div class="setting-desc">收藏某引擎译文后，下次翻译优先使用该引擎</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ==================== 4. History ==================== -->
+<div class="section-label" style="margin-top: 20px;">④ 历史页签</div>
+
+<div class="window">
+  <div class="titlebar">
+    <div class="titlebar-left">
+      <span class="titlebar-title"><img class="app-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM3QzVDRkMiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNUEzRkQ2Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUxIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNGRkZGRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjRThFNEY1Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUyIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNFMERCRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjQzhCRkZGIi8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KCiAgPCEtLSBSb3VuZGVkIHNxdWFyZSBiYWNrZ3JvdW5kIC0tPgogIDxyZWN0IHg9IjMyIiB5PSIzMiIgd2lkdGg9IjQ0OCIgaGVpZ2h0PSI0NDgiIHJ4PSI5NiIgcnk9Ijk2IiBmaWxsPSJ1cmwoI2JnKSIvPgoKICA8IS0tIFNwZWVjaCBidWJibGUgdG9wLWxlZnQgKHNvdXJjZSBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoODgsIDEwMCkiPgogICAgPHBhdGggZD0iTTEwLDAgSDE1MCBRMTYwLDAgMTYwLDEwIFY5MCBRMTYwLDEwMCAxNTAsMTAwIEg2MCBMMzAsMTI1IEw0MCwxMDAgSDEwIFEwLDEwMCAwLDkwIFYxMCBRMCwwIDEwLDAgWiIgZmlsbD0idXJsKCNidWJibGUxKSIgb3BhY2l0eT0iMC45NSIvPgogICAgPCEtLSAiQSIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkludGVyLCBBcmlhbCBCbGFjaywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MiIgZmlsbD0iIzVBM0ZENiI+QTwvdGV4dD4KICA8L2c+CgogIDwhLS0gU3BlZWNoIGJ1YmJsZSBib3R0b20tcmlnaHQgKHRhcmdldCBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjU1LCAyNDApIj4KICAgIDxwYXRoIGQ9Ik0xMCwwIEgxNTAgUTE2MCwwIDE2MCwxMCBWOTAgUTE2MCwxMDAgMTUwLDEwMCBIMTQwIEwxNzAsMTI1IEwxMDAsMTAwIEgxMCBRMCwxMDAgMCw5MCBWMTAgUTAsMCAxMCwwIFoiIGZpbGw9InVybCgjYnViYmxlMikiIG9wYWNpdHk9IjAuOTUiLz4KICAgIDwhLS0gIuaWhyIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IlBpbmdGYW5nIFNDLCBNaWNyb3NvZnQgWWFIZWksIE5vdG8gU2FucyBTQywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MCIgZmlsbD0iIzVBM0ZENiI+5paHPC90ZXh0PgogIDwvZz4KCiAgPCEtLSBUcmFuc2xhdGlvbiBhcnJvd3MgYmV0d2VlbiBidWJibGVzIC0tPgogIDxnIHN0cm9rZT0iI0ZGRkZGRiIgc3Ryb2tlLXdpZHRoPSI2IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIG9wYWNpdHk9IjAuOSI+CiAgICA8IS0tIEFycm93OiB0b3AtbGVmdCB0byBib3R0b20tcmlnaHQgLS0+CiAgICA8cGF0aCBkPSJNMjIwLDE2MCBMMjkwLDI5MCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyOTAsMjkwIDI3NiwyNzIgMjk2LDI3OCIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgICA8IS0tIEFycm93OiBib3R0b20tcmlnaHQgdG8gdG9wLWxlZnQgLS0+CiAgICA8cGF0aCBkPSJNMjkwLDIwMCBMMjIwLDMzMCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyMjAsMzMwIDIzNCwzNDggMjE0LDM0MiIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgPC9nPgoKICA8IS0tIFNtYWxsIGRlY29yYXRpdmUgZG90cyAtLT4KICA8Y2lyY2xlIGN4PSIzOTUiIGN5PSIxMzAiIHI9IjYiIGZpbGw9IiNGRkZGRkYiIG9wYWNpdHk9IjAuNCIvPgogIDxjaXJjbGUgY3g9IjQxMCIgY3k9IjE1MCIgcj0iNCIgZmlsbD0iI0ZGRkZGRiIgb3BhY2l0eT0iMC4zIi8+CiAgPGNpcmNsZSBjeD0iMTEwIiBjeT0iMzcwIiByPSI1IiBmaWxsPSIjRkZGRkZGIiBvcGFjaXR5PSIwLjMiLz4KPC9zdmc+Cg==" alt="DotTranslator"> DotTranslator — 历史</span>
+    </div>
+    <div class="titlebar-controls">
+      <button class="win-btn win-btn-theme" title="切换主题" onclick="toggleTheme()">🌙</button>
+      <button class="win-btn win-btn-pin" title="置顶" onclick="this.classList.toggle('pinned'); this.textContent=this.classList.contains('pinned')?'📍':'📌'; this.title=this.classList.contains('pinned')?'取消置顶':'置顶'">📌</button>
+      <div class="win-btn-divider"></div>
+      <button class="win-btn" title="最小化">─</button>
+      <button class="win-btn" title="最大化">□</button>
+      <button class="win-btn win-btn-close" title="关闭">✕</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab">🌍 翻译</button>
+    <button class="tab">⭐ 收藏</button>
+    <button class="tab active">📋 历史</button>
+    <div class="tab-spacer"></div>
+    <button class="tab">⚙️ 设置</button>
+    <button class="tab">ℹ️ 关于</button>
+    <button class="tab">☕ 打赏</button>
+  </div>
+  <div class="content">
+    <div class="action-bar" style="margin-bottom: 16px;">
+      <div class="action-group">
+        <div class="panel" style="padding: 8px 14px; min-height: auto; flex: 1; min-width: 300px;">
+          <span style="font-size: 12px; color: var(--text-secondary);">🔍 搜索历史记录...</span>
+        </div>
+      </div>
+      <div class="action-group">
+        <button class="btn btn-sm">📄 导出</button>
+      </div>
+    </div>
+
+    <div class="history-item">
+      <div class="history-source">
+        The quick brown fox jumps over the lazy dog.
+        <div class="history-meta">
+          <span class="history-tag">EN→ZH</span>
+          <span>🔥 火山翻译</span>
+          <span>04-19 01:15</span>
+          <span style="color: var(--warning);">⭐</span>
+        </div>
+      </div>
+      <div class="history-target">
+        敏捷的棕色狐狸跳过了懒惰的狗。
+        <div class="history-meta">
+          <button class="btn btn-icon btn-sm" style="font-size: 11px;">📋</button>
+          <button class="btn btn-icon btn-sm" style="font-size: 11px;">🔊</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="history-item">
+      <div class="history-source">
+        Machine learning is a subset of artificial intelligence.
+        <div class="history-meta">
+          <span class="history-tag">EN→ZH</span>
+          <span>🧠 DeepSeek</span>
+          <span>04-19 01:10</span>
+        </div>
+      </div>
+      <div class="history-target">
+        机器学习是人工智能的一个子集。
+        <div class="history-meta">
+          <button class="btn btn-icon btn-sm" style="font-size: 11px;">📋</button>
+          <button class="btn btn-icon btn-sm" style="font-size: 11px;">🔊</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="history-item">
+      <div class="history-source">
+        你好，世界！
+        <div class="history-meta">
+          <span class="history-tag">ZH→EN</span>
+          <span>☁️ 彩云小译</span>
+          <span>04-18 23:45</span>
+          <span style="color: var(--warning);">⭐</span>
+        </div>
+      </div>
+      <div class="history-target">
+        Hello, World!
+        <div class="history-meta">
+          <button class="btn btn-icon btn-sm" style="font-size: 11px;">📋</button>
+          <button class="btn btn-icon btn-sm" style="font-size: 11px;">🔊</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 5. About ==================== -->
+<div class="section-label" style="margin-top: 20px;">⑤ 关于页签</div>
+
+<div class="window small">
+  <div class="titlebar">
+    <div class="titlebar-left">
+      <span class="titlebar-title"><img class="app-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM3QzVDRkMiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNUEzRkQ2Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUxIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNGRkZGRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjRThFNEY1Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUyIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNFMERCRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjQzhCRkZGIi8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KCiAgPCEtLSBSb3VuZGVkIHNxdWFyZSBiYWNrZ3JvdW5kIC0tPgogIDxyZWN0IHg9IjMyIiB5PSIzMiIgd2lkdGg9IjQ0OCIgaGVpZ2h0PSI0NDgiIHJ4PSI5NiIgcnk9Ijk2IiBmaWxsPSJ1cmwoI2JnKSIvPgoKICA8IS0tIFNwZWVjaCBidWJibGUgdG9wLWxlZnQgKHNvdXJjZSBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoODgsIDEwMCkiPgogICAgPHBhdGggZD0iTTEwLDAgSDE1MCBRMTYwLDAgMTYwLDEwIFY5MCBRMTYwLDEwMCAxNTAsMTAwIEg2MCBMMzAsMTI1IEw0MCwxMDAgSDEwIFEwLDEwMCAwLDkwIFYxMCBRMCwwIDEwLDAgWiIgZmlsbD0idXJsKCNidWJibGUxKSIgb3BhY2l0eT0iMC45NSIvPgogICAgPCEtLSAiQSIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkludGVyLCBBcmlhbCBCbGFjaywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MiIgZmlsbD0iIzVBM0ZENiI+QTwvdGV4dD4KICA8L2c+CgogIDwhLS0gU3BlZWNoIGJ1YmJsZSBib3R0b20tcmlnaHQgKHRhcmdldCBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjU1LCAyNDApIj4KICAgIDxwYXRoIGQ9Ik0xMCwwIEgxNTAgUTE2MCwwIDE2MCwxMCBWOTAgUTE2MCwxMDAgMTUwLDEwMCBIMTQwIEwxNzAsMTI1IEwxMDAsMTAwIEgxMCBRMCwxMDAgMCw5MCBWMTAgUTAsMCAxMCwwIFoiIGZpbGw9InVybCgjYnViYmxlMikiIG9wYWNpdHk9IjAuOTUiLz4KICAgIDwhLS0gIuaWhyIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IlBpbmdGYW5nIFNDLCBNaWNyb3NvZnQgWWFIZWksIE5vdG8gU2FucyBTQywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MCIgZmlsbD0iIzVBM0ZENiI+5paHPC90ZXh0PgogIDwvZz4KCiAgPCEtLSBUcmFuc2xhdGlvbiBhcnJvd3MgYmV0d2VlbiBidWJibGVzIC0tPgogIDxnIHN0cm9rZT0iI0ZGRkZGRiIgc3Ryb2tlLXdpZHRoPSI2IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIG9wYWNpdHk9IjAuOSI+CiAgICA8IS0tIEFycm93OiB0b3AtbGVmdCB0byBib3R0b20tcmlnaHQgLS0+CiAgICA8cGF0aCBkPSJNMjIwLDE2MCBMMjkwLDI5MCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyOTAsMjkwIDI3NiwyNzIgMjk2LDI3OCIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgICA8IS0tIEFycm93OiBib3R0b20tcmlnaHQgdG8gdG9wLWxlZnQgLS0+CiAgICA8cGF0aCBkPSJNMjkwLDIwMCBMMjIwLDMzMCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyMjAsMzMwIDIzNCwzNDggMjE0LDM0MiIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgPC9nPgoKICA8IS0tIFNtYWxsIGRlY29yYXRpdmUgZG90cyAtLT4KICA8Y2lyY2xlIGN4PSIzOTUiIGN5PSIxMzAiIHI9IjYiIGZpbGw9IiNGRkZGRkYiIG9wYWNpdHk9IjAuNCIvPgogIDxjaXJjbGUgY3g9IjQxMCIgY3k9IjE1MCIgcj0iNCIgZmlsbD0iI0ZGRkZGRiIgb3BhY2l0eT0iMC4zIi8+CiAgPGNpcmNsZSBjeD0iMTEwIiBjeT0iMzcwIiByPSI1IiBmaWxsPSIjRkZGRkZGIiBvcGFjaXR5PSIwLjMiLz4KPC9zdmc+Cg==" alt="DotTranslator"> DotTranslator — 关于</span>
+    </div>
+    <div class="titlebar-controls">
+      <button class="win-btn win-btn-theme" title="切换主题" onclick="toggleTheme()">🌙</button>
+      <button class="win-btn win-btn-pin" title="置顶" onclick="this.classList.toggle('pinned'); this.textContent=this.classList.contains('pinned')?'📍':'📌'; this.title=this.classList.contains('pinned')?'取消置顶':'置顶'">📌</button>
+      <div class="win-btn-divider"></div>
+      <button class="win-btn" title="最小化">─</button>
+      <button class="win-btn" title="最大化">□</button>
+      <button class="win-btn win-btn-close" title="关闭">✕</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="about-center">
+      <div class="about-logo"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM3QzVDRkMiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNUEzRkQ2Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUxIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNGRkZGRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjRThFNEY1Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUyIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNFMERCRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjQzhCRkZGIi8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KCiAgPCEtLSBSb3VuZGVkIHNxdWFyZSBiYWNrZ3JvdW5kIC0tPgogIDxyZWN0IHg9IjMyIiB5PSIzMiIgd2lkdGg9IjQ0OCIgaGVpZ2h0PSI0NDgiIHJ4PSI5NiIgcnk9Ijk2IiBmaWxsPSJ1cmwoI2JnKSIvPgoKICA8IS0tIFNwZWVjaCBidWJibGUgdG9wLWxlZnQgKHNvdXJjZSBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoODgsIDEwMCkiPgogICAgPHBhdGggZD0iTTEwLDAgSDE1MCBRMTYwLDAgMTYwLDEwIFY5MCBRMTYwLDEwMCAxNTAsMTAwIEg2MCBMMzAsMTI1IEw0MCwxMDAgSDEwIFEwLDEwMCAwLDkwIFYxMCBRMCwwIDEwLDAgWiIgZmlsbD0idXJsKCNidWJibGUxKSIgb3BhY2l0eT0iMC45NSIvPgogICAgPCEtLSAiQSIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkludGVyLCBBcmlhbCBCbGFjaywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MiIgZmlsbD0iIzVBM0ZENiI+QTwvdGV4dD4KICA8L2c+CgogIDwhLS0gU3BlZWNoIGJ1YmJsZSBib3R0b20tcmlnaHQgKHRhcmdldCBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjU1LCAyNDApIj4KICAgIDxwYXRoIGQ9Ik0xMCwwIEgxNTAgUTE2MCwwIDE2MCwxMCBWOTAgUTE2MCwxMDAgMTUwLDEwMCBIMTQwIEwxNzAsMTI1IEwxMDAsMTAwIEgxMCBRMCwxMDAgMCw5MCBWMTAgUTAsMCAxMCwwIFoiIGZpbGw9InVybCgjYnViYmxlMikiIG9wYWNpdHk9IjAuOTUiLz4KICAgIDwhLS0gIuaWhyIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IlBpbmdGYW5nIFNDLCBNaWNyb3NvZnQgWWFIZWksIE5vdG8gU2FucyBTQywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MCIgZmlsbD0iIzVBM0ZENiI+5paHPC90ZXh0PgogIDwvZz4KCiAgPCEtLSBUcmFuc2xhdGlvbiBhcnJvd3MgYmV0d2VlbiBidWJibGVzIC0tPgogIDxnIHN0cm9rZT0iI0ZGRkZGRiIgc3Ryb2tlLXdpZHRoPSI2IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIG9wYWNpdHk9IjAuOSI+CiAgICA8IS0tIEFycm93OiB0b3AtbGVmdCB0byBib3R0b20tcmlnaHQgLS0+CiAgICA8cGF0aCBkPSJNMjIwLDE2MCBMMjkwLDI5MCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyOTAsMjkwIDI3NiwyNzIgMjk2LDI3OCIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgICA8IS0tIEFycm93OiBib3R0b20tcmlnaHQgdG8gdG9wLWxlZnQgLS0+CiAgICA8cGF0aCBkPSJNMjkwLDIwMCBMMjIwLDMzMCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyMjAsMzMwIDIzNCwzNDggMjE0LDM0MiIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgPC9nPgoKICA8IS0tIFNtYWxsIGRlY29yYXRpdmUgZG90cyAtLT4KICA8Y2lyY2xlIGN4PSIzOTUiIGN5PSIxMzAiIHI9IjYiIGZpbGw9IiNGRkZGRkYiIG9wYWNpdHk9IjAuNCIvPgogIDxjaXJjbGUgY3g9IjQxMCIgY3k9IjE1MCIgcj0iNCIgZmlsbD0iI0ZGRkZGRiIgb3BhY2l0eT0iMC4zIi8+CiAgPGNpcmNsZSBjeD0iMTEwIiBjeT0iMzcwIiByPSI1IiBmaWxsPSIjRkZGRkZGIiBvcGFjaXR5PSIwLjMiLz4KPC9zdmc+Cg==" alt="DotTranslator" style="width:80px; height:80px; border-radius:18px; box-shadow: var(--outset-shadow);"></div>
+      <div class="about-name">DotTranslator <span style="font-size:14px; color:var(--text-secondary); font-weight:400;">v1.0.0</span></div>
+      <div class="about-version">.NET 8 + Avalonia UI · 多引擎翻译工具</div>
+      <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.7;">
+        轻量免费的多引擎翻译工具<br>
+        支持 5 家翻译引擎并行对比
+      </div>
+      <div class="about-actions">
+        <button class="btn">检查更新</button>
+        <button class="btn">开源协议</button>
+        <button class="btn" style="background: var(--accent); color: #fff;">☕ 请我喝杯咖啡</button>
+        <button class="btn">📝 提交反馈</button>
+        <button class="btn">💬 社区讨论</button>
+        <button class="btn">🔑 隐私政策</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 6. Donate Popup ==================== -->
+<div class="section-label" style="margin-top: 20px;">⑥ 打赏弹窗</div>
+
+<div class="window popup" style="padding: 0;">
+  <div style="position: relative; background: var(--bg); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); padding: 32px; text-align: center;">
+    <button class="donate-close">✕</button>
+
+    <div class="donate-icon">☕</div>
+    <div class="donate-title">请我喝杯咖啡</div>
+
+    <div class="donate-desc">
+      DotTranslator 完全免费，如果你觉得好用，<br>
+      可以请开发者喝杯咖啡 ☕
+    </div>
+    <div class="donate-desc donate-desc-accent">
+      你的支持是我持续更新的动力！<br>
+      每一份打赏都会让这个项目走得更远 💜
+    </div>
+
+    <div class="donate-qr-grid">
+      <div class="donate-qr-item">
+        <div class="donate-qr-box">
+          <div class="qr-placeholder">
+            <span class="qr-icon">📱</span>
+            <span class="qr-text">微信收款码</span>
+          </div>
+        </div>
+        <div class="donate-qr-label">微信支付</div>
+      </div>
+      <div class="donate-qr-item">
+        <div class="donate-qr-box">
+          <div class="qr-placeholder">
+            <span class="qr-icon">📱</span>
+            <span class="qr-text">支付宝收款码</span>
+          </div>
+        </div>
+        <div class="donate-qr-label">支付宝</div>
+      </div>
+    </div>
+
+    <button class="btn" style="margin-top: 8px;">关闭</button>
+  </div>
+</div>
+
+<!-- ==================== 7. Component Showcase ==================== -->
+<div class="section-label" style="margin-top: 20px;">⑦ 控件拟态效果展示</div>
+<div class="section-sublabel">按钮 · 输入框 · 开关 · 卡片 · 进度条</div>
+
+<div class="window">
+  <div class="titlebar">
+    <div class="titlebar-left">
+      <span class="titlebar-title"><img class="app-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM3QzVDRkMiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNUEzRkQ2Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUxIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNGRkZGRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjRThFNEY1Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUyIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNFMERCRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjQzhCRkZGIi8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KCiAgPCEtLSBSb3VuZGVkIHNxdWFyZSBiYWNrZ3JvdW5kIC0tPgogIDxyZWN0IHg9IjMyIiB5PSIzMiIgd2lkdGg9IjQ0OCIgaGVpZ2h0PSI0NDgiIHJ4PSI5NiIgcnk9Ijk2IiBmaWxsPSJ1cmwoI2JnKSIvPgoKICA8IS0tIFNwZWVjaCBidWJibGUgdG9wLWxlZnQgKHNvdXJjZSBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoODgsIDEwMCkiPgogICAgPHBhdGggZD0iTTEwLDAgSDE1MCBRMTYwLDAgMTYwLDEwIFY5MCBRMTYwLDEwMCAxNTAsMTAwIEg2MCBMMzAsMTI1IEw0MCwxMDAgSDEwIFEwLDEwMCAwLDkwIFYxMCBRMCwwIDEwLDAgWiIgZmlsbD0idXJsKCNidWJibGUxKSIgb3BhY2l0eT0iMC45NSIvPgogICAgPCEtLSAiQSIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkludGVyLCBBcmlhbCBCbGFjaywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MiIgZmlsbD0iIzVBM0ZENiI+QTwvdGV4dD4KICA8L2c+CgogIDwhLS0gU3BlZWNoIGJ1YmJsZSBib3R0b20tcmlnaHQgKHRhcmdldCBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjU1LCAyNDApIj4KICAgIDxwYXRoIGQ9Ik0xMCwwIEgxNTAgUTE2MCwwIDE2MCwxMCBWOTAgUTE2MCwxMDAgMTUwLDEwMCBIMTQwIEwxNzAsMTI1IEwxMDAsMTAwIEgxMCBRMCwxMDAgMCw5MCBWMTAgUTAsMCAxMCwwIFoiIGZpbGw9InVybCgjYnViYmxlMikiIG9wYWNpdHk9IjAuOTUiLz4KICAgIDwhLS0gIuaWhyIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IlBpbmdGYW5nIFNDLCBNaWNyb3NvZnQgWWFIZWksIE5vdG8gU2FucyBTQywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MCIgZmlsbD0iIzVBM0ZENiI+5paHPC90ZXh0PgogIDwvZz4KCiAgPCEtLSBUcmFuc2xhdGlvbiBhcnJvd3MgYmV0d2VlbiBidWJibGVzIC0tPgogIDxnIHN0cm9rZT0iI0ZGRkZGRiIgc3Ryb2tlLXdpZHRoPSI2IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIG9wYWNpdHk9IjAuOSI+CiAgICA8IS0tIEFycm93OiB0b3AtbGVmdCB0byBib3R0b20tcmlnaHQgLS0+CiAgICA8cGF0aCBkPSJNMjIwLDE2MCBMMjkwLDI5MCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyOTAsMjkwIDI3NiwyNzIgMjk2LDI3OCIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgICA8IS0tIEFycm93OiBib3R0b20tcmlnaHQgdG8gdG9wLWxlZnQgLS0+CiAgICA8cGF0aCBkPSJNMjkwLDIwMCBMMjIwLDMzMCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyMjAsMzMwIDIzNCwzNDggMjE0LDM0MiIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgPC9nPgoKICA8IS0tIFNtYWxsIGRlY29yYXRpdmUgZG90cyAtLT4KICA8Y2lyY2xlIGN4PSIzOTUiIGN5PSIxMzAiIHI9IjYiIGZpbGw9IiNGRkZGRkYiIG9wYWNpdHk9IjAuNCIvPgogIDxjaXJjbGUgY3g9IjQxMCIgY3k9IjE1MCIgcj0iNCIgZmlsbD0iI0ZGRkZGRiIgb3BhY2l0eT0iMC4zIi8+CiAgPGNpcmNsZSBjeD0iMTEwIiBjeT0iMzcwIiByPSI1IiBmaWxsPSIjRkZGRkZGIiBvcGFjaXR5PSIwLjMiLz4KPC9zdmc+Cg==" alt="DotTranslator"> 控件展示</span>
+    </div>
+    <div class="titlebar-controls">
+      <button class="win-btn win-btn-theme" title="切换主题" onclick="toggleTheme()">🌙</button>
+      <button class="win-btn win-btn-pin" title="置顶" onclick="this.classList.toggle('pinned'); this.textContent=this.classList.contains('pinned')?'📍':'📌'; this.title=this.classList.contains('pinned')?'取消置顶':'置顶'">📌</button>
+      <div class="win-btn-divider"></div>
+      <button class="win-btn" title="最小化">─</button>
+      <button class="win-btn" title="最大化">□</button>
+      <button class="win-btn win-btn-close" title="关闭">✕</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="settings-section">
+      <div class="settings-section-title">🔘 按钮</div>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px;">
+        <button class="btn">默认按钮</button>
+        <button class="btn pressed">按下态</button>
+        <button class="btn btn-primary">主按钮</button>
+        <button class="btn btn-primary pressed">主按钮按下</button>
+        <button class="btn btn-sm">小按钮</button>
+        <button class="btn btn-icon">📋</button>
+        <button class="btn btn-icon">🔊</button>
+        <button class="btn btn-icon">⭐</button>
+        <button class="btn btn-icon">📌</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">📝 输入框</div>
+      <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+        <div class="panel" style="flex:1; min-height: auto; padding: 12px 16px;">
+          <span style="color: var(--text-secondary); font-size: 13px;">在此输入要翻译的文本...</span>
+        </div>
+        <select class="lang-select">
+          <option>下拉选择</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">🎚️ 开关</div>
+      <div style="display: flex; gap: 24px; align-items: center; margin-bottom: 20px;">
+        <div class="toggle-row">
+          <label class="toggle-switch"><input type="checkbox"><span class="toggle-slider"></span></label>
+          <span style="font-size: 13px;">关闭</span>
+        </div>
+        <div class="toggle-row">
+          <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+          <span style="font-size: 13px;">开启</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">📊 进度条（额度）</div>
+      <div style="display: flex; gap: 16px; align-items: center;">
+        <div class="quota-bar" style="width: 200px;"><div class="quota-fill green" style="width: 30%;"></div></div>
+        <span style="font-size: 12px; color: var(--text-secondary);">30% 正常</span>
+        <div class="quota-bar" style="width: 200px;"><div class="quota-fill yellow" style="width: 75%;"></div></div>
+        <span style="font-size: 12px; color: var(--warning);">75% 预警</span>
+        <div class="quota-bar" style="width: 200px;"><div class="quota-fill red" style="width: 95%;"></div></div>
+        <span style="font-size: 12px; color: var(--error);">95% 耗尽</span>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">🏷️ 标签 & 状态</div>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <span class="label-tag tag-accent">推荐</span>
+        <span class="label-tag tag-success">正常</span>
+        <span class="history-tag">EN→ZH</span>
+        <span class="progress-badge">3/5 已完成</span>
+        <span style="font-size: 12px; color: var(--success);">● 在线</span>
+        <span style="font-size: 12px; color: var(--warning);">● 预警</span>
+        <span style="font-size: 12px; color: var(--error);">● 离线</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 8. Onboarding ==================== -->
+<div class="section-label" style="margin-top: 40px;">⑧ 首次使用引导流程（3 步）</div>
+<div class="section-sublabel">选引擎 → 填 API Key → 选语言</div>
+
+<!-- Step 1: Choose Engines -->
+<div class="window" style="max-width: 440px;">
+  <div class="content" style="padding: 32px;">
+    <div class="onboarding-step">
+      <div class="onboarding-dot active"></div>
+      <div class="onboarding-dot"></div>
+      <div class="onboarding-dot"></div>
+    </div>
+    <div class="onboarding-title">欢迎使用 DotTranslator 🌍</div>
+    <div class="onboarding-subtitle">轻量、免费、多引擎聚合对比的桌面翻译工具</div>
+    <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">步骤 1/3：选择默认翻译引擎</div>
+    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">推荐组合（900 万+ 免费字符/月）：</div>
+    <div class="engine-check-item">
+      <input type="checkbox" checked> <span>🔥 火山翻译</span>
+      <span class="engine-free">200 万/月</span>
+      <button class="btn btn-sm" style="font-size:10px; padding: 3px 8px;">📖 申请指南</button>
+    </div>
+    <div class="engine-check-item">
+      <input type="checkbox" checked> <span>🐧 腾讯翻译君</span>
+      <span class="engine-free">500 万/月</span>
+      <button class="btn btn-sm" style="font-size:10px; padding: 3px 8px;">📖 申请指南</button>
+    </div>
+    <div class="engine-check-item">
+      <input type="checkbox"> <span>🐻 百度翻译</span>
+      <span class="engine-free">5-100 万/月</span>
+      <button class="btn btn-sm" style="font-size:10px; padding: 3px 8px;">📖 申请指南</button>
+    </div>
+    <div class="engine-check-item">
+      <input type="checkbox"> <span>☁️ 彩云小译</span>
+      <span class="engine-free">100 万/月</span>
+      <button class="btn btn-sm" style="font-size:10px; padding: 3px 8px;">📖 申请指南</button>
+    </div>
+    <div style="font-size: 11px; color: var(--accent); margin: 12px 0 16px;">💡 至少选择 2 个引擎才能启用多引擎对比功能</div>
+    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+      <button class="btn btn-sm">跳过，直接使用</button>
+      <button class="btn btn-primary">下一步</button>
+    </div>
+  </div>
+</div>
+
+<!-- Step 2: API Key -->
+<div class="window" style="max-width: 440px; margin-top: 20px;">
+  <div class="content" style="padding: 32px;">
+    <div class="onboarding-step">
+      <div class="onboarding-dot done">✓</div>
+      <div class="onboarding-dot active"></div>
+      <div class="onboarding-dot"></div>
+    </div>
+    <div style="font-size: 14px; font-weight: 600; margin-bottom: 16px;">步骤 2/3：填写 API Key</div>
+    <div class="engine-key-setting">
+      <div class="engine-key-header">
+        <span class="engine-key-name">🔥 火山翻译</span>
+        <span class="key-status key-status-ok">✅ 已连接</span>
+      <div class="key-input-row">
+        <span class="key-label">API Key</span>
+        <input class="key-input" type="password" value="sk-xxxxxxxxxxxxabcd">
+        <button class="btn btn-sm" style="font-size:10px; padding:3px 8px;">👁</button>
+        <button class="btn btn-sm" style="font-size:10px; padding:3px 8px;">📋 粘贴</button>
+      </div>
+      <div class="key-input-row">
+        <span class="key-label">Secret</span>
+        <input class="key-input" type="password" value="xxxxxxxxxxxxefgh">
+        <button class="btn btn-sm" style="font-size:10px; padding:3px 8px;">👁</button>
+      </div>
+            </div><div style="text-align: right; margin-top: 4px;">
+        <button class="btn btn-sm" style="font-size:10px; padding:3px 10px;">🔑 测试连接</button>
+      </div>
+    </div>
+    <div class="engine-key-setting">
+      <div class="engine-key-header">
+        <span class="engine-key-name">🐧 腾讯翻译君</span>
+        <span class="key-status key-status-pending">⏳ 未验证</span>
+      </div>
+      <div class="key-input-row">
+        <span class="key-label">SecretId</span>
+        <input class="key-input" placeholder="粘贴 SecretId...">
+        <button class="btn btn-sm" style="font-size:10px; padding:3px 8px;">📋 粘贴</button>
+      </div>
+      <div class="key-input-row">
+        <span class="key-label">SecretKey</span>
+        <input class="key-input" type="password" placeholder="粘贴 SecretKey...">
+        <button class="btn btn-sm" style="font-size:10px; padding:3px 8px;">👁</button>
+      </div>
+      <div style="text-align: right; margin-top: 4px;">
+        <button class="btn btn-sm" style="font-size:10px; padding:3px 10px;">🔑 测试连接</button>
+      </div>
+    </div>
+    <div style="font-size: 11px; color: var(--text-secondary); margin: 8px 0 16px; text-align: center;">🔒 API Key 仅存储在本地，加密保存，不会上传到任何服务器</div>
+    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+      <button class="btn btn-sm">上一步</button>
+      <button class="btn btn-primary">下一步</button>
+    </div>
+  </div>
+</div>
+
+<!-- Step 3: Languages -->
+<div class="window" style="max-width: 440px; margin-top: 20px;">
+  <div class="content" style="padding: 32px;">
+    <div class="onboarding-step">
+      <div class="onboarding-dot done">✓</div>
+      <div class="onboarding-dot done">✓</div>
+      <div class="onboarding-dot active"></div>
+    </div>
+    <div style="font-size: 14px; font-weight: 600; margin-bottom: 16px;">步骤 3/3：选择常用语言</div>
+    <div class="setting-row">
+      <div class="setting-label">默认源语言</div>
+      <select class="lang-select" style="font-size:12px; padding:6px 28px 6px 10px;"><option>自动检测</option></select>
+    </div>
+    <div class="setting-row">
+      <div class="setting-label">默认目标语言</div>
+      <select class="lang-select" style="font-size:12px; padding:6px 28px 6px 10px;"><option>英语</option></select>
+    </div>
+    <div style="font-size: 12px; color: var(--text-secondary); margin: 12px 0 8px;">常用语言（翻译时优先显示）：</div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;">
+      <label class="feedback-check"><input type="checkbox" checked> 英语</label>
+      <label class="feedback-check"><input type="checkbox" checked> 日语</label>
+      <label class="feedback-check"><input type="checkbox" checked> 韩语</label>
+      <label class="feedback-check"><input type="checkbox"> 法语</label>
+      <label class="feedback-check"><input type="checkbox"> 德语</label>
+    </div>
+    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+      <button class="btn btn-sm">上一步</button>
+      <button class="btn btn-primary">✅ 完成设置</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 9. Error Scenarios ==================== -->
+<div class="section-label" style="margin-top: 40px;">⑨ 错误场景 UI 集合</div>
+<div class="section-sublabel">网络断开 · Key 无效 · 接口异常 · 全部不可用</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 740px;">
+  <!-- Network Error -->
+  <div class="error-dialog">
+    <div class="error-dialog-icon">⚠️</div>
+    <div class="error-dialog-title">网络连接失败</div>
+    <div class="error-dialog-desc">
+      无法连接到翻译服务，请检查：<br>
+      • 网络连接是否正常<br>
+      • 是否需要开启代理/VPN
+    </div>
+    <div class="error-dialog-actions">
+      <button class="btn btn-sm">🔄 重试</button>
+      <button class="btn btn-sm">⚙️ 网络设置</button>
+    </div>
+  </div>
+
+  <!-- API Key Invalid -->
+  <div class="error-dialog">
+    <div class="error-dialog-icon">🔑</div>
+    <div class="error-dialog-title">火山翻译 API Key 无效</div>
+    <div class="error-dialog-desc">
+      可能原因：<br>
+      • API Key 已过期或被吊销<br>
+      • Key 格式错误<br>
+      • 账号欠费或被冻结
+    </div>
+    <div class="error-dialog-actions">
+      <button class="btn btn-sm">⚙️ 前往设置</button>
+      <button class="btn btn-sm">📖 申请指南</button>
+    </div>
+  </div>
+
+  <!-- Parse Error -->
+  <div class="error-dialog">
+    <div class="error-dialog-icon">💥</div>
+    <div class="error-dialog-title">百度翻译返回格式异常</div>
+    <div class="error-dialog-desc">
+      连续 3 次无法解析翻译结果：<br>
+      • 服务商更新了接口格式<br>
+      • 请求参数不兼容<br><br>
+      <span style="color: var(--warning); font-size: 12px;">已自动暂停使用此引擎</span>
+    </div>
+    <div class="error-dialog-actions">
+      <button class="btn btn-sm">📋 导出错误详情</button>
+      <button class="btn btn-sm">🔗 提交反馈</button>
+    </div>
+  </div>
+
+  <!-- All Providers Exhausted -->
+  <div class="error-dialog">
+    <div class="error-dialog-icon">🚫</div>
+    <div class="error-dialog-title">所有翻译引擎暂不可用</div>
+    <div style="text-align: left; font-size: 12px; margin-bottom: 12px; padding: 8px 12px; border-radius: 8px; box-shadow: var(--inset-shadow);">
+      <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+        <span>🔥 火山翻译</span><span style="color:var(--error);">🔴 API Key 无效</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+        <span>🐧 腾讯翻译</span><span style="color:var(--warning);">🟡 额度耗尽</span>
+      </div>
+      <div style="display:flex; justify-content:space-between;">
+        <span>🐻 百度翻译</span><span style="color:var(--error);">🔴 网络错误</span>
+      </div>
+    </div>
+    <div class="error-dialog-actions">
+      <button class="btn btn-sm">⚙️ 前往设置</button>
+      <button class="btn btn-sm">📊 诊断报告</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 10. API Key Settings (Enhanced) ==================== -->
+<div class="section-label" style="margin-top: 40px;">⑩ API Key 设置页（含验证状态）</div>
+<div class="section-sublabel">输入框 · 测试连接 · 验证反馈 · 用量进度条</div>
+
+<div class="window" style="max-width: 500px;">
+  <div class="titlebar">
+    <div class="titlebar-left">
+      <span class="titlebar-title">⚙️ 翻译引擎管理</span>
+    </div>
+    <div class="titlebar-controls">
+      <button class="win-btn win-btn-theme" onclick="toggleTheme()">🌙</button>
+      <button class="win-btn">─</button>
+      <button class="win-btn">□</button>
+      <button class="win-btn win-btn-close">✕</button>
+    </div>
+  </div>
+  <div class="content">
+    <!-- Engine 1: Connected -->
+    <div class="engine-key-setting">
+      <div class="engine-key-header">
+        <div>
+          <span class="engine-key-name">🔥 火山翻译</span>
+          <span class="engine-key-quota"> · 免费 200 万/月</span>
+        </div>
+        <label class="toggle-switch" style="width:34px; height:18px;"><input type="checkbox" checked><span class="toggle-slider" style="border-radius:18px;"></span></label>
+      </div>
+      <div class="key-input-row">
+        <span class="key-label">API Key</span>
+        <input class="key-input" type="password" value="sk-xxxxxxxxxxxxabcd">
+        <button class="btn btn-sm" style="font-size:10px; padding:3px 6px;">👁</button>
+      </div>
+      <div class="key-input-row">
+        <span class="key-label">Secret</span>
+        <input class="key-input" type="password" value="xxxxxxxxxxxxefgh">
+        <button class="btn btn-sm" style="font-size:10px; padding:3px 6px;">👁</button>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+        <span class="key-status key-status-ok">✅ 已连接（上次验证: 2026-04-18）</span>
+        <button class="btn btn-sm" style="font-size:10px; padding:3px 10px;">🔑 测试连接</button>
+      </div>
+      <div style="margin-top:8px;">
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-secondary); margin-bottom:4px;">
+          <span>本月已用: 1,234,567 / 2,000,000</span><span>62%</span>
+        </div>
+        <div class="quota-bar"><div class="quota-fill green" style="width:62%;"></div></div>
+      </div>
+    </div>
+
+    <!-- Engine 2: Key Invalid -->
+    <div class="engine-key-setting" style="border: 1px solid rgba(225,112,85,0.3);">
+      <div class="engine-key-header">
+        <div>
+          <span class="engine-key-name">🐻 百度翻译</span>
+          <span class="engine-key-quota"> · 免费 5-100 万/月</span>
+        </div>
+        <label class="toggle-switch" style="width:34px; height:18px;"><input type="checkbox"><span class="toggle-slider" style="border-radius:18px;"></span></label>
+      </div>
+      <div class="key-input-row">
+        <span class="key-label">AppId</span>
+        <input class="key-input" value="2024010100" style="border: 1px solid rgba(225,112,85,0.4);">
+      </div>
+      <div class="key-input-row">
+        <span class="key-label">Secret</span>
+        <input class="key-input" type="password" value="wrong_key_here" style="border: 1px solid rgba(225,112,85,0.4);">
+        <button class="btn btn-sm" style="font-size:10px; padding:3px 6px;">👁</button>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+        <span class="key-status key-status-err">🔴 API Key 无效（HTTP 401）</span>
+        <button class="btn btn-sm" style="font-size:10px; padding:3px 10px;">🔑 测试连接</button>
+      </div>
+    </div>
+
+    <!-- Engine 3: Testing -->
+    <div class="engine-key-setting">
+      <div class="engine-key-header">
+        <div>
+          <span class="engine-key-name">☁️ 彩云小译</span>
+          <span class="engine-key-quota"> · 免费 100 万/月</span>
+        </div>
+        <label class="toggle-switch" style="width:34px; height:18px;"><input type="checkbox" checked><span class="toggle-slider" style="border-radius:18px;"></span></label>
+      </div>
+      <div class="key-input-row">
+        <span class="key-label">Token</span>
+        <input class="key-input" type="password" value="xxxxxxxxxxxxxxxx">
+        <button class="btn btn-sm" style="font-size:10px; padding:3px 6px;">👁</button>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+        <span class="key-status key-status-pending">⏳ 正在验证...</span>
+        <button class="btn btn-sm" style="font-size:10px; padding:3px 10px; opacity:0.5;">⏳ 测试中...</button>
+      </div>
+      <div style="margin-top:8px;">
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--warning); margin-bottom:4px;">
+          <span>本月已用: 890,000 / 1,000,000</span><span>89% ⚠️</span>
+        </div>
+        <div class="quota-bar"><div class="quota-fill yellow" style="width:89%;"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 11. Feedback Form ==================== -->
+<div class="section-label" style="margin-top: 40px;">⑪ 应用内反馈表单</div>
+
+<div class="window popup" style="max-width: 420px; padding: 0;">
+  <div style="position: relative; background: var(--bg); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); padding: 28px;">
+    <button class="donate-close">✕</button>
+    <div style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">📝 提交反馈</div>
+    <div class="feedback-form">
+      <div>
+        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">类型</div>
+        <div class="feedback-type-row">
+          <button class="feedback-type-btn active">🐛 Bug</button>
+          <button class="feedback-type-btn">💡 功能建议</button>
+          <button class="feedback-type-btn">💬 其他</button>
+        </div>
+      </div>
+      <div>
+        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">标题</div>
+        <input class="feedback-input" placeholder="简要描述问题或建议..." style="padding: 8px 12px;">
+      </div>
+      <div>
+        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">详细描述</div>
+        <textarea class="feedback-input" rows="3" placeholder="请描述复现步骤或具体需求..."></textarea>
+      </div>
+      <label class="feedback-check">
+        <input type="checkbox" checked> 附带诊断信息（引擎状态、版本号、错误日志）
+      </label>
+      <label class="feedback-check">
+        <input type="checkbox"> 附带截图
+      </label>
+      <div style="display:flex; gap: 8px; justify-content: flex-end; margin-top: 4px;">
+        <button class="btn btn-sm">取消</button>
+        <button class="btn btn-primary">提交到 GitHub</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleTheme() {
+  const body = document.body;
+  const isDark = body.getAttribute('data-theme') === 'dark';
+  if (isDark) {
+    body.removeAttribute('data-theme');
+    body.style.background = '#8a8fa0';
+    document.querySelectorAll('.win-btn-theme').forEach(b => b.textContent = '🌙');
+  } else {
+    body.setAttribute('data-theme', 'dark');
+    body.style.background = '#1a1c2e';
+    document.querySelectorAll('.win-btn-theme').forEach(b => b.textContent = '☀️');
+  }
+}
+
+// Tab switching demo
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    this.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+
+</body>
+</html>
+
