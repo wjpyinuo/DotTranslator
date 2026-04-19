@@ -3615,10 +3615,13 @@
         <button class="btn btn-sm" style="font-size:10px; padding:3px 10px;">🔑 测试连接</button>
       </div>
       <div style="margin-top:8px;">
-        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-secondary); margin-bottom:4px;">
-          <span>本月已用: 1,234,567 / 2,000,000</span><span>62%</span>
+        <div style="font-size:11px; color:var(--text-secondary); margin-bottom:4px;">
+          <span>本月已用: 1,234,567 / 2,000,000</span>
         </div>
-        <div class="quota-bar"><div class="quota-fill green" style="width:62%;"></div></div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div class="quota-bar" style="flex:1;"><div class="quota-fill green" style="width:62%;"></div></div>
+          <span style="font-size:11px; color:var(--text-secondary); font-weight:600; min-width:32px; text-align:right;">62%</span>
+        </div>
       </div>
     </div>
 
@@ -3665,10 +3668,13 @@
         <button class="btn btn-sm" style="font-size:10px; padding:3px 10px; opacity:0.5;">⏳ 测试中...</button>
       </div>
       <div style="margin-top:8px;">
-        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--warning); margin-bottom:4px;">
-          <span>本月已用: 890,000 / 1,000,000</span><span>89% ⚠️</span>
+        <div style="font-size:11px; color:var(--warning); margin-bottom:4px;">
+          <span>本月已用: 890,000 / 1,000,000</span>
         </div>
-        <div class="quota-bar"><div class="quota-fill yellow" style="width:89%;"></div></div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div class="quota-bar" style="flex:1;"><div class="quota-fill yellow" style="width:89%;"></div></div>
+          <span style="font-size:11px; color:var(--warning); font-weight:600; min-width:32px; text-align:right;">89% ⚠️</span>
+        </div>
       </div>
     </div>
   </div>
