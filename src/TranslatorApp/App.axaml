@@ -1,0 +1,24 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="using:TranslatorApp.Converters"
+             x:Class="TranslatorApp.App">
+
+  <Application.Resources>
+    <!-- 色彩 Token（浅色主题默认） -->
+    <ResourceInclude Source="avares://TranslatorApp/Assets/Themes/Colors.axaml" />
+
+    <!-- 转换器 -->
+    <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+  </Application.Resources>
+
+  <Application.Styles>
+    <!-- 基础字体 -->
+    <StyleInclude Source="avares://Avalonia.Fonts.Inter/Inter.axaml" />
+
+    <!-- Neumorphism 主题 -->
+    <StyleInclude Source="avares://TranslatorApp/Assets/Themes/Neumorphism/Button.axaml" />
+    <StyleInclude Source="avares://TranslatorApp/Assets/Themes/Neumorphism/TextBox.axaml" />
+    <!-- TODO: Week 2+ 添加更多控件主题 -->
+  </Application.Styles>
+
+</Application>
