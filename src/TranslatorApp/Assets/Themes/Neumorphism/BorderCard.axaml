@@ -1,37 +1,29 @@
-<!--
-  DotTranslator — Neumorphism Border Card ControlTheme
-  用法：<Border Theme="{StaticResource NeuCard}" ...>内容</Border>
-  变体：<Border Classes="flat" ... /> （无阴影）
--->
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
   <ControlTheme x:Key="NeuCard" TargetType="Border">
     <Setter Property="Background" Value="{DynamicResource CardBgBrush}" />
     <Setter Property="CornerRadius" Value="{DynamicResource Radius.Large}" />
-    <Setter Property="Padding" Value="{DynamicResource Space.L}" />
+    <Setter Property="Padding" Value="16" />
     <Setter Property="BorderThickness" Value="0" />
     <Setter Property="BoxShadow" Value="{DynamicResource Neu.Outset}" />
-    <Setter Property="RenderTransform" Value="translateY(0)" />
 
-    <!-- Hover 态：浮起 +2px + 阴影加深 -->
     <Style Selector="^:pointerover">
-      <Setter Property="RenderTransform" Value="translateY(-2px)" />
       <Setter Property="BoxShadow" Value="{DynamicResource Neu.OutsetHover}" />
+      <Setter Property="RenderTransform">
+        <TranslateTransform Y="-1" />
+      </Setter>
     </Style>
 
-    <!-- 变体：无阴影平面卡片 -->
     <Style Selector="^.flat">
       <Setter Property="BoxShadow" Value="{DynamicResource Neu.Flat}" />
     </Style>
 
-    <!-- 变体：强调色边框卡片 -->
     <Style Selector="^.accent">
       <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-      <Setter Property="BorderThickness" Value="2" />
+      <Setter Property="BorderThickness" Value="2,2" />
     </Style>
 
-    <!-- 变体：内凹卡片（输入区域包裹） -->
     <Style Selector="^.inset">
       <Setter Property="BoxShadow" Value="{DynamicResource Neu.Inset}" />
     </Style>

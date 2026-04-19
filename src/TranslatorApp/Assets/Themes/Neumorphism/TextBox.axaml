@@ -49,7 +49,7 @@
     <!-- Focus 态 -->
     <Style Selector="^:focus /template/ Border">
       <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-      <Setter Property="BorderThickness" Value="2" />
+      <Setter Property="BorderThickness" Value="2,2" />
     </Style>
   </ControlTheme>
 
