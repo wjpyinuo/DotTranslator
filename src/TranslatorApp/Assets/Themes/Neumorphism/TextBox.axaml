@@ -1,0 +1,44 @@
+<!--
+  DotTranslator — Neumorphism TextBox ControlTheme（Week 2 完善）
+  此为 Week 1 最小可编译版本，Week 2 补全内凹阴影/焦点态等
+-->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <ControlTheme x:Key="NeuTextBox" TargetType="TextBox">
+    <Setter Property="Background" Value="{DynamicResource InputBgBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.Medium}" />
+    <Setter Property="Padding" Value="14,10" />
+    <Setter Property="FontSize" Value="{DynamicResource FontSize.BodyLarge}" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{TemplateBinding Background}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}"
+                BoxShadow="{DynamicResource Neu.Inset}">
+          <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                        VerticalScrollBarVisibility="Auto">
+            <Panel>
+              <TextBlock Text="{TemplateBinding Watermark}"
+                         Foreground="{DynamicResource TextDisabledBrush}"
+                         IsVisible="{Binding Text, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+                         VerticalAlignment="Center" />
+              <ContentPresenter Content="{TemplateBinding Content}" />
+            </Panel>
+          </ScrollViewer>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- Focus 态 -->
+    <Style Selector="^:focus /template/ Border">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="BorderThickness" Value="2" />
+    </Style>
+  </ControlTheme>
+
+</ResourceDictionary>
