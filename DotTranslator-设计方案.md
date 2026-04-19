@@ -6660,6 +6660,93 @@ GitHub Release Pipeline (CI/CD)
 
 卸载时提示：「是否保留翻译历史和设置？」→ 保留则不删除 `%AppData%\DotTranslator\` 目录。
 
+#### 便携版（Self-Contained Portable）
+
+除安装版外，每个 Release 同时提供一个 Self-Contained 便携版，满足"不想安装、下载即用"的用户需求。
+
+| 项目 | 说明 |
+|---|---|
+| **文件名** | `DotTranslator-Portable-1.0.0.zip` |
+| **大小** | ~80MB（包含 .NET 8 运行时） |
+| **分发渠道** | GitHub Releases 第二个 Asset（非主渠道） |
+| **用户操作** | 解压 → 双击 `DotTranslator.exe` → 直接使用 |
+| **数据目录** | 与安装版相同：`%APPDATA%\DotTranslator\`（共享数据） |
+| **自动更新** | ❌ 不支持（便携版无 Velopack，需手动下载新版覆盖） |
+| **开机自启** | ❌ 不支持（无安装过程，无法注册自启动） |
+| **右键菜单** | ❌ 不支持（需管理员权限注册，便携版不做） |
+| **卸载** | 直接删除文件夹即可 |
+
+**与安装版的功能差异：**
+
+| 功能 | 安装版 | 便携版 |
+|---|---|---|
+| 核心翻译功能 | ✅ | ✅ |
+| 多引擎对比 | ✅ | ✅ |
+| 剪贴板监听 | ✅ | ✅ |
+| 全局热键 | ✅ | ✅ |
+| TTS 朗读 | ✅ | ✅ |
+| 系统托盘 | ✅ | ✅ |
+| 自动更新 | ✅ 增量更新 | ❌ 手动下载 |
+| 开机自启 | ✅ | ❌ |
+| 右键菜单集成 | ✅ | ❌ |
+| 桌面快捷方式 | ✅ 安装时创建 | ❌ 手动创建 |
+| 安装体积 | ~30MB | ~80MB（含运行时） |
+| 需要 .NET 8 | ❌（内置） | ❌（内置） |
+| 数据存储 | `%APPDATA%\DotTranslator\` | 同左（共享） |
+
+**构建方式：**
+
+```bash
+dotnet publish TranslatorApp/TranslatorApp.csproj \
+  -c Release \
+  -r win-x64 \
+  --self-contained true \
+  -p:PublishSingleFile=false \
+  -o publish/portable
+
+# 打包为 zip
+cd publish/portable && zip -r ../../DotTranslator-Portable-1.0.0.zip .
+```
+
+**CI 集成：**
+
+```yaml
+- name: Build Portable
+  run: |
+    dotnet publish TranslatorApp/TranslatorApp.csproj `
+      -c Release -r win-x64 --self-contained true `
+      -p:PublishSingleFile=false `
+      -o publish/portable
+    Compress-Archive -Path publish/portable/* `
+      -DestinationPath releases/DotTranslator-Portable-${{ env.VERSION }}.zip
+```
+
+**便携版与安装版共存说明：**
+
+- 两者共享同一数据目录（`%APPDATA%\DotTranslator\`），翻译历史、术语表、设置互通
+- 不要同时运行安装版和便携版（端口/热键冲突）
+- 从便携版迁移到安装版：直接安装，数据自动继承（检测到已有 `settings.json` 跳过引导）
+- 从安装版迁移到便携版：解压便携版后首次运行自动读取已有数据
+
+**目标用户画像：**
+
+| 用户类型 | 推荐版本 |
+|---|---|
+| 普通用户 | 安装版（自动更新、开机自启、右键菜单） |
+| 不想安装软件的用户 | 便携版（解压即用、可放 U 盘） |
+| 企业/受限环境（无管理员权限） | 便携版（不需要 UAC） |
+| 开发者/测试人员 | 便携版（方便切换版本） |
+
+**Release Assets 清单（每个版本）：**
+
+```
+v1.0.0 Release
+├── DotTranslator-Setup-1.0.0.exe          安装版（~30MB）← 主推
+├── DotTranslator-Portable-1.0.0.zip       便携版（~80MB）← 备选
+├── DotTranslator-1.0.0-delta.nupkg        增量更新包（~4MB）
+└── manifest.json                          更新清单
+```
+
 #### 卸载行为
 
 | 行为 | 说明 |
