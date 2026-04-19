@@ -1225,15 +1225,15 @@ public class ComparisonResult
 
 #### 动画与过渡
 
-| 场景 | 动画 |
-|---|---|
-| 卡片出现 | 从底部滑入 + 淡入（200ms ease-out），按完成顺序依次出现 |
-| 卡片内译文 | 逐字淡入（每个字 30ms 延迟），营造「实时翻译」感 |
-| 骨架屏 | 脉冲呼吸动画（浅色闪烁，1.5s 循环） |
-| 收藏星星 | 点击时放大 1.3x → 回弹 1.0x + 金色闪光（300ms） |
-| 复制成功 | 按钮变绿 + 文字「已复制 ✅」→ 2s 后恢复 |
-| 进度更新 | 头部进度条平滑填充 |
-| 错误卡片 | 红色边框 + 抖动 200ms |
+| 场景 | 动画 | Avalonia 可行性 |
+|---|---|---|
+| 卡片出现 | 从底部滑入 + 淡入（200ms ease-out），按完成顺序依次出现 | ✅ `RenderTransform` + `Transitions` |
+| 卡片内译文 | 逐字淡入（每个字 30ms 延迟），营造「实时翻译」感 | ⚠️ 需自定义 TextBlock 或按字符分 span，v1.0 可降级为整体淡入 |
+| 骨架屏 | 脉冲呼吸动画（浅色闪烁，1.5s 循环） | ✅ `opacity` 动画循环 |
+| 收藏星星 | 点击时放大 1.3x → 回弹 1.0x + 金色闪光（300ms） | ✅ `ScaleTransform` + `Transitions` |
+| 复制成功 | 按钮变绿 + 文字「已复制 ✅」→ 2s 后恢复 | ✅ 数据绑定 + `Transitions` |
+| 进度更新 | 头部进度条平滑填充 | ✅ `ProgressBar.Value` 动画 |
+| 错误卡片 | 红色边框 + 抖动 200ms | ✅ `RenderTransform` 水平位移动画 |
 
 ---
 
@@ -1837,7 +1837,22 @@ TTS 设置
 #### 剪贴板监听实现
 
 ```csharp
-public class ClipboardMonitor : IDisposable
+/// <summary>
+/// 剪贴板监听接口 — 抽象化以隔离平台相关实现。
+/// Windows 实现使用 Win32 AddClipboardFormatListener P/Invoke。
+/// </summary>
+public interface IClipboardMonitor : IDisposable
+{
+    event EventHandler<string>? ClipboardChanged;
+    void Start();
+    void Stop();
+}
+
+/// <summary>
+/// Windows 实现：通过 Win32 WM_CLIPBOARDUPDATE 消息监听剪贴板变化。
+/// 需要 Avalonia Window 句柄，通过 PlatformImpl 获取（内部 API，需版本锁定）。
+/// </summary>
+public class WindowsClipboardMonitor : IClipboardMonitor
 {
     private readonly IntPtr _hwnd;
     private readonly int _minIntervalMs = 800;
@@ -2080,6 +2095,8 @@ TxtExtr  DocxExtr  PptxExtr   MdExtr    HtmlExtr   SubExtr
 ├─ 备注栏 → Segment(Type=SpeakerNote, Slide=N)
 ├─ 表格 → Segment(Type=TableCell, Slide=N, Row=R, Col=C)
 └─ SmartArt 文字 → Segment(Type=SmartArt, Slide=N) [仅提取文字，不重建图形]
+
+> ⚠️ SmartArt 提取说明：`DocumentFormat.OpenXml` 无法直接读取 SmartArt 节点文字，需要手动解析 SmartArt 嵌入的 DataModel XML（`/diagrams/data*.xml`）。v1.0 对 SmartArt 仅做"尽力而为"提取——能提取到的文字翻译后回填，无法提取的保留原文。SmartArt 翻译不作为验收标准。
 ```
 
 - 每张幻灯片独立处理
@@ -2821,6 +2838,8 @@ This project aims to develop a lightweight desktop translation tool.
 ├── □ 最大化
 └── ✕ 关闭（hover 变红）
 
+> **自定义标题栏实现方案：** 使用 Avalonia `ExtendClientAreaToDecorationsHint="True"` 隐藏原生标题栏，在 AXAML 中用 `CaptionHeight` 区域定义自定义标题栏模板。窗口拖拽区域通过 `WindowChrome` 设置，最小化/最大化/关闭按钮绑定 `Window.WindowState` 命令。主题切换和置顶按钮放在标题栏模板左侧，窗口控件在右侧。
+
 打赏窗体（弹窗，从「关于」页签或托盘菜单触发）
 ├── 拟态风格，带关闭按钮
 └── 打赏文案 + 微信收款码 + 支付宝收款码
@@ -3014,7 +3033,7 @@ private async Task FetchAnnouncementAsync()
 - 点击切换时，所有窗口的主题按钮图标同步更新
 - 使用自定义 Neumorphism 主题（基于 Avalonia ControlTheme，不使用 FluentTheme）
 - 字体大小可调（12sp / 14sp / 16sp / 18sp）
-- 切换主题时，所有拟态阴影实时重算，带 300ms 过渡动画
+- 切换主题时，所有窗口整体以 300ms opacity fade 过渡（Avalonia 的 `BoxShadow` 不支持逐帧动画，故拟态阴影在新主题下瞬间重算，视觉上由 fade 遮罩柔化切换感）
 
 #### 置顶按钮
 
@@ -4436,9 +4455,9 @@ TranslatorApp.sln
 
 ```xml
 <!-- UI -->
-<PackageReference Include="Avalonia" Version="11.*" />
-<PackageReference Include="Avalonia.Desktop" Version="11.*" />
-<PackageReference Include="Avalonia.Themes.Fluent" Version="11.*" />
+<PackageReference Include="Avalonia" Version="11.2.*" />
+<PackageReference Include="Avalonia.Desktop" Version="11.2.*" />
+<!-- 不引入 Avalonia.Themes.Fluent，完全使用自定义 Neumorphism ControlTheme -->
 <PackageReference Include="CommunityToolkit.Mvvm" Version="8.*" />
 
 <!-- DI + 配置 -->
@@ -4446,18 +4465,24 @@ TranslatorApp.sln
 <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.*" />
 
 <!-- HTTP -->
-<PackageReference Include="Refit" Version="7.*" />
+<PackageReference Include="System.Net.Http" Version="4.3.*" />
+
+<!-- 文档解析 -->
+<PackageReference Include="DocumentFormat.OpenXml" Version="3.*" />
+<PackageReference Include="HtmlAgilityPack" Version="1.11.*" />
 
 <!-- 数据 -->
 <PackageReference Include="Microsoft.Data.Sqlite" Version="8.*" />
-<PackageReference Include="Dapper" Version="2.*" -->
+<PackageReference Include="Dapper" Version="2.*" />
 
 <!-- 序列化 + 日志 -->
 <PackageReference Include="System.Text.Json" Version="8.*" />
 <PackageReference Include="Serilog.Sinks.File" Version="5.*" />
 
+<!-- TTS（Edge TTS 纯 WebSocket 实现，无需额外包；讯飞同理） -->
+
 <!-- 打包 -->
-<!-- Velopack（通过 dotnet tool 或手动集成） -->
+<!-- Velopack 0.0.x（通过 dotnet tool 安装，锁定版本避免 API 变动） -->
 ```
 
 ---
