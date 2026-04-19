@@ -28,6 +28,7 @@
 | **准备阶段** | | | | |
 | — | 方案设计 v1.2 | ✅ 完成 | 2026-04-19 | 含 6 处修正 |
 | — | Implementation Ready 补齐 | ✅ 完成 | 2026-04-19 | 项目脚手架+色彩Token+Button/TextBox主题+ViewModel+languages.json |
+| — | 编译运行修复 | ✅ 完成 | 2026-04-19 | 修复 avares:// 程序集名 + StringConverters，仓库可 dotnet run |
 | **Week 1** | | | | |
 | W1-D1 | 创建解决方案 + CI 验证 | ⬜ 待开始 | | |
 | W1-D2 | CI 流水线验证 | ⬜ 待开始 | | |
@@ -105,6 +106,9 @@
 | 2026-04-19 | 文档翻译降级为 v1.1 | v1.0 仅支持 TXT，释放 Week 8 压力 |
 | 2026-04-19 | 排期 11 周 → 16 周 | 增加里程碑检查点 + 测试缓冲 |
 | 2026-04-19 | Implementation Ready 3 天补齐 | 确保 Week 1 Day 1 可直接 dotnet build |
+| 2026-04-19 | 修复 avares:// 程序集名 | App.axaml 中 3 处 `avares://TranslatorApp/` 改为 `avares://DotTranslator/`，AssemblyName 是 DotTranslator |
+| 2026-04-19 | 修复 StringConverters 引用 | TextBox.axaml 中补全为 `Avalonia.Data.Converters.StringConverters.IsNullOrEmpty` |
+| 2026-04-19 | 确认 InverseBoolConverter 已注册 | App.axaml Resources 中已有注册，确认无误 |
 
 ---
 
@@ -115,3 +119,4 @@
 | v1.0 | 2026-04-19 | 初始设计方案 |
 | v1.1 | 2026-04-19 | AI 翻译 Prompt、多引擎对比、文档翻译等补充 |
 | v1.2 | 2026-04-19 | 排期修正、测试增强、UI 控件清单、配置简化、CI 强化 |
+| v1.2.1 | 2026-04-19 | 修复 avares:// 程序集名 + StringConverters 引用，使仓库可编译运行 |
