@@ -6,47 +6,25 @@
     <Setter Property="Padding" Value="8,3" />
     <Setter Property="BoxShadow" Value="{DynamicResource Neu.OutsetSmall}" />
     <Setter Property="Background" Value="{DynamicResource CardBgBrush}" />
-    <Setter Property="Template">
-      <ControlTemplate>
-        <Border Background="{TemplateBinding Background}"
-                CornerRadius="{TemplateBinding CornerRadius}"
-                Padding="{TemplateBinding Padding}"
-                BoxShadow="{TemplateBinding BoxShadow}">
-          <ContentPresenter Name="PART_ContentPresenter"
-                            Content="{TemplateBinding Content}"
-                            ContentTemplate="{TemplateBinding ContentTemplate}"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center" />
-        </Border>
-      </ControlTemplate>
-    </Setter>
 
+    <!-- 成功 Badge：绿色背景 -->
     <Style Selector="^.success">
       <Setter Property="Background" Value="{DynamicResource SuccessBrush}" />
-      <Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="TextBlock.Foreground" Value="White" />
-      </Style>
     </Style>
 
+    <!-- 警告 Badge：黄色背景 -->
     <Style Selector="^.warning">
       <Setter Property="Background" Value="{DynamicResource WarningBrush}" />
-      <Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="TextBlock.Foreground" Value="#2D3436" />
-      </Style>
     </Style>
 
+    <!-- 错误 Badge：红色背景 -->
     <Style Selector="^.error">
       <Setter Property="Background" Value="{DynamicResource ErrorBrush}" />
-      <Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="TextBlock.Foreground" Value="White" />
-      </Style>
     </Style>
 
+    <!-- 强调 Badge：紫色背景 -->
     <Style Selector="^.accent">
       <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
-      <Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="TextBlock.Foreground" Value="White" />
-      </Style>
     </Style>
   </ControlTheme>
 
