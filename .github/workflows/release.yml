@@ -1,0 +1,142 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (e.g. 1.0.0)'
+        required: true
+        type: string
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  release:
+    name: Build + Release
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Version ──
+      - name: Resolve Version
+        id: version
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $ver = "${{ inputs.version }}"
+          } else {
+            $ver = "${{ github.ref_name }}" -replace '^v',''
+          }
+          echo "VERSION=$ver" >> $env:GITHUB_OUTPUT
+          echo "Resolved version: $ver"
+
+      # ── Build ──
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build -c Release --no-restore --warnaserror /p:Version=${{ steps.version.outputs.VERSION }}
+
+      - name: Test
+        run: dotnet test -c Release --no-build
+
+      # ── Publish: Framework-Dependent (smaller, needs .NET 8 installed) ──
+      - name: Publish (Framework-Dependent)
+        run: |
+          dotnet publish src/TranslatorApp/TranslatorApp.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained false `
+            -p:PublishSingleFile=false `
+            -p:Version=${{ steps.version.outputs.VERSION }} `
+            -o publish/framework
+
+      # ── Publish: Self-Contained Portable (larger, no .NET needed) ──
+      - name: Publish (Self-Contained Portable)
+        run: |
+          dotnet publish src/TranslatorApp/TranslatorApp.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=false `
+            -p:Version=${{ steps.version.outputs.VERSION }} `
+            -o publish/portable
+
+      # ── Package ──
+      - name: Package (Framework-Dependent)
+        shell: pwsh
+        run: |
+          $ver = "${{ steps.version.outputs.VERSION }}"
+          Compress-Archive -Path publish/framework/* `
+            -DestinationPath "releases/DotTranslator-${ver}-win-x64.zip" `
+            -Force
+
+      - name: Package (Portable)
+        shell: pwsh
+        run: |
+          $ver = "${{ steps.version.outputs.VERSION }}"
+          Compress-Archive -Path publish/portable/* `
+            -DestinationPath "releases/DotTranslator-${ver}-portable-win-x64.zip" `
+            -Force
+
+      # ── SHA256 ──
+      - name: Generate Checksums
+        shell: pwsh
+        run: |
+          cd releases
+          Get-ChildItem *.zip | ForEach-Object {
+            $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash
+            "$hash  $($_.Name)" | Out-File -Append checksums-sha256.txt -Encoding utf8
+          }
+          cat checksums-sha256.txt
+
+      # ── Smoke Test ──
+      - name: Smoke Test
+        shell: pwsh
+        run: |
+          $exe = "publish/framework/DotTranslator.dll"
+          if (-not (Test-Path $exe)) {
+            Write-Error "Build output missing: $exe"
+            exit 1
+          }
+          $size = (Get-Item $exe).Length
+          Write-Host "DotTranslator.dll size: $([math]::Round($size/1KB)) KB"
+          Write-Host "✅ Smoke test passed"
+
+      # ── Upload Artifacts ──
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-packages
+          path: |
+            releases/*.zip
+            releases/checksums-sha256.txt
+
+      # ── GitHub Release ──
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "DotTranslator ${{ steps.version.outputs.VERSION }}"
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.VERSION, 'beta') || contains(steps.version.outputs.VERSION, 'rc') }}
+          generate_release_notes: true
+          files: |
+            releases/DotTranslator-${{ steps.version.outputs.VERSION }}-win-x64.zip
+            releases/DotTranslator-${{ steps.version.outputs.VERSION }}-portable-win-x64.zip
+            releases/checksums-sha256.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

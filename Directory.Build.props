@@ -8,5 +8,11 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <NoWarn>$(NoWarn);CA1014</NoWarn> <!-- Allow non-CLS-compliant -->
+
+    <!-- Version: override via /p:Version=1.2.3 or CI tag -->
+    <Version Condition="'$(Version)' == ''">0.1.0</Version>
+    <AssemblyVersion>$(Version).0</AssemblyVersion>
+    <FileVersion>$(Version).0</FileVersion>
+    <InformationalVersion>$(Version)</InformationalVersion>
   </PropertyGroup>
 </Project>
