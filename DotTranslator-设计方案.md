@@ -6729,6 +6729,411 @@ GitHub Release Pipeline (CI/CD)
 }
 ```
 
+#### manifest 存放位置
+
+manifest.json 作为 **GitHub Release Assets** 上传，而非存放在仓库文件中。理由：
+
+| 方案 | 存放位置 | 优点 | 缺点 |
+|---|---|---|---|
+| ❌ 仓库存文件 | `updates/manifest.json` | 简单 | 每次发版要 commit，污染 git 历史 |
+| ✅ Release Assets | 每个 Release 上传 manifest.json | 与版本绑定，CI 自动上传 | 需要 CI 步骤 |
+
+CI 流水线中 Velopack pack 步骤自动将 manifest.json 作为 Release Asset 上传：
+
+```yaml
+- name: Upload release assets
+  uses: softprops/action-gh-release@v1
+  with:
+    files: |
+      releases/DotTranslator-Setup-${{ env.VERSION }}.exe
+      releases/DotTranslator-${{ env.VERSION }}-delta.nupkg
+      releases/manifest.json
+    tag_name: v${{ env.VERSION }}
+```
+
+**稳定的 manifest URL：**
+
+应用内置的更新检查地址为固定 URL，指向仓库中一个始终指向最新 Release 的路径：
+
+```
+方案 A（推荐）：Velopack 内建机制
+  Velopack 自动从 GitHub Releases 拉取更新，无需手动管理 manifest URL。
+  Velopack 内部使用 GitHub API: GET /repos/{owner}/{repo}/releases/latest
+
+方案 B（备选）：手动实现
+  固定 URL: https://github.com/wjpyinuo/DotTranslator/releases/latest/download/manifest.json
+  GitHub 会自动将 /latest/ 重定向到最新 Release 中的同名文件。
+```
+
+**推荐采用方案 A（Velopack 内建）**，理由：
+- 零维护成本，Velopack 自动处理版本比较、增量下载、回滚
+- 原生支持 GitHub Releases API，无需自建更新服务器
+- Velopack 内置 `UpdateManager` 类，3 行代码完成更新检查
+
+```csharp
+// Velopack 内建更新检查（方案 A）
+var updateManager = new UpdateManager("https://github.com/wjpyinuo/DotTranslator");
+var updateInfo = await updateManager.CheckForUpdatesAsync();
+if (updateInfo != null)
+{
+    await updateManager.DownloadUpdatesAsync(updateInfo);
+    updateManager.ApplyUpdatesAndRestart(updateInfo);
+}
+```
+
+如果 Velopack 不满足需求（如需要更灵活的更新策略），则使用方案 B 手动实现。
+
+#### 自动更新完整流程
+
+```
+应用启动（每次启动时检查）
+  │
+  ├─ 1. 读取本地版本号（从 AssemblyInfo 或 Velopack 元数据）
+  │
+  ├─ 2. 请求更新 manifest
+  │     GET https://github.com/wjpyinuo/DotTranslator/releases/latest/download/manifest.json
+  │     超时: 5s
+  │
+  ├─ 3. 版本比较
+  │     ├─ manifest.currentVersion == 本地版本 → 无更新，结束
+  │     ├─ manifest.currentVersion > 本地版本 → 有更新，进入步骤 4
+  │     └─ 请求失败 → 静默跳过（不影响正常使用）
+  │
+  ├─ 4. 判断更新类型
+  │     ├─ isCritical = true → 强制弹窗（不可关闭，必须更新）
+  │     ├─ isCritical = false → 普通弹窗（可关闭，下次启动再提醒）
+  │     └─ minimumVersion > 本地版本 → 强制弹窗（旧版本不再兼容）
+  │
+  ├─ 5. 弹窗提示用户
+  │     ├─ 显示新版本号 + 更新日期
+  │     ├─ 显示 changelog 链接（点击跳转 GitHub Release 页面）
+  │     ├─ 显示更新大小（delta 包通常 <5MB）
+  │     └─ 按钮: [稍后提醒] [立即更新]
+  │
+  ├─ 6. 用户点击「立即更新」
+  │     ├─ 下载 delta.nupkg（增量包）→ 进度条显示
+  │     ├─ 下载完整安装包作为 fallback（delta 失败时）
+  │     ├─ SHA256 校验 → 不匹配则重新下载
+  │     └─ 下载完成 → 提示「更新已就绪，重启后生效」
+  │
+  └─ 7. 应用重启
+        ├─ Velopack 静默替换文件
+        ├─ 保留上一版本（支持回滚）
+        └─ 重启后显示 Toast: 「已更新至 v1.1.0 ✅」
+```
+
+#### 更新检查实现（手动方案 B）
+
+```csharp
+public class UpdateService
+{
+    private const string ManifestUrl =
+        "https://github.com/wjpyinuo/DotTranslator/releases/latest/download/manifest.json";
+
+    private readonly HttpClient _httpClient;
+    private readonly string _currentVersion;
+
+    public event Action<UpdateInfo>? UpdateAvailable;
+
+    /// <summary>
+    /// 启动时调用，静默检查更新
+    /// </summary>
+    public async Task CheckForUpdatesAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            timeoutCts.CancelAfter(TimeSpan.FromSeconds(5));
+
+            var json = await _httpClient.GetStringAsync(ManifestUrl, timeoutCts.Token);
+            var manifest = JsonSerializer.Deserialize<UpdateManifest>(json);
+
+            if (manifest == null) return;
+
+            var latest = Version.Parse(manifest.CurrentVersion);
+            var current = Version.Parse(_currentVersion);
+
+            if (latest <= current) return; // 已是最新
+
+            var updateInfo = new UpdateInfo
+            {
+                LatestVersion = manifest.CurrentVersion,
+                ReleaseDate = manifest.CurrentReleaseDate,
+                ChangelogUrl = manifest.Changelog,
+                DownloadUrl = manifest.DownloadUrl,
+                DeltaUrl = manifest.DeltaUrl,
+                Sha256 = manifest.Sha256,
+                IsCritical = manifest.IsCritical,
+                IsForced = Version.Parse(manifest.MinimumVersion) > current
+            };
+
+            UpdateAvailable?.Invoke(updateInfo);
+        }
+        catch (TaskCanceledException)
+        {
+            // 超时，静默跳过
+            Log.Debug("Update check timed out");
+        }
+        catch (HttpRequestException)
+        {
+            // 网络不通，静默跳过
+            Log.Debug("Update check failed: network unavailable");
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Update check failed unexpectedly");
+        }
+    }
+
+    /// <summary>
+    /// 下载更新包
+    /// </summary>
+    public async Task<string> DownloadUpdateAsync(UpdateInfo info, IProgress<double> progress, CancellationToken ct)
+    {
+        // 优先下载增量包
+        var targetPath = Path.Combine(Path.GetTempPath(), "DotTranslator-update.nupkg");
+
+        try
+        {
+            await DownloadFileAsync(info.DeltaUrl, targetPath, progress, ct);
+        }
+        catch
+        {
+            // delta 下载失败，降级为完整安装包
+            Log.Warning("Delta download failed, falling back to full package");
+            await DownloadFileAsync(info.DownloadUrl, targetPath, progress, ct);
+        }
+
+        // SHA256 校验
+        var hash = await ComputeSha256Async(targetPath);
+        if (!string.Equals(hash, info.Sha256, StringComparison.OrdinalIgnoreCase))
+        {
+            File.Delete(targetPath);
+            throw new InvalidOperationException("Update package SHA256 mismatch");
+        }
+
+        return targetPath;
+    }
+
+    /// <summary>
+    /// 应用更新并重启
+    /// </summary>
+    public void ApplyUpdateAndRestart(string packagePath)
+    {
+        // Velopack 接管
+        var updateManager = new UpdateManager(packagePath);
+        updateManager.ApplyUpdatesAndRestart();
+    }
+}
+
+public class UpdateManifest
+{
+    [JsonPropertyName("currentVersion")]
+    public string CurrentVersion { get; set; }
+
+    [JsonPropertyName("currentReleaseDate")]
+    public string CurrentReleaseDate { get; set; }
+
+    [JsonPropertyName("changelog")]
+    public string Changelog { get; set; }
+
+    [JsonPropertyName("downloadUrl")]
+    public string DownloadUrl { get; set; }
+
+    [JsonPropertyName("deltaUrl")]
+    public string DeltaUrl { get; set; }
+
+    [JsonPropertyName("sha256")]
+    public string Sha256 { get; set; }
+
+    [JsonPropertyName("isCritical")]
+    public bool IsCritical { get; set; }
+
+    [JsonPropertyName("minimumVersion")]
+    public string MinimumVersion { get; set; }
+}
+
+public class UpdateInfo
+{
+    public string LatestVersion { get; set; }
+    public string ReleaseDate { get; set; }
+    public string ChangelogUrl { get; set; }
+    public string DownloadUrl { get; set; }
+    public string DeltaUrl { get; set; }
+    public string Sha256 { get; set; }
+    public bool IsCritical { get; set; }
+    public bool IsForced { get; set; }
+}
+```
+
+#### 更新弹窗 UI
+
+**普通更新（可推迟）：**
+
+```
+┌─────────────────────────────────────────────┐
+│  🆕 发现新版本                                │
+│                                             │
+│  当前版本: v1.0.0                             │
+│  最新版本: v1.1.0  (2026-05-01)              │
+│  更新大小: ~4.2 MB（增量更新）                │
+│                                             │
+│  更新内容:                                    │
+│  • 新增 Ollama 本地模型翻译支持               │
+│  • 修复腾讯翻译偶尔超时的问题                 │
+│  • 优化多引擎对比卡片动画性能                 │
+│                                             │
+│  [📝 查看完整更新日志]                        │
+│                                             │
+│       [稍后提醒]         [⚡ 立即更新]        │
+└─────────────────────────────────────────────┘
+```
+
+**关键安全更新（强制）：**
+
+```
+┌─────────────────────────────────────────────┐
+│  🔒 安全更新（必须更新）                      │
+│                                             │
+│  v1.0.0 存在安全漏洞，请立即更新到 v1.0.1     │
+│                                             │
+│  当前版本: v1.0.0                             │
+│  最新版本: v1.0.1  (2026-04-20)              │
+│                                             │
+│  ⚠️ 此更新不可跳过                            │
+│                                             │
+│            [🔒 立即更新]                      │
+│                                             │
+│  （「稍后提醒」按钮不显示，必须更新）           │
+└─────────────────────────────────────────────┘
+```
+
+**下载中状态：**
+
+```
+┌─────────────────────────────────────────────┐
+│  ⬇️ 正在下载更新...                           │
+│                                             │
+│  ████████████████░░░░░░░  68%               │
+│  已下载: 2.9 MB / 4.2 MB                     │
+│  速度: 1.2 MB/s                              │
+│                                             │
+│  [取消下载]                                   │
+└─────────────────────────────────────────────┘
+```
+
+**更新完成：**
+
+```
+┌─────────────────────────────────────────────┐
+│  ✅ 更新就绪                                  │
+│                                             │
+│  v1.1.0 已下载完成，重启后生效。              │
+│                                             │
+│  [稍后重启]            [🔄 立即重启]          │
+└─────────────────────────────────────────────┘
+```
+
+#### 增量更新机制
+
+Velopack 的增量更新（delta update）原理：
+
+```
+v1.0.0 完整包: 30 MB
+v1.1.0 完整包: 30.5 MB
+
+增量包（v1.0.0 → v1.1.0）: 仅包含变化的文件
+  ├─ TranslatorApp.dll      (changed, 2.1 MB)
+  ├─ Translator.Core.dll    (changed, 1.8 MB)
+  └─ manifest.json          (changed, 0.3 KB)
+  总计: ~4 MB（而非重新下载 30.5 MB）
+```
+
+**Delta 生成：** Velopack 在 CI 打包时自动生成，不需要额外配置。
+
+**Delta 失败回退：**
+```
+尝试下载 delta.nupkg
+  │
+  ├─ 成功 → SHA256 校验 → 通过 → 应用增量更新
+  │
+  └─ 失败（网络/校验不通过）→ 降级下载完整安装包
+      │
+      ├─ 成功 → SHA256 校验 → 通过 → 应用完整更新
+      └─ 失败 → 提示「更新下载失败，请稍后重试」
+```
+
+#### 回滚机制
+
+```
+更新前
+  │
+  ├─ Velopack 自动备份当前版本到 %LocalAppData%\DotTranslator\app-v1.0.0\
+  │
+  ├─ 应用新版本 v1.1.0
+  │
+  ├─ 首次启动 v1.1.0 → 自检
+  │     ├─ 启动成功 → 标记更新成功，删除 v1.0.0 备份（保留最近 1 个旧版本）
+  │     └─ 启动崩溃 → Velopack 检测到异常
+  │         ├─ 自动回滚到 v1.0.0
+  │         └─ 下次启动显示: 「上次更新失败，已恢复到 v1.0.0」
+  │
+  └─ 用户手动回滚（设置 → 关于 → 「回退到上一版本」）
+        └─ 仅在保留了旧版本时可用
+```
+
+#### 更新通道
+
+| 通道 | 用途 | manifest URL | 更新频率 |
+|---|---|---|---|
+| **稳定版**（默认） | 正式发布 | `/releases/latest/manifest.json` | 每 2-4 周 |
+| **测试版** | 提前体验新功能 | `/releases/download/v1.1.0-beta/manifest.json` | 每 1-2 周 |
+
+设置页配置：
+
+```
+更新设置
+├── 自动检查更新 [●开启  ○关闭]
+├── 更新通道 [●稳定版  ○测试版]
+│   └── ⚠️ 测试版可能不稳定，仅供尝鲜
+├── 检查频率 [○每次启动  ●每天一次  ○每周一次]
+├── 自动下载 [○开启  ●关闭]（关闭则只提醒，需手动确认下载）
+└── 当前版本: v1.0.0  [🔄 检查更新]
+```
+
+**测试版通道切换：**
+- 切换到测试版时弹窗确认：「测试版可能包含未修复的 Bug，确定切换？」
+- 切换到测试版后，manifest URL 变为指向 beta Release
+- 随时可切回稳定版
+
+#### 关于页检查更新
+
+除了自动检查，用户可在「关于」页手动触发：
+
+```
+关于
+├── 版本号: v1.0.0
+├── [🔄 检查更新]  ← 点击后立即请求 manifest，结果实时显示
+│     ├─ 已是最新 → 按钮文字变为「✅ 已是最新版本」，2s 后恢复
+│     ├─ 有更新 → 弹出更新弹窗
+│     └─ 检查失败 → 按钮文字变为「❌ 检查失败，请检查网络」，2s 后恢复
+├── 开源协议: MIT License
+├── [🔗 隐私政策]
+├── [📝 提交反馈]
+├── [💬 GitHub Discussions]
+└── ☕ 请我喝杯咖啡 [打赏]
+```
+
+#### 安全注意事项
+
+| 风险 | 防护措施 |
+|---|---|
+| **manifest 被篡改** | SHA256 校验 + HTTPS 强制 |
+| **下载包被替换** | 下载后 SHA256 与 manifest 中的值比对，不匹配则拒绝安装 |
+| **中间人攻击** | GitHub Releases 走 HTTPS，证书由 GitHub 管理 |
+| **降级攻击** | manifest 中的 currentVersion 必须 > 本地版本，不允许回退到旧版（除非用户手动操作） |
+| **更新服务器劫持** | 使用固定的 GitHub 域名，不使用自定义域名（防止 DNS 劫持） |
+
 ---
 
 ## 十六、插件与扩展性设计
