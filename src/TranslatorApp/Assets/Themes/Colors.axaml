@@ -63,8 +63,14 @@
   <SolidColorBrush x:Key="DividerBrush"        Color="#C8CDD5" />
 
   <!-- Light Neumorphism Shadows -->
-  <BoxShadows x:Key="Neu.Outset">8 8 16 #B8C0CC, -8 -8 16 #FFFFFF</BoxShadows>
-  <BoxShadows x:Key="Neu.OutsetSmall">4 4 8 #B8C0CC, -4 -4 8 #FFFFFF</BoxShadows>
+  <!-- default: 6 6 12 / neg 6 6 12, matches HTML outset-shadow -->
+  <BoxShadows x:Key="Neu.Outset">6 6 12 #B8C0CC, -6 -6 12 #FFFFFF</BoxShadows>
+  <!-- hover: 8 8 16 / neg 8 8 16, matches HTML outset-shadow-hover -->
+  <BoxShadows x:Key="Neu.OutsetHover">8 8 16 #B8C0CC, -8 -8 16 #FFFFFF</BoxShadows>
+  <!-- small: 3 3 6 / neg 3 3 6, matches HTML outset-shadow-sm -->
+  <BoxShadows x:Key="Neu.OutsetSmall">3 3 6 #B8C0CC, -3 -3 6 #FFFFFF</BoxShadows>
+  <!-- primary: asymmetric 4 4 8 / neg 2 2 6, matches HTML btn-primary -->
+  <BoxShadows x:Key="Neu.OutsetPrimary">4 4 8 #B8C0CC, -2 -2 6 #FFFFFF</BoxShadows>
   <BoxShadows x:Key="Neu.Inset">inset 4 4 8 #B8C0CC, inset -4 -4 8 #FFFFFF</BoxShadows>
   <BoxShadows x:Key="Neu.InsetDeep">inset 6 6 12 #B8C0CC, inset -6 -6 12 #FFFFFF</BoxShadows>
   <BoxShadows x:Key="Neu.Flat">2 2 4 #B8C0CC, -2 -2 4 #FFFFFF</BoxShadows>
@@ -72,8 +78,10 @@
   <!-- ═══════════════════════════════════════════
        深色主题 Shadows（ApplyTheme 时替换）
        ═══════════════════════════════════════════ -->
-  <BoxShadows x:Key="Dark.Neu.Outset">8 8 16 #1E2030, -8 -8 16 #383A54</BoxShadows>
-  <BoxShadows x:Key="Dark.Neu.OutsetSmall">4 4 8 #1E2030, -4 -4 8 #383A54</BoxShadows>
+  <BoxShadows x:Key="Dark.Neu.Outset">6 6 12 #1E2030, -6 -6 12 #383A54</BoxShadows>
+  <BoxShadows x:Key="Dark.Neu.OutsetHover">8 8 16 #1E2030, -8 -8 16 #383A54</BoxShadows>
+  <BoxShadows x:Key="Dark.Neu.OutsetSmall">3 3 6 #1E2030, -3 -3 6 #383A54</BoxShadows>
+  <BoxShadows x:Key="Dark.Neu.OutsetPrimary">4 4 8 #1E2030, -2 -2 6 #383A54</BoxShadows>
   <BoxShadows x:Key="Dark.Neu.Inset">inset 4 4 8 #1E2030, inset -4 -4 8 #383A54</BoxShadows>
   <BoxShadows x:Key="Dark.Neu.InsetDeep">inset 6 6 12 #1E2030, inset -6 -6 12 #383A54</BoxShadows>
   <BoxShadows x:Key="Dark.Neu.Flat">2 2 4 #1E2030, -2 -2 4 #383A54</BoxShadows>

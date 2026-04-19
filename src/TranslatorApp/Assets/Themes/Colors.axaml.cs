@@ -58,11 +58,13 @@ public partial class Colors : ResourceDictionary
 
     private static readonly (string TargetKey, string LightKey, string DarkKey)[] ShadowTokens =
     [
-        ("Neu.Outset",      "Neu.Outset",      "Dark.Neu.Outset"),
-        ("Neu.OutsetSmall", "Neu.OutsetSmall", "Dark.Neu.OutsetSmall"),
-        ("Neu.Inset",       "Neu.Inset",       "Dark.Neu.Inset"),
-        ("Neu.InsetDeep",   "Neu.InsetDeep",   "Dark.Neu.InsetDeep"),
-        ("Neu.Flat",        "Neu.Flat",        "Dark.Neu.Flat"),
+        ("Neu.Outset",        "Neu.Outset",        "Dark.Neu.Outset"),
+        ("Neu.OutsetHover",   "Neu.OutsetHover",   "Dark.Neu.OutsetHover"),
+        ("Neu.OutsetSmall",   "Neu.OutsetSmall",   "Dark.Neu.OutsetSmall"),
+        ("Neu.OutsetPrimary", "Neu.OutsetPrimary", "Dark.Neu.OutsetPrimary"),
+        ("Neu.Inset",         "Neu.Inset",         "Dark.Neu.Inset"),
+        ("Neu.InsetDeep",     "Neu.InsetDeep",     "Dark.Neu.InsetDeep"),
+        ("Neu.Flat",          "Neu.Flat",          "Dark.Neu.Flat"),
     ];
 
     private static Color FromHex(string hex) => Color.Parse(hex);

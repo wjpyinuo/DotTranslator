@@ -32,11 +32,11 @@
       </ControlTemplate>
     </Setter>
 
-    <!-- ═══════════ Hover 态：浮起 +2px ═══════════ -->
+    <!-- ═══════════ Hover 态：浮起 +2px + 阴影加深 ═══════════ -->
     <Style Selector="^:pointerover">
       <Setter Property="RenderTransform" Value="translateY(-2px)" />
       <Style Selector="^ /template/ Border">
-        <Setter Property="BoxShadow" Value="{DynamicResource Neu.Outset}" />
+        <Setter Property="BoxShadow" Value="{DynamicResource Neu.OutsetHover}" />
       </Style>
     </Style>
 
@@ -68,11 +68,20 @@
     <Style Selector="^.accent">
       <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
       <Setter Property="Foreground" Value="White" />
+      <Style Selector="^ /template/ Border">
+        <Setter Property="BoxShadow" Value="{DynamicResource Neu.OutsetPrimary}" />
+      </Style>
       <Style Selector="^:pointerover">
         <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+        <Style Selector="^ /template/ Border">
+          <Setter Property="BoxShadow" Value="{DynamicResource Neu.Outset}" />
+        </Style>
       </Style>
       <Style Selector="^:pressed">
         <Setter Property="Background" Value="{DynamicResource AccentPressedBrush}" />
+        <Style Selector="^ /template/ Border">
+          <Setter Property="BoxShadow" Value="{DynamicResource Neu.Inset}" />
+        </Style>
       </Style>
     </Style>
 

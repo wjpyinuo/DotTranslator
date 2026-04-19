@@ -14,10 +14,10 @@
     <Setter Property="BoxShadow" Value="{DynamicResource Neu.Outset}" />
     <Setter Property="RenderTransform" Value="translateY(0)" />
 
-    <!-- Hover 态：微浮起 +1px -->
+    <!-- Hover 态：浮起 +2px + 阴影加深 -->
     <Style Selector="^:pointerover">
-      <Setter Property="RenderTransform" Value="translateY(-1px)" />
-      <Setter Property="BoxShadow" Value="{DynamicResource Neu.Outset}" />
+      <Setter Property="RenderTransform" Value="translateY(-2px)" />
+      <Setter Property="BoxShadow" Value="{DynamicResource Neu.OutsetHover}" />
     </Style>
 
     <!-- 变体：无阴影平面卡片 -->
