@@ -40,10 +40,10 @@ public partial class MainViewModel : ViewModelBase
     /// <summary>页面可见性计算属性</summary>
     public bool IsTranslatePage => SelectedPage == "translate";
     public bool IsFavoritesPage => SelectedPage == "favorites";
-    public bool IsHistoryPage   => SelectedPage == "history";
-    public bool IsSettingsPage  => SelectedPage == "settings";
-    public bool IsAboutPage     => SelectedPage == "about";
-    public bool IsDonatePage    => SelectedPage == "donate";
+    public bool IsHistoryPage => SelectedPage == "history";
+    public bool IsSettingsPage => SelectedPage == "settings";
+    public bool IsAboutPage => SelectedPage == "about";
+    public bool IsDonatePage => SelectedPage == "donate";
 
     // ═══════════════════════════════════════════
     //  语言选择
