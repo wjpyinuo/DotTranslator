@@ -1,6 +1,15 @@
-# 桌面翻译软件 — 完整设计方案 v1.1
+# 桌面翻译软件 — 完整设计方案 v1.2
 
 > 技术栈：.NET 8 + Avalonia UI | 目标平台：Windows 专属 | 目标用户：中国用户
+>
+> **v1.2 变更记录：**
+> - 修正排期：11 周 → 16 周，增加 4 个里程碑检查点（Alpha/Beta/RC/Release）
+> - 修正测试策略：覆盖率 60% → 70%，增加 UI 自动化/性能基准/安全扫描/无障碍测试
+> - 修正剪贴板监听：增加 WindowImpl 风险说明 + PollingClipboardMonitor fallback 方案
+> - 修正 Neumorphism：增加 15 个控件验收清单 + BoxShadow 多阴影实现技巧 + 降级策略
+> - 修正配置管理：v1.0 不实现版本迁移，迁移代码留 TODO；数据库 schema v1 包含全部字段
+> - 流程改进：增加里程碑检查点 + CI/CD 增加 dotnet format/安全扫描/BenchmarkDotNet/smoke test
+> - v1.0 范围调整：文档翻译仅保留 TXT，其余格式（DOCX/PPTX/SRT/ASS/HTML/MD）移至 v1.1
 
 ---
 
@@ -81,7 +90,7 @@
 - [十七、用户反馈通道](#十七用户反馈通道)
 - [十八、隐私政策](#十八隐私政策)
 - [十九、v1.0 验收标准](#十九v10-验收标准)
-- [二十、开发排期（11 周）](#二十开发排期11-周)
+- [二十、开发排期（16 周）](#二十开发排期16-周)
 - [二十一、成本总结](#二十一成本总结)
 
 ---
@@ -1851,6 +1860,26 @@ public interface IClipboardMonitor : IDisposable
 /// <summary>
 /// Windows 实现：通过 Win32 WM_CLIPBOARDUPDATE 消息监听剪贴板变化。
 /// 需要 Avalonia Window 句柄，通过 PlatformImpl 获取（内部 API，需版本锁定）。
+///
+/// ⚠️ 实现风险说明（v1.2 补充）：
+/// - WindowImpl 是 Avalonia 内部 API，10.x → 11.x 接口有变动，未来版本可能再次调整
+/// - 需要窗口句柄存在才能监听，最小化到托盘时窗口可能被销毁 → 句柄失效
+/// - Avalonia 版本必须锁定在 11.2.x，升级前需验证此代码仍可编译
+///
+/// Fallback 策略（当 WindowImpl 不可用时降级）：
+/// 1. 优先尝试 WindowImpl 方案（本类）
+/// 2. 如果 PlatformImpl 访问抛出异常或返回 null → 降级到 PollingClipboardMonitor
+/// 3. PollingClipboardMonitor 使用定时器轮询 Clipboard.GetText()（间隔 500ms）
+///    优点：不依赖任何内部 API，稳定性最高
+///    缺点：CPU 占用略高（~0.1%），剪贴板变化感知延迟最高 500ms（可接受）
+/// 4. IClipboardMonitor 接口不变，两种实现可无缝切换
+///
+/// 实际注册逻辑应在 DI 容器中：
+/// services.AddSingleton&lt;IClipboardMonitor&gt;(sp =&gt;
+/// {
+///     try { return new WindowsClipboardMonitor(window); }
+///     catch { return new PollingClipboardMonitor(); }
+/// });
 /// </summary>
 public class WindowsClipboardMonitor : IClipboardMonitor
 {
@@ -2778,16 +2807,60 @@ This project aims to develop a lightweight desktop translation tool.
 
 #### 各控件拟态细节
 
-| 控件 | 默认态 | Hover 态 | 按下态 |
-|---|---|---|---|
-| **主按钮** | 外凸阴影 + 强调色填充 | 浮起 +2px + 阴影加深 | 内凹阴影（inset） |
-| **次按钮** | 外凸阴影 + 背景色 | 浮起 + 阴影扩大 | 内凹阴影 |
-| **输入框** | 内凹阴影（凹槽感） | 光标闪烁 + 强调色边框 | — |
-| **下拉选择** | 内凹阴影 + 右侧箭头 | 展开时外凸浮起 | — |
-| **卡片** | 外凸阴影 | 浮起 +1px | — |
-| **开关** | 滑轨内凹 + 圆形滑块外凸 | 滑块微亮 | 滑动到另一端 |
-| **Tab 页签** | 内凹（未选中） | — | 外凸 + 强调色（选中） |
-| **滚动条** | 细条内凹 | 加宽 | — |
+> **⚠️ 实现成本说明（v1.2 补充）：** Neumorphism 在 Avalonia 中的实现成本高于预期。Avalonia 的 `BoxShadow` 不支持 CSS 那样的多阴影逗号分隔语法（如 `box-shadow: 8px 8px 16px #B8C0CC, -8px -8px 16px #FFFFFF`），需要拆分为两个 `BoxShadow` 值或使用技巧性实现。每个控件的每个状态变体都需要独立定义，工作量线性增长。以下清单列出必须在 Week 1-3 完成的 15 个控件，作为每周验收标准的一部分。
+
+| 控件 | 默认态 | Hover 态 | 按下态 | 验收周次 | 状态 |
+|---|---|---|---|---|---|
+| **主按钮** | 外凸阴影 + 强调色填充 | 浮起 +2px + 阴影加深 | 内凹阴影（inset） | Week 1 | 必须 |
+| **次按钮** | 外凸阴影 + 背景色 | 浮起 + 阴影扩大 | 内凹阴影 | Week 1 | 必须 |
+| **输入框** | 内凹阴影（凹槽感） | 光标闪烁 + 强调色边框 | Focus 强调色边框 | Week 1 | 必须 |
+| **卡片 Border** | 外凸阴影 | 浮起 +1px | — | Week 1 | 必须 |
+| **Badge** | 外凸小圆角 | — | — | Week 1 | 必须 |
+| **下拉选择 ComboBox** | 内凹阴影 + 右侧箭头 | 展开时外凸浮起 | 选中高亮 | Week 2 | 必须 |
+| **开关 ToggleSwitch** | 滑轨内凹 + 圆形滑块外凸 | 滑块微亮 | 滑动到另一端 | Week 2 | 必须 |
+| **Tab 页签** | 内凹（未选中） | — | 外凸 + 强调色（选中） | Week 2 | 必须 |
+| **进度条 ProgressBar** | 内凹轨道 + 外凸填充 | — | — | Week 2 | 必须 |
+| **单选 RadioButton** | 外凸圆 + 内凹选中 | 微亮 | 内凹 + 强调色点 | Week 2 | 必须 |
+| **滚动条 ScrollBar** | 细条内凹 | 加宽 | — | Week 2 | 必须 |
+| **滑块 Slider** | 内凹轨道 + 外凸滑块 | 微亮 | — | Week 3 | 必须 |
+| **折叠面板 Expander** | 外凸 | — | 展开内凹 | Week 3 | 建议 |
+| **工具提示 ToolTip** | 外凸浮层 | — | — | Week 3 | 建议 |
+| **右键菜单 ContextMenu** | 外凸浮层 + 阴影 | Hover 高亮 | — | Week 3 | 建议 |
+| **模态对话框 Dialog** | 外凸 + 半透明遮罩 | — | 焦点陷阱 + Esc 关闭 | Week 3 | 必须 |
+
+**降级策略：** 如果 Week 3 结束时"建议"级控件未完成，可临时使用 Avalonia 内置扁平样式替代，不影响核心功能。Week 9（打磨周）补全。
+
+**Avalonia BoxShadow 多阴影实现技巧：**
+
+```xml
+<!-- CSS: box-shadow: 8px 8px 16px #B8C0CC, -8px -8px 16px #FFFFFF -->
+<!-- Avalonia 需要拆分为两个 Border 或使用 DropShadowDirectionEffect -->
+<!-- 推荐方案：使用两个重叠的 Border，一个投暗影，一个投亮影 -->
+<Grid>
+  <!-- 暗影层 -->
+  <Border Background="{DynamicResource CardBg}"
+          Margin="8,8,-8,-8"
+          CornerRadius="16">
+    <Border.BoxShadow>
+      <BoxShadow BlurRadius="16" OffsetX="8" OffsetY="8" Color="#B8C0CC"/>
+    </Border.BoxShadow>
+  </Border>
+  <!-- 亮影层（通过负 Margin 实现反方向） -->
+  <Border Background="{DynamicResource CardBg}"
+          Margin="-8,-8,8,8"
+          CornerRadius="16">
+    <Border.BoxShadow>
+      <BoxShadow BlurRadius="16" OffsetX="-8" OffsetY="-8" Color="#FFFFFF"/>
+    </Border.BoxShadow>
+  </Border>
+  <!-- 实际内容 -->
+  <Border Background="{DynamicResource CardBg}" CornerRadius="16">
+    <!-- 内容 -->
+  </Border>
+</Grid>
+```
+
+> 注意：上述方案会增加视觉层级嵌套。更简洁的做法是在 ControlTheme 中使用 `BoxShadow` 配合 `RenderTransform` 的微偏移来模拟双阴影效果，具体实现以开发时 Avalonia 版本的实际 API 行为准。
 
 ### 6.2 窗口体系
 
@@ -6120,17 +6193,39 @@ public class SettingsWatcher : IDisposable
 
 #### 配置版本迁移
 
+> **⚠️ v1.0 修正：** v1.0 是首个版本，不存在历史版本需要迁移。迁移框架保留接口定义和 schema 版本标记，但迁移方法体留 TODO，v1.1+ 实现实际迁移逻辑。避免过度设计。
+
 ```csharp
+/// <summary>
+/// 配置迁移管理器。
+/// v1.0：仅定义接口和版本标记，不实现具体迁移。
+/// v1.1+：当 settings.json schema 变更时，实现 MigrateV1ToV2 等方法。
+/// </summary>
 public class SettingsMigration
 {
-    public AppSettings Migrate(AppSettings old)
+    public const int CurrentVersion = 1;
+
+    /// <summary>
+    /// 检查并执行配置迁移。
+    /// v1.0 时 settings.Version 恒为 1，此方法直接返回原配置。
+    /// </summary>
+    public AppSettings MigrateIfNeeded(AppSettings settings)
     {
-        return old.Version switch
-        {
-            1 => MigrateV1ToV2(MigrateV0ToV1(old)),
-            2 => old,
-            _ => throw new NotSupportedException($"Unknown settings version: {old.Version}")
-        };
+        if (settings.Version == CurrentVersion)
+            return settings; // 已是最新版本，无需迁移
+
+        // TODO(v1.1): 当 schema 变更时实现迁移逻辑
+        // 例如：
+        // settings = settings.Version switch
+        // {
+        //     1 => MigrateV1ToV2(settings),
+        //     _ => throw new NotSupportedException(...)
+        // };
+
+        // 未知版本（可能是未来版本降级安装旧版）→ 使用默认配置 + 提示
+        Log.Warning("Settings version {Version} is newer than supported ({Current}), using defaults",
+            settings.Version, CurrentVersion);
+        return AppSettings.CreateDefault();
     }
 }
 ```
@@ -6138,6 +6233,8 @@ public class SettingsMigration
 #### 数据库 Schema 迁移
 
 SQLite 数据库表结构在版本间可能变更（如新增列），需自动迁移：
+
+> **v1.0 说明：** 数据库初始 schema 为 v1。迁移框架从 v1.0 就实现，因为 v1.1（文档翻译）发布时 `TranslationHistory` 表将新增列，届时需要 v1→v2 迁移。
 
 ```csharp
 public class DatabaseMigration
@@ -6151,7 +6248,7 @@ public class DatabaseMigration
         connection.Open();
 
         var currentVersion = GetUserVersion(connection);
-        var targetVersion = 3; // 当前 schema 版本
+        var targetVersion = 1; // v1.0 schema 版本（v1.1 将升级为 2）
 
         if (currentVersion >= targetVersion) return;
 
@@ -6196,24 +6293,46 @@ public class DatabaseMigration
         var cmd = conn.CreateCommand();
         cmd.CommandText = version switch
         {
-            // v1: 初始 schema（基础表）
+            // v1: 初始 schema（v1.0 完整 DDL，包含全部字段）
             1 => """
-                CREATE TABLE IF NOT EXISTS TranslationHistory (...);
-                CREATE TABLE IF NOT EXISTS Glossary (...);
+                CREATE TABLE IF NOT EXISTS TranslationHistory (
+                    Id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                    SourceText      TEXT NOT NULL,
+                    TranslatedText  TEXT NOT NULL,
+                    SourceLang      TEXT NOT NULL,
+                    TargetLang      TEXT NOT NULL,
+                    Engine          TEXT NOT NULL,
+                    Mode            TEXT NOT NULL DEFAULT 'normal',
+                    LatencyMs       INTEGER,
+                    IsFavorite      INTEGER NOT NULL DEFAULT 0,
+                    CreatedAt       TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+                    UpdatedAt       TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+                );
+                CREATE INDEX IF NOT EXISTS idx_history_created ON TranslationHistory(CreatedAt);
+                CREATE INDEX IF NOT EXISTS idx_history_favorite ON TranslationHistory(IsFavorite);
+                CREATE INDEX IF NOT EXISTS idx_history_lang ON TranslationHistory(SourceLang, TargetLang);
+
+                CREATE TABLE IF NOT EXISTS Glossary (
+                    Id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                    SourceTerm      TEXT NOT NULL,
+                    TargetTerm      TEXT NOT NULL,
+                    LangPair        TEXT NOT NULL,
+                    Category        TEXT DEFAULT 'default',
+                    Priority        INTEGER DEFAULT 0,
+                    IsRegex         INTEGER NOT NULL DEFAULT 0,
+                    CaseSensitive   INTEGER NOT NULL DEFAULT 0,
+                    CreatedAt       TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+                    UpdatedAt       TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+                );
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_glossary_unique
+                    ON Glossary(SourceTerm COLLATE NOCASE, LangPair);
+                CREATE INDEX IF NOT EXISTS idx_glossary_langpair ON Glossary(LangPair);
+                CREATE INDEX IF NOT EXISTS idx_glossary_category ON Glossary(Category);
                 """,
 
-            // v2: 新增 TranslationHistory.Mode 列
-            2 => """
-                ALTER TABLE TranslationHistory ADD COLUMN Mode TEXT NOT NULL DEFAULT 'normal';
-                """,
-
-            // v3: 新增 Glossary.Category / Priority / IsRegex / CaseSensitive 列
-            3 => """
-                ALTER TABLE Glossary ADD COLUMN Category TEXT DEFAULT 'default';
-                ALTER TABLE Glossary ADD COLUMN Priority INTEGER DEFAULT 0;
-                ALTER TABLE Glossary ADD COLUMN IsRegex INTEGER NOT NULL DEFAULT 0;
-                ALTER TABLE Glossary ADD COLUMN CaseSensitive INTEGER NOT NULL DEFAULT 0;
-                """,
+            // TODO(v1.1): 未来 schema 变更在此处添加
+            // 2 => """ALTER TABLE TranslationHistory ADD COLUMN ...""",
+            // 3 => """ALTER TABLE Glossary ADD COLUMN ...""",
 
             _ => throw new NotSupportedException($"Unknown migration version: {version}")
         };
@@ -6228,7 +6347,8 @@ public class DatabaseMigration
 |---|---|
 | **PRAGMA user_version** | SQLite 原生 schema 版本标记，每次 migration 递增 |
 | **事务包裹** | 整个迁移在一个事务中执行，失败则回滚 |
-| **ALTER TABLE ADD COLUMN** | 新增列用 `ALTER TABLE`，保留旧数据 |
+| **v1.0 完整 DDL** | v1.0 的 schema v1 已包含 Mode/Category/Priority/IsRegex/CaseSensitive 等全部字段，无需后续 ALTER |
+| **ALTER TABLE ADD COLUMN** | v1.1+ 新增列时使用，保留旧数据 |
 | **破坏性变更** | 如需删除/重命名列，创建新表 → 复制数据 → 删除旧表 → 重命名（SQLite 不支持 DROP COLUMN） |
 | **迁移失败回退** | 迁移失败时备份旧数据库 + 创建新库（与 §15.12.1 崩溃恢复一致） |
 
@@ -8044,15 +8164,32 @@ DotTranslator 本身不收集数据，但用户使用翻译功能时，文本会
 
 ### 19.3 测试策略
 
-| 测试类型 | 工具 | 覆盖范围 | 频率 |
-|---|---|---|---|
-| **单元测试** | xUnit + Moq | 翻译管道、路由、缓存、术语替换、弹性策略 | 每次提交 |
-| **集成测试** | xUnit + TestServer | Provider 调用（mock HTTP）、SQLite 读写 | 每次提交 |
-| **UI 测试** | Avalonia Headless Testing | ViewModel 绑定、命令执行 | 每次提交 |
-| **端到端测试** | 手动 + 脚本辅助 | 完整翻译流程、多引擎对比、文档翻译 | 每周 |
-| **键盘导航** | 手动 | Tab 顺序、焦点可见性、快捷键 | 每版本 |
-| **性能基准** | BenchmarkDotNet | 缓存命中、术语替换、SQLite 写入 | 关键变更时 |
-| **兼容性** | 手动 | Win 10 / Win 11 各版本 | 每版本 |
+| 测试类型 | 工具 | 覆盖范围 | 频率 | 质量门禁 |
+|---|---|---|---|---|
+| **单元测试** | xUnit + Moq | 翻译管道、路由、缓存、术语替换、弹性策略、前后处理 | 每次提交 | 覆盖率 ≥ 70% |
+| **集成测试** | xUnit + TestServer | Provider 调用（mock HTTP）、SQLite 读写（含 WAL 崩溃恢复）、HistoryRepository 事务 | 每次提交 | 全部通过 |
+| **UI 测试** | Avalonia Headless Testing | ViewModel 绑定、命令执行、状态变更通知 | 每次提交 | 核心 ViewModel 全覆盖 |
+| **端到端测试** | 手动 + 脚本辅助 | 完整翻译流程、多引擎对比、剪贴板→浮窗→翻译→历史 | 每个里程碑 | Alpha/Beta/RC 各跑一轮 |
+| **性能基准** | BenchmarkDotNet | 启动时间、缓存命中延迟、术语替换（100/500/5000 条）、SQLite 写入 | 每周 + 关键变更 | 不超过基线 20% |
+| **安全扫描** | dotnet list package --vulnerable | NuGet 依赖漏洞 | 每次提交 | 无高危漏洞 |
+| **代码风格** | dotnet format | 命名/缩进/using 排序 | 每次提交 | 零偏差 |
+| **兼容性** | 手动 | Win 10 (22H2) + Win 11 (23H2/24H2) | 每个里程碑 | 全部通过 |
+| **无障碍** | 手动 + NVDA | 键盘 Tab 导航、焦点环、高对比度、屏幕阅读器播报 | Beta + RC | WCAG 2.1 AA |
+| **压力测试** | 脚本 | 10000 条历史、高频剪贴板（1次/秒×5分钟）、长文本（5000字符） | RC | 无崩溃/无内存泄漏 |
+
+#### 代码覆盖率目标
+
+| 模块 | 目标覆盖率 | 说明 |
+|---|---|---|
+| `TranslationRouter` | ≥ 90% | 路由逻辑是核心，必须高覆盖 |
+| `ResiliencePipeline` | ≥ 85% | 重试/熔断/超时的状态机需全覆盖 |
+| `TranslationCache` | ≥ 80% | 缓存命中/过期/驱逐/LRU |
+| `GlossaryPostProcessor` | ≥ 85% | 整词边界/正则/二次替换/质量防护 |
+| `ComparisonEngine` | ≥ 80% | 渐进式渲染/评分/相似度 |
+| `HistoryRepository` | ≥ 75% | SQLite CRUD + 事务 |
+| Provider 实现 | ≥ 60% | mock HTTP 测试核心调用路径 |
+| ViewModel 层 | ≥ 60% | 命令执行 + 状态变更 |
+| **整体** | **≥ 70%** | PR 门禁，低于此值不准合入 |
 
 ### 19.4 CI/CD 流程
 
@@ -8064,17 +8201,23 @@ GitHub Actions Pipeline
   │   ├─ pull request
   │   └─ 手动触发
   │
-  ├─ Stage 1: Build + Test (~3 min)
+  ├─ Job 1: Build + Test (~3 min)
   │   ├─ dotnet restore
+  │   ├─ dotnet format --verify-no-changes（代码风格门禁）
   │   ├─ dotnet build -c Release --warnaserror
   │   ├─ dotnet test（单元测试 + 集成测试）
-  │   └─ 代码覆盖率检查（≥ 60%）
+  │   ├─ 代码覆盖率报告（coverlet → Codecov，≥ 70%）
+  │   └─ dotnet list package --vulnerable（安全扫描，无高危漏洞）
   │
-  ├─ Stage 2: Package (~2 min)
-  │   ├─ Velopack pack（生成安装包）
-  │   └─ 代码签名（仅 release 分支）
+  ├─ Job 2: Performance Benchmark（仅 main 分支，每周 + 手动触发）
+  │   └─ BenchmarkDotNet 基准测试，与基线对比
   │
-  ├─ Stage 3: Release（仅 tag v*）
+  ├─ Job 3: Package（仅 release 分支 + tag）
+  │   ├─ Velopack pack（生成安装包 + 便携版）
+  │   ├─ 代码签名
+  │   └─ Smoke test（安装 → 启动 → 翻译 → 卸载）
+  │
+  ├─ Job 4: Release（仅 tag v*）
   │   ├─ 上传到 GitHub Releases
   │   └─ 更新 manifest.json
   │
@@ -8091,59 +8234,114 @@ GitHub Actions Pipeline
 
 ---
 
-## 二十、开发排期（11 周）
+## 二十、开发排期（16 周）
 
-> 9 周开发 + 1 周测试回归 + 1 周发布缓冲。CI 从 Week 1 Day 1 开始搭建，贯穿全程。
+> 11 周开发 + 2 周集成测试 + 1 周回归 + 1 周发布缓冲 + 1 周风险缓冲。CI 从 Week 1 Day 1 开始搭建，贯穿全程。
+>
+> **排期说明（v1.2 修正）：** 原 v1.1 方案排期 11 周，经专业评估后修正为 16 周。主要调整：
+> - Neumorphism UI 控件实现拆分为 3 周（原 1.5 周），因 Avalonia 自定义 ControlTheme 工作量高于预期
+> - 文档翻译从 v1.0 降级为 v1.1（v1.0 仅支持 TXT 拖入，最简格式），释放 Week 8 压力
+> - 增加 4 个里程碑检查点（Alpha/Beta/RC/Release），每个检查点有明确通过标准
+> - 测试与开发同节奏，不再集中到 Week 10
 
 ### 20.1 总览
 
-| 阶段 | 周次 | 内容 | 交付物 |
+| 阶段 | 周次 | 内容 | 交付物 | 里程碑 |
+|---|---|---|---|---|
+| **基础搭建 + 主题核心** | Week 1 | 项目骨架 + CI + MVVM + Neumorphism 核心控件（Button/TextBox/Border） | 可运行空壳 + 3 个控件 neumorphism 样式 | — |
+| **核心翻译 + 主题补全** | Week 2 | 2 个 Provider + 引擎调度 + 缓存 + ComboBox/Toggle/Tab 主题 | 单引擎翻译可用 + 6 个控件主题 | — |
+| **核心体验** | Week 3 | 剪贴板翻译 + 浮窗 + 托盘 + 热键 + ProgressBar/ScrollBar 主题 | 日常翻译可用 | — |
+| **普通引擎补全** | Week 4 | 腾讯 + 彩云 + 小牛 + 额度切换 + 健康状态 | 5 家普通引擎全部可用 | **Alpha** |
+| **AI 引擎补全** | Week 5 | DeepSeek + 通义 + Kimi + AI Prompt + 8 引擎联调 | 全引擎可用 | — |
+| **TTS + 历史** | Week 6 | 讯飞TTS + EdgeTTS + SQLite + 历史/收藏 + 导出(TXT/CSV) | 基础功能完整 | — |
+| **多引擎对比** | Week 7 | 渐进渲染 + 相似度 + 差异对比 + 智能推荐 + 导出对比报告 | 核心差异化完成 | **Beta** |
+| **术语表 + TXT 文档翻译** | Week 8 | 术语表 CRUD + 后处理 + AI 注入 + TXT 拖入翻译 + 成本预估 | 术语表 + 最简文档翻译 | — |
+| **设置页 + 导出补全** | Week 9 | 完整设置页 + XLSX/MD/JSON/Anki 导出 + 双语对照 + 公告栏 | 功能闭环 | — |
+| **弹性策略 + 工程质量** | Week 10 | 重试/熔断/超时 + 限流 + 缓存完善 + 日志 + 安全加固 + 动画 | 工程质量达标 | — |
+| **集成测试（第 1 轮）** | Week 11 | 全流程测试 + 性能基准 + 兼容性（Win10/11）+ 修 Bug | 测试报告 + Bug 清单 | — |
+| **集成测试（第 2 轮）** | Week 12 | 回归测试 + 无障碍测试 + 压力测试 + 验收清单逐项检查 | 候选发布版 | **RC** |
+| **回归 + 修 Bug** | Week 13 | 收尾 Bug + 最终回归 + 性能调优 | 稳定版 | — |
+| **打包 + 文档** | Week 14 | Velopack 打包 + 代码签名 + README + 使用文档 + 截图 | 安装包 + 文档 | — |
+| **发布** | Week 15 | GitHub Release v1.0.0 + winget/scoop 提交 | v1.0.0 正式发布 | **Release** |
+| **风险缓冲** | Week 16 | 紧急修复 / 社区反馈响应 / v1.0.1 hotfix | 缓冲 | — |
+
+#### v1.0 vs v1.1 功能划分
+
+| 功能 | v1.0 | v1.1 | 原因 |
 |---|---|---|---|
-| **基础搭建 + 主题核心** | Week 1 | 项目骨架 + CI + MVVM + Neumorphism 核心控件主题 | 可运行空壳 + Button/TextBox/卡片 neumorphism 样式 |
-| **核心翻译 + 主题补全** | Week 2 | 2 个 Provider + 引擎调度 + 缓存 + 剩余控件主题 | 单引擎翻译可用 + 主题基本完整 |
-| **核心体验** | Week 3 | 剪贴板翻译 + 浮窗 + 托盘 + 热键 | 日常翻译可用 |
-| **普通引擎补全** | Week 4 | 腾讯 + 彩云 + 小牛 + 额度切换 + 引擎健康状态 | 5 家普通引擎全部可用 |
-| **AI 引擎补全** | Week 5 | DeepSeek + 通义 + Kimi + AI Prompt + 8 引擎联调 | 全引擎可用 |
-| **TTS + 历史** | Week 6 | 讯飞TTS + EdgeTTS + SQLite + 历史/收藏 + 导出 | 基础功能完整 |
-| **多引擎对比** | Week 7 | 渐进渲染 + 相似度 + 差异对比 + 智能推荐 | 核心差异化完成 |
-| **文档翻译 + 术语表** | Week 8 | 6 个提取器 + 术语表 + 后处理 + AI 注入 | 进阶功能完成 |
-| **打磨** | Week 9 | 弹性策略 + 设置页 + 导出格式 + PPTX + 动画细节 | 工程质量达标 |
-| **集成测试 + 回归** | Week 10 | 端到端测试 + 兼容性 + 性能 + 修 Bug | 候选发布版 |
-| **发布** | Week 11 | 打包签名 + 文档 + 发布 + 缓冲 | v1.0.0 正式发布 |
+| 文本翻译 + 多引擎对比 | ✅ | — | 核心功能 |
+| 剪贴板翻译 + 浮窗 | ✅ | — | 核心体验 |
+| 5 家普通引擎 + 3 家 AI | ✅ | — | 核心差异化 |
+| TTS（讯飞 + Edge） | ✅ | — | 用户刚需 |
+| 翻译历史 + 收藏 + 导出 | ✅ | — | 基础功能 |
+| 术语表 | ✅ | — | 专业用户刚需 |
+| TXT 文档翻译 | ✅ | — | 最简格式，验证管道 |
+| **DOCX 文档翻译** | ❌ | ✅ | OpenXml 解析 + 双语对照工作量大 |
+| **PPTX 文档翻译** | ❌ | ✅ | SmartArt 边界情况多 |
+| **SRT/ASS 字幕翻译** | ❌ | ✅ | 时间轴保留 + ASS 标签解析 |
+| **HTML/MD 文档翻译** | ❌ | ✅ | DOM 遍历 + 代码块保护 |
+| Neumorphism 完整主题 | ✅ | — | v1.0 必须 |
+| 自动更新（Velopack） | ✅ | — | v1.0 必须 |
+| 插件系统 | ❌ | ❌ | v2.0 |
 
 ### 20.2 每周详细排期
 
-**Week 1：基础搭建 + Neumorphism 核心控件**
+**Week 1：基础搭建 + Neumorphism 核心控件（3 个）**
 
 | 天 | 内容 |
 |---|---|
 | Day 1 | 创建解决方案（TranslatorApp + Translator.Core + Translator.Tests），配置 .NET 8 + Avalonia 11.2 |
-| Day 2 | 搭建 CI（GitHub Actions：restore + build + test），确保首次 commit 就有绿灯 |
+| Day 2 | 搭建 CI（GitHub Actions：restore + build + test + dotnet format），确保首次 commit 就有绿灯 |
 | Day 3 | MVVM 骨架：MainViewModel + 页面导航 + DI 容器注册 |
-| Day 4 | Neumorphism 主题基础：色板定义（浅色/深色双套）、ControlTheme 基类、Button + TextBox 样式 |
-| Day 5 | Neumorphism 核心控件：卡片 Border、输入框内凹阴影、主按钮按压态、Badge 标签 |
+| Day 4 | Neumorphism 主题基础：色板定义（浅色/深色双套 CSS 变量）、ControlTheme 基类、**Button 样式**（默认/Hover/Pressed 三态 × 2 主题 = 6 变体） |
+| Day 5 | Neumorphism **TextBox**（内凹阴影 + Focus 态）+ **Border 卡片**（外凸阴影 + 圆角）+ Badge 标签 |
 
-**Week 2：核心翻译 + 主题补全**
+> **验收标准（Week 1 结束）：** Button 三态手感正确（外凸→内凹），TextBox 内凹槽感明显，卡片阴影自然。浅色/深色切换无闪烁。
+
+**Week 2：核心翻译 + 主题补全（6 个控件）**
 
 | 天 | 内容 |
 |---|---|
 | Day 1 | `ITranslationProvider` 接口定义 + `TranslationRequest` / `TranslationResult` 模型 |
 | Day 2 | `HuoshanProvider` 实现（HTTP 签名认证 + 翻译调用）+ 单元测试 |
 | Day 3 | `BaiduProvider` 实现 + 单元测试（mock HTTP）+ `TranslationRouter` |
-| Day 4 | Neumorphism 补全：ComboBox、ToggleSwitch、TabItem、ProgressBar、RadioButton |
-| Day 5 | Neumorphism 补全：ScrollBar、公告栏样式、语言选择器下拉 + `TranslationCache` |
+| Day 4 | Neumorphism **ComboBox**（关闭/展开/选中 3 态）+ **ToggleSwitch**（开/关 2 态）+ **TabItem**（选中/未选中 2 态） |
+| Day 5 | Neumorphism **ProgressBar** + **RadioButton** + **ScrollBar** + `TranslationCache` |
 
-**Week 3：核心体验**
+> **验收标准（Week 2 结束）：** 10 个控件主题完整（Button/TextBox/Border/ComboBox/ToggleSwitch/TabItem/ProgressBar/RadioButton/ScrollBar/Badge）。单引擎翻译可用。
+
+**Week 3：核心体验 + 剩余控件主题**
 
 | 天 | 内容 |
 |---|---|
-| Day 1 | `IClipboardMonitor` 接口 + `WindowsClipboardMonitor`（Win32 P/Invoke）+ 过滤条件 |
+| Day 1 | `IClipboardMonitor` 接口 + `WindowsClipboardMonitor`（Win32 P/Invoke，见 §5.2 修正说明）+ 过滤条件 |
 | Day 2 | 迷你翻译浮窗 + 浮窗出现/隐藏逻辑 + `TranslationManager` 编排 |
-| Day 3 | 系统托盘（TrayIcon）+ 左键显示/隐藏 + 右键菜单 |
-| Day 4 | 全局热键注册（Ctrl+Shift+T）+ 首次使用引导流程 |
-| Day 5 | 联调：剪贴板 → 浮窗 → 翻译 → 结果展示完整链路 + 单元测试 |
+| Day 3 | 系统托盘（TrayIcon）+ 左键显示/隐藏 + 右键菜单 + 全局热键注册（Ctrl+Shift+T） |
+| Day 4 | Neumorphism 剩余控件：**Slider**、**Expander**、**ToolTip**、**ContextMenu**、**Dialog/Modal**（按压态 + 焦点陷阱） |
+| Day 5 | 联调：剪贴板 → 浮窗 → 翻译 → 结果展示完整链路 + 单元测试 + **Alpha 前预检** |
 
-**Week 4：普通引擎补全**
+> **Neumorphism 控件验收清单（Week 3 结束，全部 15 个控件）：**
+>
+> | 控件 | 默认态 | Hover 态 | 按下/选中态 | 浅色 | 深色 | 状态 |
+> |---|---|---|---|---|---|---|
+> | Button（主按钮） | 外凸 + 强调色 | 浮起 +2px | 内凹 inset | ✅ | ✅ | Week 1 |
+> | Button（次按钮） | 外凸 + 背景色 | 浮起 | 内凹 | ✅ | ✅ | Week 1 |
+> | TextBox | 内凹 | — | Focus 强调色边框 | ✅ | ✅ | Week 1 |
+> | Border（卡片） | 外凸 | 浮起 +1px | — | ✅ | ✅ | Week 1 |
+> | ComboBox | 内凹 | — | 展开外凸 | ✅ | ✅ | Week 2 |
+> | ToggleSwitch | 滑轨内凹 + 滑块外凸 | 微亮 | 滑动到另一端 | ✅ | ✅ | Week 2 |
+> | TabItem | 内凹（未选中） | — | 外凸 + 强调色 | ✅ | ✅ | Week 2 |
+> | ProgressBar | 内凹轨道 + 外凸填充 | — | — | ✅ | ✅ | Week 2 |
+> | RadioButton | 外凸圆 + 内凹选中 | 微亮 | 内凹 + 强调色点 | ✅ | ✅ | Week 2 |
+> | ScrollBar | 细条内凹 | 加宽 | — | ✅ | ✅ | Week 2 |
+> | Badge | 外凸小圆角 | — | — | ✅ | ✅ | Week 1 |
+> | Slider | 内凹轨道 + 外凸滑块 | 微亮 | — | ✅ | ✅ | Week 3 |
+> | Expander | 外凸 | — | 展开内凹 | ✅ | ✅ | Week 3 |
+> | ToolTip | 外凸浮层 | — | — | ✅ | ✅ | Week 3 |
+> | ContextMenu | 外凸浮层 + 阴影 | Hover 高亮 | — | ✅ | ✅ | Week 3 |
+> | Dialog/Modal | 外凸 + 半透明遮罩 | — | 焦点陷阱 + Esc 关闭 | ✅ | ✅ | Week 3 |
+
+**Week 4：普通引擎补全 + Alpha 里程碑**
 
 | 天 | 内容 |
 |---|---|
@@ -8151,15 +8349,25 @@ GitHub Actions Pipeline
 | Day 2 | `CaiyunProvider`（Token 认证，接口极简）+ `NiutransProvider`（AppId + API Key） |
 | Day 3 | 额度耗尽自动切换机制 + 引擎健康状态管理（CircuitBreaker） |
 | Day 4 | 5 家普通引擎联调 + 引擎测试连接功能 + 单元测试批量补全 |
-| Day 5 | 引擎管理 UI（设置页拖拽排序 + 用量进度条 + API Key 测试） |
+| Day 5 | 引擎管理 UI（设置页拖拽排序 + 用量进度条 + API Key 测试）+ **Alpha 检查点** |
+
+> **🎯 Alpha 里程碑通过标准：**
+> - [ ] 单引擎翻译：输入文本 → 点击翻译 → 3s 内显示正确译文
+> - [ ] 剪贴板翻译：复制文本 → 自动弹出浮窗 → 翻译结果
+> - [ ] 系统托盘：最小化到托盘 → 点击恢复
+> - [ ] 全局热键：Ctrl+Shift+T 唤出窗口
+> - [ ] 5 家普通引擎全部可独立启用/禁用
+> - [ ] 浅色/深色主题切换正常
+> - [ ] 单元测试通过率 100%
+> - **不通过则 Week 6 开始前修复完毕，不得带入后续阶段**
 
 **Week 5：AI 引擎补全**
 
 | 天 | 内容 |
 |---|---|
 | Day 1 | `DeepSeekProvider`（OpenAI 兼容格式，只需改 URL + model） |
-| Day 2 | `QwenProvider` + `KimiProvider`（同为 OpenAI 兼容，复用基类） |
-| Day 3 | AI Prompt 构建（System Prompt + 术语注入 + 翻译风格自适应） |
+| Day 2 | `QwenProvider` + `KimiProvider`（同为 OpenAI 兼容，复用基类 `OpenAiCompatibleProvider`） |
+| Day 3 | AI Prompt 构建（System Prompt + 术语注入占位 + 翻译风格自适应） |
 | Day 4 | AI 模式切换 UI + 成本预估（token 计算 + 价格展示） |
 | Day 5 | 8 个引擎全量联调 + 模式切换 + 降级策略 + 集成测试 |
 
@@ -8173,7 +8381,7 @@ GitHub Actions Pipeline
 | Day 4 | 历史页签（搜索/分页/收藏/删除）+ 收藏页签（独立一级页签） |
 | Day 5 | 翻译历史自动写入集成 + 导出（TXT + CSV）+ 单元测试 |
 
-**Week 7：多引擎对比**
+**Week 7：多引擎对比 + Beta 里程碑**
 
 | 天 | 内容 |
 |---|---|
@@ -8181,58 +8389,154 @@ GitHub Actions Pipeline
 | Day 2 | 相似度矩阵（Levenshtein / Jaccard）+ 差异对比视图（diff） |
 | Day 3 | 智能推荐评分（4 维度：流畅度 + 共识 + 偏好 + 速度）+ 推荐标签 |
 | Day 4 | AI 对比模式 + 导出对比报告（TXT/MD/CSV）+ 卡片动画 |
-| Day 5 | 多引擎对比全链路联调 + 单元测试（渐进渲染、评分、相似度） |
+| Day 5 | 多引擎对比全链路联调 + 单元测试 + **Beta 检查点** |
 
-**Week 8：文档翻译 + 术语表**
+> **🎯 Beta 里程碑通过标准：**
+> - [ ] 8 引擎全部可独立启用/禁用 + 测试连接通过
+> - [ ] 多引擎对比：点击按钮 → 5 引擎并行 → 1.5s 内首结果可见
+> - [ ] 渐进式渲染：先到先显示，不等全部完成
+> - [ ] 单引擎失败不影响其他引擎
+> - [ ] 相似度矩阵 + 差异对比 + 智能推荐正常工作
+> - [ ] TTS 朗读可用（讯飞 + Edge 双引擎）
+> - [ ] 翻译历史 + 收藏 + 导出（TXT/CSV）正常
+> - [ ] 性能：冷启动 ≤ 3s，内存空闲 ≤ 80MB
+> - **不通过则 Week 9 开始前修复完毕**
+
+**Week 8：术语表 + TXT 文档翻译**
 
 | 天 | 内容 |
 |---|---|
-| Day 1 | `TxtExtractor` + `DocxExtractor`（DocumentFormat.OpenXml）+ 段落合并 |
-| Day 2 | `SubtitleExtractor`（SRT 时间轴 + ASS 标签解析）+ `MarkdownExtractor` |
-| Day 3 | `HtmlExtractor`（HtmlAgilityPack DOM 遍历）+ `PptxExtractor`（OpenXml） |
-| Day 4 | 术语表 CRUD UI（增删改查/分类/正则/导入导出）+ `GlossaryPostProcessor` |
-| Day 5 | AI Prompt 术语注入 + 成本预估面板 + 翻译进度条 + 导出 + 提取器单元测试 |
+| Day 1 | 术语表 CRUD（增删改查/分类/优先级）+ 数据库表 + 单元测试 |
+| Day 2 | `GlossaryPostProcessor`（整词边界 + 正则 + 二次替换防护 + 质量检查） |
+| Day 3 | AI Prompt 术语注入（`AiGlossaryInjector`）+ 术语表导入导出（CSV/JSON/TSV） |
+| Day 4 | `TxtExtractor` + 文档翻译管道（段落合并 → 逐段翻译 → 拼接）+ 成本预估面板 |
+| Day 5 | TXT 翻译联调 + 进度条 + 导出 + 术语表与文档翻译联动测试 |
 
-**Week 9：打磨**
+**Week 9：设置页 + 导出补全**
 
 | 天 | 内容 |
 |---|---|
-| Day 1 | 弹性策略：重试/熔断/超时 + 客户端限流器 + 缓存层完善 |
-| Day 2 | 设置页完整搭建（引擎管理/TTS/快捷键/诊断/文档翻译设置/通用） |
-| Day 3 | 导出格式补全（XLSX/Markdown/JSON/Anki TSV）+ 双语对照导出 |
-| Day 4 | 公告栏远程拉取 + 自动更新（Velopack）+ 开机自启 + 右键菜单注册 |
-| Day 5 | 动画打磨（卡片滑入、骨架屏、收藏星星、复制反馈、⇄ 旋转）+ 前后处理管道 |
+| Day 1 | 设置页完整搭建：基础设置 + 剪贴板监听 + 引擎管理（8 个引擎配置卡片） |
+| Day 2 | 设置页：TTS 设置 + 快捷键设置 + 诊断面板（引擎状态/熔断器/缓存/性能监控） |
+| Day 3 | 导出格式补全：XLSX（ClosedXML）+ Markdown + JSON + Anki TSV + 双语对照导出 |
+| Day 4 | 公告栏远程拉取（安全校验 + 滚动动画 + 悬停暂停）+ 打赏页签/弹窗 |
+| Day 5 | 首次使用引导流程 + 自动更新（Velopack UpdateManager）+ 开机自启 + 右键菜单 |
 
-**Week 10：集成测试 + 回归**
+**Week 10：弹性策略 + 工程质量**
+
+| 天 | 内容 |
+|---|---|
+| Day 1 | 弹性策略：`RetryPolicy`（指数退避 + 抖动）+ `CircuitBreaker`（三态机）+ `TimeoutPolicy` |
+| Day 2 | `ResiliencePipeline` 组合 + `ClientRateLimiter` + `TranslationCache` 完善（LRU + TTL） |
+| Day 3 | 前后处理管道：`TranslationPreProcessor`（Trim/Unicode/零宽字符）+ `FormattingFixProcessor`（中英文空格/标点）+ `QualityCheckProcessor` |
+| Day 4 | 安全加固：DPAPI 加密 + 日志脱敏 + HTTPS 强制 + 证书校验 + NTFS ACL |
+| Day 5 | 动画打磨（卡片滑入、骨架屏脉冲、收藏星星回弹、复制反馈、⇄ 旋转、主题切换 fade） |
+
+**Week 11：集成测试（第 1 轮）**
 
 | 天 | 内容 |
 |---|---|
 | Day 1 | 全流程集成测试：翻译 → 多引擎对比 → 历史 → 收藏 → 导出 |
-| Day 2 | 文档翻译全格式测试 + 性能基准（启动时间/内存/延迟） |
-| Day 3 | Win 10 / Win 11 兼容性测试 + 无障碍测试（键盘导航/高对比度） |
-| Day 4 | 压力测试（大量历史/长文档/高频剪贴板）+ 修 Bug |
-| Day 5 | 全量回归 + 验收清单逐项检查 + 截图/录屏准备 |
+| Day 2 | TXT 文档翻译全链路测试 + 术语表边界测试（整词/正则/二次替换/多义词） |
+| Day 3 | 性能基准测量（启动时间/内存/延迟/P95）+ BenchmarkDotNet 基线建立 |
+| Day 4 | Win 10 (22H2) + Win 11 (23H2/24H2) 兼容性测试 |
+| Day 5 | Bug 分级（P0 阻塞/P1 严重/P2 一般/P3 优化）+ 修 P0/P1 Bug |
 
-**Week 11：发布**
+**Week 12：集成测试（第 2 轮）+ RC 里程碑**
 
 | 天 | 内容 |
 |---|---|
-| Day 1 | Velopack 打包 + 代码签名 + 安装包测试（安装版 + 便携版） |
-| Day 2 | README 完善 + 使用文档 + 截图 |
-| Day 3 | GitHub Release 发布 v1.0.0 |
-| Day 4 | 提交 winget/scoop 包 |
-| Day 5 | 缓冲（紧急修复/社区反馈响应） |
+| Day 1 | 回归测试：P0/P1 Bug 修复验证 + 全量功能回归 |
+| Day 2 | 无障碍测试：键盘 Tab 导航顺序 + 焦点环可见性 + 高对比度模式 + 屏幕阅读器（NVDA） |
+| Day 3 | 压力测试：10000 条历史 + 高频剪贴板（1 次/秒 × 5 分钟）+ 长文本（5000 字符） |
+| Day 4 | 验收清单逐项检查（80+ 条）+ 截图/录屏 + **RC 检查点** |
+| Day 5 | 修 P2 Bug + 最终调优 |
+
+> **🎯 RC 里程碑通过标准：**
+> - [ ] 验收清单全部 P0 项通过，P1 项通过率 ≥ 95%
+> - [ ] 性能指标全部达标（启动 ≤ 3s / 内存 ≤ 80MB / P95 ≤ 3s）
+> - [ ] 无 P0 Bug，P1 Bug ≤ 3 个（已知且有 workaround）
+> - [ ] 代码覆盖率 ≥ 70%
+> - [ ] 无障碍测试通过（键盘导航 + 高对比度 + 焦点环）
+> - **不通过则 Week 13 继续修复，发布推迟**
+
+**Week 13：回归 + 修 Bug**
+
+| 天 | 内容 |
+|---|---|
+| Day 1-2 | 收尾 P2 Bug + 最终回归 + 性能调优 |
+| Day 3 | 最终验收清单确认 + 准备发布材料（changelog / 截图 / 录屏） |
+| Day 4-5 | 缓冲（如无 Bug 则提前进入 Week 14） |
+
+**Week 14：打包 + 文档**
+
+| 天 | 内容 |
+|---|---|
+| Day 1 | Velopack 打包（安装版 + 便携版）+ 代码签名 + 安装/卸载测试 |
+| Day 2 | README 完善（截图 / 功能列表 / 安装指南 / 引擎申请指南） |
+| Day 3 | 使用文档 + FAQ + 贡献指南 |
+| Day 4 | CI/CD 最终验证（tag → 自动构建 → 自动签名 → 自动发布） |
+| Day 5 | 打包 smoke test：安装 → 启动 → 翻译 → 多引擎对比 → 卸载 |
+
+**Week 15：发布（Release 里程碑）**
+
+| 天 | 内容 |
+|---|---|
+| Day 1 | GitHub Release v1.0.0（安装版 + 便携版 + manifest.json） |
+| Day 2 | 提交 winget-pkgs + Scoop Extras bucket |
+| Day 3 | 社区公告（GitHub Discussions / README 更新） |
+| Day 4-5 | 监控 Issue + 快速响应 |
+
+> **🎯 Release 里程碑：** v1.0.0 正式发布，所有分发渠道就绪。
+
+**Week 16：风险缓冲**
+
+| 天 | 内容 |
+|---|---|
+| Day 1-3 | 紧急 hotfix（如发现 P0 回归 Bug） |
+| Day 4-5 | 社区反馈收集 + v1.0.1 规划 或 提前启动 v1.1（文档翻译） |
 
 ### 20.3 CI/CD 贯穿全程
 
 | 时间 | 行动 |
 |---|---|
-| **Week 1 Day 2** | 搭建 GitHub Actions（build + test），之后每次提交自动运行 |
-| **Week 2 起** | 新增 Provider 必须附带单元测试（mock HTTP），否则不准合入 |
+| **Week 1 Day 2** | 搭建 GitHub Actions（build + test + dotnet format），确保首次 commit 就有绿灯 |
+| **Week 2 起** | 新增 Provider 必须附带单元测试（mock HTTP），否则不准合入（PR 门禁） |
+| **Week 4 起** | CI 增加 `dotnet list package --vulnerable` 安全扫描，发现高危漏洞阻断合入 |
 | **Week 5 起** | 集成测试覆盖完整翻译管道（缓存 → 路由 → 调用 → 后处理） |
-| **Week 7 起** | 代码覆盖率检查（≥ 60%），不达标不准合入 |
-| **Week 9** | CI 增加性能基准检查（启动时间/内存/延迟） |
-| **Week 11** | CI 增加打包 + 签名步骤，tag 触发自动发布 |
+| **Week 7 起** | 代码覆盖率检查（≥ 70%），不达标不准合入 |
+| **Week 10** | CI 增加 BenchmarkDotNet 性能基准（启动时间/缓存命中/术语替换/SQLite 写入） |
+| **Week 11** | CI 增加打包 smoke test（Velopack pack → 安装 → 启动 → 基本翻译 → 卸载） |
+| **Week 14** | CI 增加代码签名步骤，tag 触发自动发布到 GitHub Releases |
+
+#### CI Pipeline 完整结构
+
+```
+GitHub Actions Pipeline
+  │
+  ├─ 触发条件：push to main / pull request / manual
+  │
+  ├─ Job 1: Build + Test (~3 min)
+  │   ├─ dotnet restore
+  │   ├─ dotnet format --verify-no-changes（代码风格门禁）
+  │   ├─ dotnet build -c Release --warnaserror
+  │   ├─ dotnet test（单元测试 + 集成测试）
+  │   ├─ 代码覆盖率报告（coverlet → Codecov）
+  │   └─ dotnet list package --vulnerable（安全扫描）
+  │
+  ├─ Job 2: Performance Benchmark（仅 main 分支，每周一次 + 手动触发）
+  │   ├─ BenchmarkDotNet 启动/缓存/术语替换/SQLite 基准
+  │   └─ 与基线对比，超标则标红
+  │
+  ├─ Job 3: Package（仅 release 分支 + tag）
+  │   ├─ Velopack pack
+  │   ├─ 代码签名
+  │   └─ Smoke test（安装 → 启动 → 翻译 → 卸载）
+  │
+  └─ Job 4: Release（仅 tag v*）
+      ├─ 上传到 GitHub Releases
+      └─ 更新 manifest.json
+```
 
 #### 每周测试任务明细
 
@@ -8241,26 +8545,33 @@ GitHub Actions Pipeline
 | **Week 1** | CI 搭建 + xUnit 项目初始化 + 第一个 smoke test（项目能跑） | Day 2 全天 |
 | **Week 2** | `HuoshanProvider` / `BaiduProvider` 单元测试（mock HttpClient），`TranslationRouter` 测试 | Day 3 + Day 5 下午 |
 | **Week 3** | `ClipboardMonitor` 过滤逻辑测试，`TranslationManager` 集成测试（mock 全链路） | Day 5 |
-| **Week 4** | 腾讯/彩云/小牛 Provider 单元测试，额度切换逻辑测试 | Day 4 下午 |
-| **Week 5** | DeepSeek/通义/Kimi 单元测试，AI Prompt 注入测试 | Day 5 下午 |
-| **Week 6** | `HistoryRepository` SQLite 读写测试，TTS Provider mock 测试 | Day 5 下午 |
-| **Week 7** | `ComparisonEngine` 渐进式渲染测试，评分/相似度算法测试 | Day 5 |
-| **Week 8** | `DocumentExtractor` 各格式提取测试，`GlossaryPostProcessor` 边界测试 | Day 5 |
-| **Week 9** | 弹性策略测试（重试/熔断/超时），设置页 UI 测试 | Day 5 下午 |
-| **Week 10** | 端到端集成测试 + 性能基准 + 全量回归 | 全周 |
-| **Week 11** | 最终回归 + 验收清单逐项检查 | Day 1-2 |
+| **Week 4** | 腾讯/彩云/小牛 Provider 单元测试，额度切换逻辑测试，**Alpha 验收测试** | Day 4 + Day 5 |
+| **Week 5** | DeepSeek/通义/Kimi 单元测试，AI Prompt 注入测试，`OpenAiCompatibleProvider` 基类测试 | Day 5 下午 |
+| **Week 6** | `HistoryRepository` SQLite 读写测试（含 WAL 模式崩溃恢复），TTS Provider mock 测试 | Day 5 下午 |
+| **Week 7** | `ComparisonEngine` 渐进式渲染测试，评分/相似度算法测试，**Beta 验收测试** | Day 4 + Day 5 |
+| **Week 8** | `TxtExtractor` 测试，`GlossaryPostProcessor` 边界测试（整词/正则/二次替换/空译文），术语表导入导出测试 | Day 5 |
+| **Week 9** | 设置页 ViewModel 测试，导出格式验证（XLSX/CSV/Anki 各抽样检查），公告栏安全测试 | Day 5 下午 |
+| **Week 10** | 弹性策略测试（重试退避/熔断三态/超时取消），安全加固测试（DPAPI/脱敏），性能基准建立 | Day 3-5 |
+| **Week 11** | 端到端集成测试 + 性能基准测量 + Win10/11 兼容性 | 全周 |
+| **Week 12** | 回归测试 + 无障碍测试 + 压力测试 + **RC 验收测试** | 全周 |
+| **Week 13** | P2 Bug 回归验证 + 最终验收清单逐项确认 | Day 1-3 |
+| **Week 14** | 打包 smoke test（安装版 + 便携版各测一遍） | Day 5 |
 
-**原则：测试与开发同节奏，不是最后补。** 每个功能点开发完成的当天或次日写测试，避免 Week 10 集中补测试导致进度爆炸。
+**原则：测试与开发同节奏，不是最后补。** 每个功能点开发完成的当天或次日写测试，避免集中补测试导致进度爆炸。每个里程碑检查点（Alpha/Beta/RC）必须通过验收测试才能进入下一阶段。
 
 ### 20.4 风险缓冲
 
 | 风险 | 可能影响 | 缓冲方案 |
 |---|---|---|
 | 某个引擎 API 文档不清晰 | 对接耗时超预期 | Week 4-5 各预留 Day 5 弹性，可砍掉 1-2 个非核心引擎 |
-| Neumorphism UI 实现复杂 | UI 进度延迟 | Week 1-2 已分配 4 天专项，核心控件优先，次要控件 Week 9 补 |
-| Avalonia 兼容性问题 | 某些控件行为异常 | Week 10 整周回归测试 |
+| Neumorphism UI 实现复杂 | UI 进度延迟 | 已拆为 3 周（Week 1-3），15 个控件逐周验收，次要控件可降级为扁平样式 |
+| Avalonia 兼容性问题 | 某些控件行为异常 | Week 12 无障碍测试 + Win10/11 兼容性全覆盖 |
+| Avalonia 内部 API 变动（WindowImpl） | 剪贴板监听失效 | 方案中已设计 fallback（轮询 Clipboard.GetText()），见 §5.2 修正说明 |
 | CI 环境问题 | 自动化受阻 | Week 1 Day 2 搭建时就解决，不拖到后期 |
-| 文档提取器边界情况多 | 某些格式解析不完整 | Week 8 Day 5 预留联调，SmartArt 不作为验收标准 |
+| 文档提取器边界情况多 | 某些格式解析不完整 | v1.0 仅支持 TXT，其余格式移至 v1.1，消除此风险 |
+| 术语表性能瓶颈（>5000 条） | 翻译变慢 | 启动时全量加载 + 正则缓存，性能基准中有专项测试 |
+| 代码签名证书申请延迟 | 无法签名发布 | 过渡方案：自签名 + README 说明，Week 14 前解决即可 |
+| Week 11-12 发现 P0 Bug | 发布推迟 | Week 13-16 共 4 周缓冲，最坏推迟 2 周到 Week 15 发布 |
 
 ---
 
