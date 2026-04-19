@@ -4,21 +4,18 @@
              x:Class="TranslatorApp.App">
 
   <Application.Resources>
-    <!-- 色彩 Token（浅色主题默认） -->
-    <ResourceInclude Source="avares://DotTranslator/Assets/Themes/Colors.axaml" />
-
-    <!-- 转换器 -->
-    <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://DotTranslator/Assets/Themes/Colors.axaml" />
+        <ResourceInclude Source="avares://DotTranslator/Assets/Themes/Neumorphism/Button.axaml" />
+        <ResourceInclude Source="avares://DotTranslator/Assets/Themes/Neumorphism/TextBox.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+      <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+    </ResourceDictionary>
   </Application.Resources>
 
   <Application.Styles>
-    <!-- 基础字体 -->
-    <StyleInclude Source="avares://Avalonia.Fonts.Inter/Inter.axaml" />
-
-    <!-- Neumorphism 主题 -->
-    <StyleInclude Source="avares://DotTranslator/Assets/Themes/Neumorphism/Button.axaml" />
-    <StyleInclude Source="avares://DotTranslator/Assets/Themes/Neumorphism/TextBox.axaml" />
-    <!-- TODO: Week 2+ 添加更多控件主题 -->
+    <FluentTheme />
   </Application.Styles>
 
 </Application>

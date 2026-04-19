@@ -1,6 +1,5 @@
 <!--
-  DotTranslator — Neumorphism TextBox ControlTheme（Week 2 完善）
-  此为 Week 1 最小可编译版本，Week 2 补全内凹阴影/焦点态等
+  DotTranslator — Neumorphism TextBox ControlTheme
 -->
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -23,13 +22,24 @@
           <ScrollViewer HorizontalScrollBarVisibility="Auto"
                         VerticalScrollBarVisibility="Auto">
             <Panel>
-              <TextBlock Text="{TemplateBinding Watermark}"
+              <TextBlock x:Name="PART_Watermark"
+                         Text="{TemplateBinding Watermark}"
                          Foreground="{DynamicResource TextDisabledBrush}"
-                         IsVisible="{TemplateBinding Text, 
-                             Converter={x:Static Avalonia.Data.Converters.StringConverters.IsNullOrEmpty}}"
+                         IsVisible="False"
                          VerticalAlignment="Center"
                          Margin="2,0" />
-              <ContentPresenter Content="{TemplateBinding Content}" />
+              <TextPresenter x:Name="PART_TextPresenter"
+                             Text="{TemplateBinding Text, Mode=TwoWay}"
+                             SelectionStart="{TemplateBinding SelectionStart}"
+                             SelectionEnd="{TemplateBinding SelectionEnd}"
+                             CaretIndex="{TemplateBinding CaretIndex}"
+                             TextAlignment="{TemplateBinding TextAlignment}"
+                             TextWrapping="{TemplateBinding TextWrapping}"
+                             PasswordChar="{TemplateBinding PasswordChar}"
+                             RevealPassword="{TemplateBinding RevealPassword}"
+                             SelectionBrush="{TemplateBinding SelectionBrush}"
+                             SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
+                             CaretBrush="{TemplateBinding CaretBrush}" />
             </Panel>
           </ScrollViewer>
         </Border>

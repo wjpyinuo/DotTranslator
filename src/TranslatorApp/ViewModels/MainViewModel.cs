@@ -189,7 +189,7 @@ public partial class MainViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void Compare()
+    private static void Compare()
     {
         // TODO: 展开多引擎对比视图
     }

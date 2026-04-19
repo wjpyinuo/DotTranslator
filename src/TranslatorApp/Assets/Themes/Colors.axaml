@@ -5,6 +5,7 @@
 -->
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib"
                     x:Class="TranslatorApp.Assets.Themes.Colors">
 
   <!-- ═══════════════════════════════════════════
@@ -69,9 +70,6 @@
   <Color x:Key="Dark.InputBg">#2B2D42</Color>
   <Color x:Key="Dark.Divider">#3D3F58</Color>
 
-  <!-- Dark Brushes (overridden at runtime when theme switches) -->
-  <!-- These are fallback values; actual switching uses DynamicResource -->
-
   <!-- ═══════════════════════════════════════════
        全局共享 Token（主题无关）
        ═══════════════════════════════════════════ -->
@@ -99,8 +97,8 @@
   <x:Double x:Key="FontSize.Heading">22</x:Double>
 
   <!-- 动画时长 -->
-  <TimeSpan x:Key="Animation.Fast">0:0:0.15</TimeSpan>
-  <TimeSpan x:Key="Animation.Normal">0:0:0.2</TimeSpan>
-  <TimeSpan x:Key="Animation.Slow">0:0:0.3</TimeSpan>
+  <system:TimeSpan x:Key="Animation.Fast">00:00:00.150</system:TimeSpan>
+  <system:TimeSpan x:Key="Animation.Normal">00:00:00.200</system:TimeSpan>
+  <system:TimeSpan x:Key="Animation.Slow">00:00:00.300</system:TimeSpan>
 
 </ResourceDictionary>
