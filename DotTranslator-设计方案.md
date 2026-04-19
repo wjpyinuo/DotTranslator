@@ -7,6 +7,7 @@
 ## 目录
 
 - [一、项目定位](#一项目定位)
+  - [1.1 竞品分析](#11-竞品分析)
 - [二、翻译引擎](#二翻译引擎)
   - [2.1 普通模式 — 传统翻译 API](#21-普通模式--传统翻译-api)
   - [2.2 AI 模式 — 大语言模型翻译](#22-ai-模式--大语言模型翻译)
@@ -79,8 +80,9 @@
 - [十六、插件与扩展性设计](#十六插件与扩展性设计)
 - [十七、用户反馈通道](#十七用户反馈通道)
 - [十八、隐私政策](#十八隐私政策)
-- [十九、开发排期](#十九开发排期)
-- [二十、成本总结](#二十成本总结)
+- [十九、v1.0 验收标准](#十九v10-验收标准)
+- [二十、开发排期（10 周）](#二十开发排期10-周)
+- [二十一、成本总结](#二十一成本总结)
 
 ---
 
@@ -93,6 +95,87 @@
 | **技术栈** | .NET 8 + Avalonia UI |
 | **核心卖点** | 轻量、免费为主、多引擎聚合对比 |
 | **收费模式** | 软件免费，用户自备各平台 API Key |
+
+---
+
+### 1.1 竞品分析
+
+#### 市场格局
+
+桌面翻译工具可分为三类：**浏览器插件**、**独立桌面工具**、**在线翻译网站**。DotTranslator 定位为独立桌面工具，但竞品视野覆盖全部三类。
+
+#### 第一梯队：主流竞品
+
+| 竞品 | 类型 | 引擎 | 核心能力 | 用户量级 |
+|---|---|---|---|---|
+| **沙拉查词 (Saladict)** | 浏览器插件 | 多引擎（用户配置） | 划词翻译、多引擎对比 | 百万级 |
+| **沉浸式翻译** | 浏览器插件 | DeepL / OpenAI / 多种 | 网页双语翻译、PDF 翻译 | 千万级 |
+| **DeepL** | 独立应用 + 网站 | DeepL 自有引擎 | 翻译质量极高 | 千万级 |
+| **有道翻译** | 独立应用 | 有道自有引擎 | 截图翻译、划词翻译 | 亿级 |
+| **CopyTranslator** | 独立工具 | 调用在线翻译 | 剪贴板监听翻译 | 十万级 |
+| **Pot (派了个特)** | 独立工具 | 多引擎（插件） | 划词 + OCR + TTS | 十万级 |
+
+#### 第二梯队：细分竞品
+
+| 竞品 | 类型 | 特点 |
+|---|---|---|
+| **TTime** | 独立工具 | 截图 OCR + 翻译，插件化架构 |
+| **Bob** | macOS 专属 | 划词 + OCR + 翻译，macOS 生态标杆 |
+| **GoldenDict** | 独立工具 | 本地词典为主，翻译为辅 |
+| **Google 翻译** | 在线网站 | 免费、语种全，但需科学上网 |
+| **百度翻译** | 在线网站 + API | 免费额度高，但无桌面客户端 |
+
+#### DotTranslator 的差异化定位
+
+**核心差异：多引擎聚合对比 — 同一段文本，多家引擎同时翻译，结果并排对比，用户选出最优译文。**
+
+| 对比维度 | 沉浸式翻译 | 沙拉查词 | CopyTranslator | Pot | **DotTranslator** |
+|---|---|---|---|---|---|
+| **多引擎并行对比** | ❌ 单引擎切换 | ⚠️ 手动切换 | ❌ | ⚠️ 插件拼凑 | ✅ **核心功能** |
+| **渐进式渲染** | — | — | — | — | ✅ 先到先显示 |
+| **智能推荐评分** | — | — | — | — | ✅ 4 维度评分 |
+| **差异对比视图** | — | — | — | — | ✅ 词级 diff |
+| **相似度矩阵** | — | — | — | — | ✅ 引擎共识分析 |
+| **AI 翻译模式** | ✅ | ⚠️ 需配置 | ❌ | ⚠️ 插件 | ✅ 内建 3 家 AI |
+| **免费额度最大化** | ❌ 依赖付费 | ⚠️ 用户自配 | ❌ | ⚠️ 用户自配 | ✅ **5 家免费合计 900 万+** |
+| **桌面原生应用** | ❌ 浏览器插件 | ❌ 浏览器插件 | ✅ | ✅ | ✅ |
+| **剪贴板监听** | ❌ | ❌ | ✅ 核心功能 | ✅ | ✅ |
+| **离线使用** | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **文档翻译** | ⚠️ 网页/PDF | ❌ | ❌ | ❌ | ✅ 6 种格式 |
+| **TTS 朗读** | ❌ | ⚠️ 有限 | ❌ | ✅ | ✅ 讯飞 + Edge |
+| **术语表** | ❌ | ⚠️ 有限 | ❌ | ❌ | ✅ 完整方案 |
+| **翻译历史** | ⚠️ 有限 | ✅ | ❌ | ❌ | ✅ SQLite + 6 种导出 |
+| **新拟态 UI** | — | — | ❌ | ❌ | ✅ 差异化设计 |
+
+#### 各竞品的核心弱点
+
+| 竞品 | 核心弱点 |
+|---|---|
+| **沉浸式翻译** | 浏览器插件，无法脱离浏览器使用；翻译质量依赖单一付费引擎（DeepL），免费用户质量一般；无桌面原生体验 |
+| **沙拉查词** | 多引擎是"手动切换"而非"并行对比"，用户需要逐个点开看结果，效率低；浏览器插件天花板 |
+| **CopyTranslator** | 仅调用单一在线翻译（Google/百度），无多引擎对比；功能单一，无历史/收藏/术语表 |
+| **Pot** | 插件化架构导致引擎拼凑感强，各引擎结果展示不统一；无智能推荐和对比分析 |
+| **DeepL** | 单引擎，无法对比；中国用户体验差（连接不稳定）；付费门槛 |
+| **有道翻译** | 单引擎（有道自有），无法对比；广告多、体积大、越来越臃肿 |
+
+#### DotTranslator 的战略卡位
+
+```
+                    翻译质量
+                      ↑
+                      │
+          DeepL ●     │     ● DotTranslator (多引擎取最优)
+                      │
+    有道翻译 ●         │        ● 沉浸式翻译
+                      │
+                      │     ● Pot
+                      │
+    CopyTranslator ●  │  ● 沙拉查词
+                      │
+                      └──────────────────→ 功能丰富度
+```
+
+**一句话定位：** DotTranslator 是唯一一款以"多引擎聚合对比"为核心功能的桌面翻译工具 — 不是让用户逐个切换引擎碰运气，而是让所有引擎同时回答，用户站在多家的肩膀上挑出最好的那一句。
 
 ---
 
@@ -5320,6 +5403,8 @@ Log.Logger = new LoggerConfiguration()
 
 ### 15.9 翻译前后处理管道
 
+> 前处理在发送翻译请求前清洗输入文本；后处理在译文返回后修正格式和应用术语表。两层管道保证最终交付给用户的译文干净、准确、一致。
+
 #### 前处理（Pre-process）
 
 ```csharp
@@ -5337,45 +5422,432 @@ public class TranslationPreProcessor
         if (text.Length > settings.MaxSegmentLength)
             return SplitIntoSegments(text, settings.MaxSegmentLength);
 
-        // 3. 术语预注入（AI 模式）
-        if (settings.Mode == TranslationMode.AI && settings.Glossary.Any())
-            text = InjectGlossaryContext(text, settings.Glossary);
+        return text;
+    }
+}
+```
+
+**前处理步骤详解：**
+
+| 步骤 | 方法 | 说明 |
+|---|---|---|
+| **Trim** | `text.Trim()` | 去除首尾空白，防止翻译引擎处理多余空格 |
+| **统一换行** | `\r\n` → `\n`, `\r` → `\n` | 统一为 LF，防止不同平台换行符导致分段异常 |
+| **去除零宽字符** | 去除 `\u200B` `\u200C` `\u200D` `\uFEFF` | 从网页/Word 复制时可能夹带零宽字符，干扰翻译 |
+| **Unicode 规范化** | NFC 规范化 | 确保 `é` 等组合字符统一为预组合形式，防止同一字符被翻译引擎视为不同输入 |
+| **超长分段** | 按段落/句子拆分 | 超过单次请求限制时分段，见 §5.3.5 段落合并策略 |
+
+#### 后处理（Post-process）
+
+后处理管道由多个 `IPostProcessor` 实现组成，按 Priority 顺序执行：
+
+```
+译文返回
+  │
+  ▼
+┌─────────────────────────────────────────────────┐
+│  PostProcessor Pipeline (按 Priority 排序)       │
+│                                                  │
+│  ① GlossaryPostProcessor (Priority=0)            │
+│     术语表强制替换                                │
+│                                                  │
+│  ② FormattingFixProcessor (Priority=10)          │
+│     空格/标点修复                                │
+│                                                  │
+│  ③ QualityCheckProcessor (Priority=100)          │
+│     质量异常检测（最后执行）                       │
+│                                                  │
+└─────────────────────────────────────────────────┘
+  │
+  ▼
+最终译文
+```
+
+#### 15.9.1 InjectGlossaryContext — AI 模式术语注入
+
+AI 模式下，术语表注入到 System Prompt 尾部，让模型翻译时直接遵循术语规则。
+
+> 完整实现见 §8.1.3。此处补充前处理管道中的调用细节。
+
+```csharp
+public class TranslationPreProcessor
+{
+    public string Process(string text, AppSettings settings)
+    {
+        // ... 基础清理 ...
+
+        // 术语注入仅在 AI 模式下生效，由 AI Provider 内部的 PromptBuilder 处理
+        // 前处理层不直接操作 prompt（避免与 Provider 职责混淆）
+        // InjectGlossaryContext 实际由 AiTranslationPromptBuilder.BuildMessages() 调用
 
         return text;
     }
 }
 ```
 
-#### 后处理（Post-process）
+**职责归属修正：** `InjectGlossaryContext` 不在前处理层执行，而是在 AI Provider 的 Prompt 构建阶段执行。原因：
+
+| 维度 | 前处理层注入 | Provider 层注入 |
+|---|---|---|
+| **职责清晰度** | 前处理应只管文本清洗 | Prompt 构建是 Provider 的职责 |
+| **Token 预估** | 前处理层无法准确预估注入后的 token 数 | Provider 层可精确计算 |
+| **灵活度** | 所有 Provider 共享同一份注入逻辑 | 不同 Provider 可定制 prompt 格式 |
+
+**实际调用链：**
+
+```
+用户请求翻译（AI 模式）
+  │
+  ▼
+TranslationManager.TranslateAsync(request)
+  │
+  ├─ 前处理：文本清理（Trim、换行统一、Unicode 规范化）
+  │
+  ├─ 缓存检查 → 未命中
+  │
+  ├─ 路由 → 选择 DeepSeekProvider
+  │
+  ├─ DeepSeekProvider.TranslateAsync(request)
+  │   │
+  │   ├─ AiTranslationPromptBuilder.BuildMessages(text, srcLang, tgtLang, glossary)
+  │   │   │
+  │   │   ├─ BuildSystemPrompt(targetLang, glossary)
+  │   │   │   │
+  │   │   │   ├─ 基础 prompt（翻译要求 1-6 条）
+  │   │   │   │
+  │   │   │   ├─ ← 这里调用 InjectGlossaryContext(glossary)
+  │   │   │   │     将术语表格式化为：
+  │   │   │   │     "⚠️ 以下术语必须严格按指定方式翻译..."
+  │   │   │   │     "- [mutex] → 翻译为\"互斥锁\""
+  │   │   │   │     "- [Kubernetes] → 保留原文，不翻译"
+  │   │   │   │
+  │   │   │   └─ 目标语言指令
+  │   │   │
+  │   │   └─ BuildUserPrompt(text, srcLang, tgtLang)
+  │   │
+  │   ├─ 发送 HTTP 请求到 DeepSeek API
+  │   └─ 返回 TranslationResult
+  │
+  ├─ 后处理管道（术语替换、格式修复、质量检查）
+  │
+  └─ 缓存写入 + 返回结果
+```
+
+#### 15.9.2 ApplyGlossary — 普通模式术语后处理
+
+普通模式（火山/腾讯/百度/彩云/小牛）不支持 prompt 注入，术语表作为后处理层执行替换。
+
+> 完整实现见 §8.1.2。此处补充后处理管道中的集成细节和边界情况。
 
 ```csharp
-public class TranslationPostProcessor
+public class GlossaryPostProcessor : IPostProcessor
 {
-    public string Process(string translatedText, TranslationRequest request, AppSettings settings)
+    public string Name => "术语表替换";
+    public int Priority => 0; // 最先执行
+
+    private readonly GlossaryService _glossary;
+    private readonly ConcurrentDictionary<string, Regex> _regexCache = new();
+
+    public PostProcessResult Process(string translatedText, TranslationContext context)
     {
-        // 1. 术语表强制替换
-        if (settings.Glossary.Any())
-            translatedText = ApplyGlossary(translatedText, settings.Glossary);
+        var entries = _glossary.GetEntries(context.TargetLang == "zh" ? context.SourceLang + "-zh" : context.SourceLang + "-" + context.TargetLang);
+        if (entries.Count == 0)
+            return new PostProcessResult(translatedText, false, 0, new());
 
-        // 2. 格式修复
-        translatedText = FixSpacing(translatedText);
-        translatedText = FixPunctuation(translatedText);
-        translatedText = PreserveOriginalFormatting(translatedText, request.Text);
+        int appliedCount = 0;
+        var details = new List<string>();
+        var replacedRegions = new List<(int start, int end)>();
+        var text = translatedText;
 
-        // 3. 质量检查
-        if (IsSuspicious(translatedText, request.Text))
-            Log.Warning("Suspicious translation: length ratio={Ratio}",
-                translatedText.Length / (double)request.Text.Length);
+        // 按 Priority 降序排列（高优先级先匹配）
+        var sorted = entries.OrderByDescending(e => e.Priority).ToList();
 
-        return translatedText;
-    }
+        foreach (var entry in sorted)
+        {
+            var result = ApplySingleRule(text, entry, replacedRegions);
+            if (result.Changed)
+            {
+                text = result.Text;
+                appliedCount++;
+                details.Add($"{entry.SourceTerm} → {entry.TargetTerm}");
+                replacedRegions = result.ReplacedRegions;
+            }
+        }
 
-    private bool IsSuspicious(string translated, string original)
-    {
-        var ratio = translated.Length / (double)original.Length;
-        return ratio < 0.2 || ratio > 5.0;
+        // 质量防护检查
+        text = ValidateResult(text, translatedText);
+
+        return new PostProcessResult(text, appliedCount > 0, appliedCount, details);
     }
 }
+```
+
+##### 边界情况完整处理
+
+**① 大小写处理**
+
+| 场景 | 策略 | 示例 |
+|---|---|---|
+| `CaseSensitive = false`（默认） | 不区分大小写匹配 | 术语 `hash` 匹配原文中的 `Hash`、`HASH`、`hash` |
+| `CaseSensitive = true` | 精确大小写匹配 | 术语 `API` 只匹配 `API`，不匹配 `api` 或 `Api` |
+| 替换时保留原文大小写风格 | 按术语表中的 TargetTerm 原样替换 | `Hash` 命中 `hash → 哈希`，结果为 `哈希`（不保留原文的大写） |
+| 中文术语 | 大小写参数不适用 | 中文无大小写概念 |
+
+**为什么不保留原文大小写风格：**
+
+中文译文没有大小写概念（`哈希` 就是 `哈希`）。英文术语的大小写保留问题：如果术语表定义 `hash → 哈希`，用户期望 `Hash` 也被替换为 `哈希`。如果用户需要区分，应设置 `CaseSensitive = true` 并分别定义 `Hash` 和 `hash` 的不同译文。
+
+**② 部分匹配与整词边界**
+
+| 场景 | 正确行为 | 错误行为（❌） |
+|---|---|---|
+| 术语 `hash`，原文 `use hash for lookup` | `hash` 替换为 `哈希` ✅ | — |
+| 术语 `hash`，原文 `HashMap` | 不替换（整词边界保护） ✅ | ❌ 将 `HashMap` 变成 `哈希Map` |
+| 术语 `API`，原文 `RESTful API design` | `API` 替换 ✅ | — |
+| 术语 `API`，原文 `capital` | 不替换 ✅ | ❌ 将 `capital` 变成 `cAPItal` |
+| 术语 `K8s`，原文 `we use K8s` | `K8s` 替换 ✅ | — |
+| 术语 `K8s`，原文 `K8sCluster` | 不替换（`s` 后紧跟字母） ✅ | — |
+
+**整词边界实现：**
+
+```csharp
+private (string Text, bool Changed, List<(int, int)> ReplacedRegions)
+    ApplySingleRule(string text, GlossaryEntry entry, List<(int, int)> existingRegions)
+{
+    if (entry.IsRegex)
+    {
+        return ApplyRegexRule(text, entry, existingRegions);
+    }
+
+    // 精确匹配：使用 Unicode 感知的整词边界
+    var pattern = BuildWordBoundaryPattern(entry.SourceTerm, entry.CaseSensitive);
+    var regex = GetOrCreateRegex(pattern, entry.CaseSensitive);
+
+    var sb = new StringBuilder();
+    var replacedRegions = new List<(int, int)>(existingRegions);
+    int lastIndex = 0;
+    bool changed = false;
+
+    foreach (Match match in regex.Matches(text))
+    {
+        // 跳过已被替换的区域（防止二次替换）
+        if (IsOverlapping(match.Index, match.Length, existingRegions))
+            continue;
+
+        // 替换
+        sb.Append(text, lastIndex, match.Index - lastIndex);
+        sb.Append(entry.TargetTerm);
+        replacedRegions.Add((match.Index, match.Index + entry.TargetTerm.Length));
+        lastIndex = match.Index + match.Length;
+        changed = true;
+    }
+
+    if (!changed)
+        return (text, false, replacedRegions);
+
+    sb.Append(text, lastIndex, text.Length - lastIndex);
+    return (sb.ToString(), true, replacedRegions);
+}
+
+/// <summary>
+/// 构建整词边界正则。
+/// 用 (?<![\\w\\u4e00-\\u9fff]) 和 (?![\\w\\u4e00-\\u9fff]) 而非 \\b，
+/// 因为 \\b 在 CJK 环境下行为不可靠。
+/// </summary>
+private string BuildWordBoundaryPattern(string term, bool caseSensitive)
+{
+    // CJK 字符范围：\u4e00-\u9fff（基本汉字）+\u3400-\u4dbf（扩展A）
+    // \w = [a-zA-Z0-9_]
+    var escaped = Regex.Escape(term);
+    var options = caseSensitive ? "" : "(?i)";
+    return $"{options}(?<![\\w\\u4e00-\\u9fff]){escaped}(?![\\w\\u4e00-\\u9fff])";
+}
+```
+
+**为什么用显式 CJK 范围而非 `\b`：**
+
+`\b`（word boundary）在 .NET 中将 CJK 字符判定为非 `\w`，导致两个汉字之间也会产生"边界"。例如术语 `翻译` 出现在 `翻译器` 中时，`\b` 会错误匹配。使用显式的 `[\w\u4e00-\u9fff]` 能准确判断：汉字与汉字之间不视为边界，汉字与字母/标点之间才视为边界。
+
+**③ 多义词处理**
+
+多义词是指同一个原文术语在不同语境下应翻译为不同译文的场景。
+
+| 场景 | 术语表策略 | 示例 |
+|---|---|---|
+| **上下文无关的固定译法** | 单条规则 | `mutex → 互斥锁`（无歧义） |
+| **需要区分大小写** | 分设两条规则 | `API → API`（大写，不译），`api → api`（小写，原文保留） |
+| **需要区分前后文** | 正则匹配 | `memory` 在 `virtual memory → 虚拟内存` vs `memory card → 存储卡` |
+| **领域特定译法** | 分类 + 按分类启用 | `bug` 在技术领域 → `缺陷`，在日常对话 → `虫子` |
+
+**正则匹配处理多义词：**
+
+```
+术语表条目：
+  SourceTerm: "virtual\s+memory"    TargetTerm: "虚拟内存"    IsRegex=true
+  SourceTerm: "memory\s+card"       TargetTerm: "存储卡"      IsRegex=true
+  SourceTerm: "memory"              TargetTerm: "内存"        IsRegex=false  Priority=0
+```
+
+匹配顺序按 Priority 降序：正则规则（Priority=10）先于精确规则（Priority=0）执行，确保 `virtual memory` 被整体替换为 `虚拟内存`，不会被后续的 `memory → 内存` 二次替换。
+
+**但多义词的真正极限在于上下文理解** — 这是后处理替换无法完美解决的。例如：
+
+```
+"The system ran out of memory."     → 内存 ✅
+"I have a good memory of that day." → 记忆 ✅（后处理无法区分）
+```
+
+对于这类上下文敏感的多义词，**AI 模式的 prompt 注入效果远优于后处理**，因为模型能理解语境。术语表应在 UI 中提示用户：
+
+> ⚠️ 普通模式使用后处理替换，无法根据上下文区分多义词。如需处理上下文敏感的术语，建议使用 AI 模式。
+
+**④ 二次替换防护**
+
+```csharp
+private bool IsOverlapping(int start, int length, List<(int start, int end)> regions)
+{
+    int end = start + length;
+    return regions.Any(r => start < r.end && end > r.start);
+}
+```
+
+已被替换的区域记录到 `replacedRegions` 列表中，后续规则匹配时跳过这些区间。防止：
+
+- 规则 A: `hash → 哈希`
+- 规则 B: `哈希算法 → hash algorithm`（如果用户误配了反向规则）
+- 结果：规则 A 执行后，规则 B 不会再次替换 `哈希`，避免无限循环
+
+**⑤ 替换后质量防护**
+
+```csharp
+private string ValidateResult(string newText, string originalText)
+{
+    // 1. 连续重复词检测（中文常见问题）
+    if (Regex.IsMatch(newText, @"([\u4e00-\u9fff])\1{2,}"))
+    {
+        Log.Warning("Glossary replacement caused character repetition, reverting");
+        return originalText;
+    }
+
+    // 2. 连续标点检测
+    if (Regex.IsMatch(newText, @"[，。！？、；：]{2,}"))
+    {
+        Log.Warning("Glossary replacement caused punctuation repetition, reverting");
+        return originalText;
+    }
+
+    // 3. 长度异常检测（替换后长度变为原来的 0.1x 以下或 10x 以上）
+    var ratio = newText.Length / (double)originalText.Length;
+    if (ratio < 0.1 || ratio > 10.0)
+    {
+        Log.Warning("Glossary replacement caused extreme length change (ratio={Ratio}), reverting", ratio);
+        return originalText;
+    }
+
+    // 4. 空译文检测
+    if (string.IsNullOrWhiteSpace(newText))
+    {
+        Log.Warning("Glossary replacement resulted in empty text, reverting");
+        return originalText;
+    }
+
+    return newText;
+}
+```
+
+**防护策略：发现问题时回退到原始译文（而非部分回退）**，因为无法确定哪条规则导致了问题。日志记录具体问题，方便用户排查术语表配置。
+
+#### 15.9.3 FormattingFixProcessor — 格式修复
+
+```csharp
+public class FormattingFixProcessor : IPostProcessor
+{
+    public string Name => "格式修复";
+    public int Priority => 10;
+
+    public PostProcessResult Process(string translatedText, TranslationContext context)
+    {
+        var text = translatedText;
+        bool changed = false;
+
+        // 1. 中英文之间加空格（C0 规范）
+        var newText = Regex.Replace(text,
+            @"([\u4e00-\u9fff])([a-zA-Z0-9])|([a-zA-Z0-9])([\u4e00-\u9fff])",
+            m => m.Groups[1].Success
+                ? m.Groups[1].Value + " " + m.Groups[2].Value
+                : m.Groups[3].Value + " " + m.Groups[4].Value);
+        if (newText != text) { text = newText; changed = true; }
+
+        // 2. 修复中文标点后的多余空格
+        newText = Regex.Replace(text, @"([，。！？、；：])\s+", "$1");
+        if (newText != text) { text = newText; changed = true; }
+
+        // 3. 修复英文标点前缺少空格
+        newText = Regex.Replace(text, @"([\u4e00-\u9fff])([,.!?;:])", "$1 $2");
+        // 但不要在中文标点前加空格
+        newText = Regex.Replace(newText, @"([\u4e00-\u9fff]) ([，。！？、；：])", "$1$2");
+        if (newText != text) { text = newText; changed = true; }
+
+        // 4. 合并连续空格为单个空格
+        newText = Regex.Replace(text, @" {2,}", " ");
+        if (newText != text) { text = newText; changed = true; }
+
+        return new PostProcessResult(text, changed, changed ? 1 : 0, new());
+    }
+}
+```
+
+#### 15.9.4 QualityCheckProcessor — 质量检查
+
+```csharp
+public class QualityCheckProcessor : IPostProcessor
+{
+    public string Name => "质量检查";
+    public int Priority => 100; // 最后执行
+
+    public PostProcessResult Process(string translatedText, TranslationContext context)
+    {
+        var issues = new List<string>();
+
+        // 1. 译文是否为空
+        if (string.IsNullOrWhiteSpace(translatedText))
+            issues.Add("译文为空");
+
+        // 2. 译文是否原文原封不动返回（某些引擎故障时会发生）
+        if (translatedText.Trim() == context.SourceText.Trim())
+            issues.Add("译文与原文完全相同，可能未翻译");
+
+        // 3. 长度比例异常
+        var ratio = translatedText.Length / (double)context.SourceText.Length;
+        if (ratio < 0.15)
+            issues.Add($"译文过短（长度比 {ratio:P0}），可能翻译不完整");
+        if (ratio > 8.0)
+            issues.Add($"译文过长（长度比 {ratio:P0}），可能包含多余内容");
+
+        // 4. 混入模型解释（AI 模式常见问题）
+        var explainPatterns = new[] { "翻译如下", "译文是", "The translation is", "Here is the translation" };
+        if (explainPatterns.Any(p => translatedText.Contains(p)))
+            issues.Add("译文可能混入了模型解释，请检查");
+
+        // 5. 未翻译检测（原文为英文，译文仍全是英文）
+        if (context.SourceLang == "en" && context.TargetLang == "zh")
+        {
+            var chineseRatio = translatedText.Count(c => c >= '\u4e00' && c <= '\u9fff') / (double)translatedText.Length;
+            if (chineseRatio < 0.1)
+                issues.Add("目标语言为中文但译文中文字符占比过低，可能未翻译");
+        }
+
+        if (issues.Count > 0)
+        {
+            Log.Warning("Quality issues detected: {Issues} (provider={Provider})",
+                string.Join("; ", issues), context.ProviderId);
+        }
+
+        // 质量检查不修改译文，只记录警告
+        return new PostProcessResult(translatedText, false, 0, issues);
+    }
+}
+```
 ```
 
 ---
@@ -5538,6 +6010,190 @@ public void SaveState()
         Timestamp = DateTime.UtcNow
     };
     File.WriteAllText(StateFilePath, JsonSerializer.Serialize(state));
+}
+```
+
+---
+
+### 15.12.1 错误恢复与数据一致性
+
+> 翻译过程中可能发生各种异常：用户取消、引擎故障、应用崩溃。必须保证数据状态一致，不会出现"翻译历史里有一条空记录"或"收藏了但查不到"等问题。
+
+#### 场景清单
+
+| 场景 | 风险 | 处理策略 |
+|---|---|---|
+| **翻译成功，写入历史时崩溃** | 历史记录丢失 | 下次启动时从 SQLite WAL 恢复；翻译结果不依赖历史写入成功 |
+| **用户删除历史记录时崩溃** | 数据库损坏 | SQLite WAL 模式 + 定期备份；重启时自动 integrity check |
+| **多引擎对比中部分引擎失败** | 用户看到不完整的对比结果 | 失败引擎显示错误卡片 + 重试按钮，不影响已成功的引擎 |
+| **多引擎对比中用户取消** | 已完成的结果是否保留 | 保留已完成的结果，可导出部分结果 |
+| **文档翻译中途取消** | 半成品文件是否写入 | 不写入原文件；内存中保留已完成的段落，可导出半成品 |
+| **文档翻译中途引擎耗尽** | 后续段落无法翻译 | 暂停 + 提示切换引擎，已翻译段落保留 |
+| **TTS 播放中切换翻译** | 上一次音频未停止 | 自动停止上一次 TTS，开始新播放 |
+| **剪贴板翻译并发** | 快速复制触发多次翻译 | 请求合并（§15.7），同一文本只发一次请求 |
+| **设置文件损坏** | 应用无法启动 | 启动时校验 JSON 格式；损坏时使用默认设置 + 提示用户 |
+| **SQLite 数据库损坏** | 历史/术语表丢失 | 启动时 `PRAGMA integrity_check`；损坏时备份旧文件 + 创建新库 |
+
+#### 翻译历史写入的一致性保证
+
+```csharp
+public class HistoryRepository
+{
+    /// <summary>
+    /// 写入翻译历史 — 使用事务保证原子性
+    /// </summary>
+    public async Task<int> InsertAsync(TranslationHistoryRecord record)
+    {
+        // 仅在翻译成功后才写入历史
+        // 翻译失败的结果不写入历史（避免空记录/错误记录污染历史）
+
+        using var connection = new SqliteConnection(_connectionString);
+        await connection.OpenAsync();
+
+        using var transaction = connection.BeginTransaction();
+        try
+        {
+            var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+                INSERT INTO TranslationHistory
+                    (SourceText, TranslatedText, SourceLang, TargetLang, Engine, Mode, LatencyMs, IsFavorite)
+                VALUES
+                    ($source, $translated, $srcLang, $tgtLang, $engine, $mode, $latency, $favorite)";
+            cmd.Parameters.AddWithValue("$source", record.SourceText);
+            cmd.Parameters.AddWithValue("$translated", record.TranslatedText);
+            cmd.Parameters.AddWithValue("$srcLang", record.SourceLang);
+            cmd.Parameters.AddWithValue("$tgtLang", record.TargetLang);
+            cmd.Parameters.AddWithValue("$engine", record.Engine);
+            cmd.Parameters.AddWithValue("$mode", record.Mode);
+            cmd.Parameters.AddWithValue("$latency", record.LatencyMs);
+            cmd.Parameters.AddWithValue("$favorite", record.IsFavorite ? 1 : 0);
+
+            await cmd.ExecuteNonQueryAsync();
+            transaction.Commit();
+
+            return (int)connection.LastInsertRowId;
+        }
+        catch
+        {
+            transaction.Rollback();
+            throw; // 翻译结果仍然返回给用户，历史写入失败不影响本次翻译体验
+        }
+    }
+
+    /// <summary>
+    /// 删除历史记录 — 软删除优先，物理删除兜底
+    /// </summary>
+    public async Task DeleteAsync(int id)
+    {
+        using var connection = new SqliteConnection(_connectionString);
+        await connection.OpenAsync();
+
+        // 先标记为已删除（如果表结构支持软删除）
+        // 否则直接物理删除
+        var cmd = connection.CreateCommand();
+        cmd.CommandText = "DELETE FROM TranslationHistory WHERE Id = $id";
+        cmd.Parameters.AddWithValue("$id", id);
+        await cmd.ExecuteNonQueryAsync();
+    }
+}
+```
+
+**关键原则：**
+
+| 原则 | 说明 |
+|---|---|
+| **翻译结果与历史写入解耦** | 翻译结果先返回给用户，历史写入异步执行；写入失败不影响用户看到结果 |
+| **事务包裹写操作** | 多表操作（如同时更新历史 + 术语统计）用事务保证原子性 |
+| **WAL 模式** | SQLite 启用 WAL（Write-Ahead Logging），写入不阻塞读取，崩溃后自动恢复 |
+| **定期 integrity check** | 每次启动执行 `PRAGMA integrity_check`，发现问题立即告警 |
+
+#### 多引擎对比的部分失败处理
+
+```csharp
+public async IAsyncEnumerable<ComparisonResult> CompareAsync(
+    TranslationRequest request,
+    [EnumeratorCancellation] CancellationToken ct)
+{
+    var providers = _router.SelectAllProviders(_providers, request);
+    var pending = providers.Select(p => TranslateWithFallbackAsync(p, request, ct)).ToList();
+    var completed = new List<ComparisonResult>();
+
+    while (pending.Count > 0)
+    {
+        ComparisonResult result;
+        try
+        {
+            var finished = await Task.WhenAny(pending);
+            pending.Remove(finished);
+            result = await finished;
+        }
+        catch (OperationCanceledException)
+        {
+            // 用户取消 — 返回已完成的结果
+            break;
+        }
+
+        completed.Add(result);
+        yield return result; // 逐个返回，UI 立即渲染
+    }
+
+    // 全部失败时，yield return 一个特殊标记
+    if (completed.All(r => !r.Success))
+    {
+        yield return ComparisonResult.AllFailed("所有引擎翻译失败");
+    }
+}
+```
+
+**UI 行为：**
+
+- 部分失败：失败的卡片显示错误状态 + 重试按钮，成功的卡片正常展示
+- 全部失败：底部显示「所有引擎翻译失败」+ 诊断入口
+- 用户取消：保留已完成的卡片，可在底部操作栏导出已有结果
+
+#### 应用崩溃后恢复
+
+```csharp
+public class CrashRecoveryService
+{
+    /// <summary>
+    /// 启动时检查上次是否异常退出
+    /// </summary>
+    public async Task CheckAndRecoverAsync()
+    {
+        // 1. 检查 SQLite 完整性
+        await CheckDatabaseIntegrityAsync();
+
+        // 2. 恢复未完成的状态（输入框文本、语言选择等）
+        await RestoreAppStateAsync();
+
+        // 3. 清理临时文件
+        CleanupTempFiles();
+    }
+
+    private async Task CheckDatabaseIntegrityAsync()
+    {
+        using var connection = new SqliteConnection(_connectionString);
+        await connection.OpenAsync();
+
+        var cmd = connection.CreateCommand();
+        cmd.CommandText = "PRAGMA integrity_check";
+        var result = await cmd.ExecuteScalarAsync() as string;
+
+        if (result != "ok")
+        {
+            Log.Error("Database integrity check failed: {Result}", result);
+
+            // 备份损坏的数据库
+            var backupPath = _dbPath + $".corrupted.{DateTime.Now:yyyyMMddHHmmss}";
+            File.Copy(_dbPath, backupPath);
+
+            // 创建新数据库
+            InitializeDatabase();
+
+            Log.Warning("Database rebuilt from scratch, old data backed up to {Path}", backupPath);
+        }
+    }
 }
 ```
 
@@ -6464,22 +7120,300 @@ DotTranslator 本身不收集数据，但用户使用翻译功能时，文本会
 
 ---
 
-## 十九、开发排期
+## 十九、v1.0 验收标准
 
-| 阶段 | 内容 | 预估 |
-|---|---|---|
-| **Week 1** | 项目搭建、MVVM 骨架、主窗口 UI | 基础 |
-| **Week 2** | 文本翻译（火山 + 百度，两个 Provider）+ 引擎调度 | 核心 |
-| **Week 3** | 剪贴板翻译 + 全局热键 + 系统托盘 | 核心体验 |
-| **Week 4** | 剩余 3 个普通 Provider + AI 模式（DeepSeek） | 引擎补全 |
-| **Week 5** | TTS（讯飞 + Edge）+ 翻译历史（SQLite） | 功能丰富 |
-| **Week 6** | 文档翻译 + 多引擎对比优化 | 进阶 |
-| **Week 7** | 设置页完善 + 术语表 + 快捷键自定义 + 弹性策略 | 打磨 |
-| **Week 8** | 打包安装 + 测试 + 修 Bug + 发布 | 交付 |
+> v1.0 什么算"做完了"？以下清单逐项验收，全部通过方可发布。
+
+### 19.1 功能验收清单
+
+#### 核心翻译
+
+| # | 验收项 | 通过标准 | 优先级 |
+|---|---|---|---|
+| F-01 | 文本输入翻译 | 输入文本 → 点击翻译 → 正确显示译文，耗时 ≤ 3s | P0 |
+| F-02 | 剪贴板翻译 | 复制文本 → 自动弹出翻译结果 | P0 |
+| F-03 | 语言自动检测 | 输入中文/英文/日文，自动识别源语言 | P0 |
+| F-04 | 智能语言切换 | 输入中文自动翻英文，输入英文自动翻中文 | P0 |
+| F-05 | 语言交换按钮 | ⇄ 按钮交换源/目标语言 | P0 |
+
+#### 多引擎对比（核心差异化）
+
+| # | 验收项 | 通过标准 | 优先级 |
+|---|---|---|---|
+| F-10 | 多引擎并行调用 | 点击「多引擎对比」→ 所有启用引擎同时翻译 | P0 |
+| F-11 | 渐进式渲染 | 最快引擎结果 1.5s 内可见，不等全部完成 | P0 |
+| F-12 | 进度显示 | 头部实时更新「N/M 已完成」 | P0 |
+| F-13 | 引擎失败处理 | 单引擎超时/失败不影响其他引擎，卡片显示错误 + 重试 | P0 |
+| F-14 | 卡片操作 | 每张卡片可独立复制、朗读、收藏 | P0 |
+| F-15 | 相似度矩阵 | 点击「相似度分析」→ 展开 NxN 矩阵 | P1 |
+| F-16 | 差异对比 | 点击「查差异」→ 高亮词级不同 | P1 |
+| F-17 | 智能推荐 | 自动标注推荐译文，评分维度正确 | P1 |
+
+#### 引擎管理
+
+| # | 验收项 | 通过标准 | 优先级 |
+|---|---|---|---|
+| F-20 | 5 家普通引擎可独立启用/禁用 | 设置页切换生效 | P0 |
+| F-21 | 3 家 AI 引擎可独立启用/禁用 | 设置页切换生效 | P0 |
+| F-22 | API Key 测试连接 | 点击「测试连接」→ 正确返回延迟或错误 | P0 |
+| F-23 | 引擎优先级拖拽排序 | 拖拽后保存顺序，翻译按新顺序选择引擎 | P0 |
+| F-24 | 额度耗尽自动切换 | 引擎返回 429 → 自动切换下一个 → UI 提示 | P0 |
+| F-25 | 月用量统计显示 | 每个引擎显示已用/总额度进度条 | P1 |
+
+#### TTS 语音朗读
+
+| # | 验收项 | 通过标准 | 优先级 |
+|---|---|---|---|
+| F-30 | 讯飞 TTS 播放 | 点击朗读 → 正确发音 | P0 |
+| F-31 | Edge TTS 播放 | 点击朗读 → 正确发音 | P0 |
+| F-32 | 额度耗尽自动切换 | 讯飞耗尽 → 自动降级到 Edge TTS | P1 |
+| F-33 | 音色选择与试听 | 设置页可选音色 + 试听 | P1 |
+
+#### 翻译历史与收藏
+
+| # | 验收项 | 通过标准 | 优先级 |
+|---|---|---|---|
+| F-40 | 翻译自动记录 | 每次翻译自动写入 SQLite | P0 |
+| F-41 | 历史搜索 | 输入关键词 → 模糊搜索历史 | P0 |
+| F-42 | 收藏/取消收藏 | ⭐ 按钮切换收藏状态 | P0 |
+| F-43 | 收藏独立页签 | 收藏页签独立展示收藏内容 | P1 |
+| F-44 | 导出（至少 TXT + CSV） | 导出文件格式正确、内容完整 | P1 |
+
+#### 术语表
+
+| # | 验收项 | 通过标准 | 优先级 |
+|---|---|---|---|
+| F-50 | 术语增删改查 | 设置页可管理术语 | P0 |
+| F-51 | 普通模式后处理替换 | 术语表中的术语在译文中被正确替换 | P0 |
+| F-52 | AI 模式 prompt 注入 | 术语表注入到 AI prompt，译文遵循术语规则 | P1 |
+| F-53 | 整词边界保护 | `hash` 不会误替换 `HashMap` 中的 `hash` | P0 |
+
+#### 文档翻译
+
+| # | 验收项 | 通过标准 | 优先级 |
+|---|---|---|---|
+| F-60 | TXT 翻译 | 拖入 .txt → 正确分段翻译 → 导出译文 | P1 |
+| F-61 | DOCX 翻译 | 拖入 .docx → 保留段落结构 → 导出译文 | P1 |
+| F-62 | 成本预估 | 翻译前显示预估费用 → 确认后执行 | P1 |
+| F-63 | SRT 字幕翻译 | 拖入 .srt → 保留时间轴 → 导出字幕 | P2 |
+
+#### UI 与交互
+
+| # | 验收项 | 通过标准 | 优先级 |
+|---|---|---|---|
+| F-70 | 浅色/深色主题切换 | 切换后所有控件正确渲染，无闪烁 | P0 |
+| F-71 | 首次使用引导 | 新安装 → 自动进入 3 步引导流程 | P0 |
+| F-72 | 系统托盘 | 最小化到托盘 → 点击恢复窗口 | P0 |
+| F-73 | 全局快捷键 | Ctrl+Shift+T 全局唤出翻译窗口 | P0 |
+| F-74 | 常驻公告栏 | 底部公告栏正确显示远程内容 | P2 |
+
+### 19.2 非功能验收标准
+
+| # | 验收项 | 指标 | 通过标准 |
+|---|---|---|---|
+| NF-01 | 冷启动时间 | ≤ 3s（SSD） | 从双击到主窗口可交互 |
+| NF-02 | 内存占用（空闲） | ≤ 80MB | 主窗口打开、无翻译任务 |
+| NF-03 | CPU 占用（空闲） | ≤ 1% | 剪贴板监听开启但无操作 |
+| NF-04 | 普通翻译响应 P95 | ≤ 3s | 单引擎，不含网络波动 |
+| NF-05 | 多引擎首结果可见 | ≤ 1.5s | 从发起到第一张卡片渲染 |
+| NF-06 | 安装包大小 | ≤ 50MB | Velopack 打包后 |
+| NF-07 | API Key 安全 | DPAPI 加密存储 | 磁盘上不存明文 Key |
+| NF-08 | 日志脱敏 | API Key 仅显示末 4 位 | 日志文件中无完整 Key |
+| NF-09 | 崩溃保护 | 未处理异常不导致数据丢失 | 翻译历史和设置文件不损坏 |
+
+### 19.3 测试策略
+
+| 测试类型 | 工具 | 覆盖范围 | 频率 |
+|---|---|---|---|
+| **单元测试** | xUnit + Moq | 翻译管道、路由、缓存、术语替换、弹性策略 | 每次提交 |
+| **集成测试** | xUnit + TestServer | Provider 调用（mock HTTP）、SQLite 读写 | 每次提交 |
+| **UI 测试** | Avalonia Headless Testing | ViewModel 绑定、命令执行 | 每次提交 |
+| **端到端测试** | 手动 + 脚本辅助 | 完整翻译流程、多引擎对比、文档翻译 | 每周 |
+| **键盘导航** | 手动 | Tab 顺序、焦点可见性、快捷键 | 每版本 |
+| **性能基准** | BenchmarkDotNet | 缓存命中、术语替换、SQLite 写入 | 关键变更时 |
+| **兼容性** | 手动 | Win 10 / Win 11 各版本 | 每版本 |
+
+### 19.4 CI/CD 流程
+
+```
+GitHub Actions Pipeline
+  │
+  ├─ 触发条件
+  │   ├─ push to main
+  │   ├─ pull request
+  │   └─ 手动触发
+  │
+  ├─ Stage 1: Build + Test (~3 min)
+  │   ├─ dotnet restore
+  │   ├─ dotnet build -c Release --warnaserror
+  │   ├─ dotnet test（单元测试 + 集成测试）
+  │   └─ 代码覆盖率检查（≥ 60%）
+  │
+  ├─ Stage 2: Package (~2 min)
+  │   ├─ Velopack pack（生成安装包）
+  │   └─ 代码签名（仅 release 分支）
+  │
+  ├─ Stage 3: Release（仅 tag v*）
+  │   ├─ 上传到 GitHub Releases
+  │   └─ 更新 manifest.json
+  │
+  └─ 通知
+      ├─ 成功 → Discord / 微信通知
+      └─ 失败 → PR 评论 + 邮件通知
+```
+
+**每日集成要求：**
+
+- 每天至少一次完整的 CI 流水线运行（自动或手动触发）
+- 主分支保持可编译、可测试通过
+- 不合入破坏测试的代码
 
 ---
 
-## 二十、成本总结
+## 二十、开发排期（10 周）
+
+> 8 周开发 + 1 周测试 + 1 周缓冲。CI 从 Week 1 Day 1 开始搭建，贯穿全程。
+
+### 20.1 总览
+
+| 阶段 | 周次 | 内容 | 交付物 |
+|---|---|---|---|
+| **基础搭建** | Week 1 | 项目骨架 + CI + 主窗口 UI | 可运行的空壳应用 |
+| **核心翻译** | Week 2 | 2 个 Provider + 引擎调度 + 缓存 | 单引擎翻译可用 |
+| **核心体验** | Week 3 | 剪贴板翻译 + 托盘 + 热键 | 日常翻译可用 |
+| **引擎补全** | Week 4 | 剩余 Provider + AI 模式 | 全引擎可用 |
+| **功能丰富** | Week 5 | TTS + 历史 + 收藏 | 基础功能完整 |
+| **进阶功能** | Week 6 | 多引擎对比 + 文档翻译 | 核心差异化完成 |
+| **打磨** | Week 7 | 术语表 + 弹性策略 + 设置页完善 | 工程质量达标 |
+| **集成测试** | Week 8 | 端到端测试 + 性能调优 + 修 Bug | 通过验收清单 |
+| **回归测试** | Week 9 | 全量回归 + 兼容性测试 + 修 Bug | 候选发布版 |
+| **发布** | Week 10 | 打包签名 + 文档 + 发布 | v1.0.0 正式发布 |
+
+### 20.2 每周详细排期
+
+**Week 1：基础搭建**
+
+| 天 | 内容 |
+|---|---|
+| Day 1 | 创建解决方案（TranslatorApp + Translator.Core + Translator.Tests），配置 .NET 8 + Avalonia |
+| Day 2 | 搭建 CI（GitHub Actions：restore + build + test），确保首次 commit 就有绿灯 |
+| Day 3 | MVVM 骨架：MainViewModel + 页面导航 + DI 容器注册 |
+| Day 4 | 主窗口 UI：Neumorphism 主题、浅色/深色色板、基本布局 |
+| Day 5 | 语言选择器、输入框、翻译按钮的 UI 绑定（mock 数据） |
+
+**Week 2：核心翻译**
+
+| 天 | 内容 |
+|---|---|
+| Day 1 | `ITranslationProvider` 接口定义 + `TranslationRequest` / `TranslationResult` 模型 |
+| Day 2 | `HuoshanProvider` 实现（HTTP 签名认证 + 翻译调用） |
+| Day 3 | `BaiduProvider` 实现 + 单元测试（mock HTTP） |
+| Day 4 | `TranslationRouter`（引擎选择逻辑）+ `TranslationCache`（内存缓存） |
+| Day 5 | `TranslationManager` 编排：缓存 → 路由 → 调用 → 返回，集成测试 |
+
+**Week 3：核心体验**
+
+| 天 | 内容 |
+|---|---|
+| Day 1 | `ClipboardMonitor`（Win32 剪贴板监听）+ 过滤条件 |
+| Day 2 | 迷你翻译浮窗 + 浮窗出现/隐藏逻辑 |
+| Day 3 | 系统托盘（TrayIcon）+ 左键显示/隐藏 + 右键菜单 |
+| Day 4 | 全局热键注册（Ctrl+Shift+T）+ 首次使用引导流程 |
+| Day 5 | 联调：剪贴板 → 浮窗 → 翻译 → 结果展示完整链路 |
+
+**Week 4：引擎补全**
+
+| 天 | 内容 |
+|---|---|
+| Day 1 | `TencentProvider` + `CaiyunProvider` + `NiutransProvider` |
+| Day 2 | 额度耗尽自动切换机制 + 引擎健康状态管理 |
+| Day 3 | `DeepSeekProvider`（OpenAI 兼容格式）+ AI 模式切换 |
+| Day 4 | `QwenProvider` + `KimiProvider` + AI Prompt 构建 |
+| Day 5 | 8 个引擎联调 + 引擎测试连接功能 |
+
+**Week 5：功能丰富**
+
+| 天 | 内容 |
+|---|---|
+| Day 1 | `XunfeiTtsProvider`（WebSocket + HMAC 签名） |
+| Day 2 | `EdgeTtsProvider` + TTS 额度耗尽切换 + 音色选择 |
+| Day 3 | SQLite 数据库初始化 + `HistoryRepository` |
+| Day 4 | 历史页签（搜索/分页/收藏/删除）+ 收藏页签 |
+| Day 5 | 翻译历史写入集成 + 导出（TXT + CSV） |
+
+**Week 6：进阶功能**
+
+| 天 | 内容 |
+|---|---|
+| Day 1 | 多引擎对比：`ComparisonEngine` + 渐进式渲染 + 卡片组件 |
+| Day 2 | 相似度矩阵 + 差异对比视图 + 智能推荐评分 |
+| Day 3 | 文档翻译：`TxtExtractor` + `DocxExtractor` + 段落合并 |
+| Day 4 | 文档翻译：成本预估面板 + 翻译进度条 + 导出 |
+| Day 5 | `SubtitleExtractor`（SRT/ASS）+ `MarkdownExtractor` + `HtmlExtractor` |
+
+**Week 7：打磨**
+
+| 天 | 内容 |
+|---|---|
+| Day 1 | 术语表 CRUD + `GlossaryPostProcessor`（后处理替换）+ AI Prompt 注入 |
+| Day 2 | 弹性策略：重试/熔断/超时 + 客户端限流器 |
+| Day 3 | 设置页完整搭建（引擎管理/TTS/快捷键/诊断/术语表） |
+| Day 4 | PPTX 提取器 + 导出格式补全（XLSX/Markdown/JSON/Anki） |
+| Day 5 | 前后处理管道 + 格式修复 + 质量检查 |
+
+**Week 8：集成测试**
+
+| 天 | 内容 |
+|---|---|
+| Day 1 | 全流程集成测试：翻译 → 多引擎对比 → 历史 → 收藏 → 导出 |
+| Day 2 | 文档翻译全格式测试 + 性能基准（启动时间/内存/延迟） |
+| Day 3 | 修 Bug + 回归已修复 Bug |
+| Day 4 | 无障碍测试（键盘导航/屏幕阅读器/高对比度） |
+| Day 5 | 修 Bug + 验收清单逐项检查 |
+
+**Week 9：回归测试**
+
+| 天 | 内容 |
+|---|---|
+| Day 1 | Win 10 兼容性测试 |
+| Day 2 | Win 11 兼容性测试 |
+| Day 3 | 压力测试（大量历史/长文档/高频剪贴板） |
+| Day 4 | 修 Bug + 回归 |
+| Day 5 | 最终验收 + 截图/录屏准备 |
+
+**Week 10：发布**
+
+| 天 | 内容 |
+|---|---|
+| Day 1 | Velopack 打包 + 代码签名 + 安装包测试 |
+| Day 2 | README 完善 + 使用文档 + 截图 |
+| Day 3 | GitHub Release 发布 v1.0.0 |
+| Day 4 | 提交 winget/scoop 包 |
+| Day 5 | 缓冲（紧急修复/社区反馈响应） |
+
+### 20.3 CI/CD 贯穿全程
+
+| 时间 | 行动 |
+|---|---|
+| **Week 1 Day 2** | 搭建 GitHub Actions（build + test），之后每次提交自动运行 |
+| **Week 2 起** | 新增 Provider 必须附带单元测试（mock HTTP），否则不准合入 |
+| **Week 5 起** | 集成测试覆盖完整翻译管道（缓存 → 路由 → 调用 → 后处理） |
+| **Week 7 起** | 代码覆盖率检查（≥ 60%），不达标不准合入 |
+| **Week 8** | CI 增加性能基准检查（启动时间/内存/延迟） |
+| **Week 10** | CI 增加打包 + 签名步骤，tag 触发自动发布 |
+
+### 20.4 风险缓冲
+
+| 风险 | 可能影响 | 缓冲方案 |
+|---|---|---|
+| 某个引擎 API 文档不清晰 | 对接耗时超预期 | Week 4 预留弹性时间，可砍掉 1-2 个非核心引擎 |
+| Neumorphism UI 实现复杂 | UI 进度延迟 | Week 1 先搭基础 UI，美化在 Week 7 打磨期完成 |
+| Avalonia 兼容性问题 | 某些控件行为异常 | Week 9 整周回归测试 |
+| CI 环境问题 | 自动化受阻 | Week 1 Day 2 搭建时就解决，不拖到后期 |
+
+---
+
+## 二十一、成本总结
 
 | 功能 | 方案 | 用户成本 |
 |---|---|---|
