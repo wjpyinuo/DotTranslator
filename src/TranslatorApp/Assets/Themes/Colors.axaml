@@ -9,7 +9,7 @@
                     x:Class="TranslatorApp.Assets.Themes.Colors">
 
   <!-- ═══════════════════════════════════════════
-       浅色主题 (Light Theme)
+       共享颜色键值（深色主题切换时通过代码替换 Brush.Color）
        ═══════════════════════════════════════════ -->
   <Color x:Key="Light.Bg">#E0E5EC</Color>
   <Color x:Key="Light.ShadowLight">#FFFFFF</Color>
@@ -27,33 +27,6 @@
   <Color x:Key="Light.InputBg">#E0E5EC</Color>
   <Color x:Key="Light.Divider">#C8CDD5</Color>
 
-  <!-- Light Brushes -->
-  <SolidColorBrush x:Key="BgBrush"              Color="{DynamicResource Light.Bg}" />
-  <SolidColorBrush x:Key="ShadowLightBrush"     Color="{DynamicResource Light.ShadowLight}" />
-  <SolidColorBrush x:Key="ShadowDarkBrush"      Color="{DynamicResource Light.ShadowDark}" />
-  <SolidColorBrush x:Key="TextPrimaryBrush"     Color="{DynamicResource Light.TextPrimary}" />
-  <SolidColorBrush x:Key="TextSecondaryBrush"   Color="{DynamicResource Light.TextSecondary}" />
-  <SolidColorBrush x:Key="TextDisabledBrush"    Color="{DynamicResource Light.TextDisabled}" />
-  <SolidColorBrush x:Key="AccentBrush"          Color="{DynamicResource Light.Accent}" />
-  <SolidColorBrush x:Key="AccentHoverBrush"     Color="{DynamicResource Light.AccentHover}" />
-  <SolidColorBrush x:Key="AccentPressedBrush"   Color="{DynamicResource Light.AccentPressed}" />
-  <SolidColorBrush x:Key="SuccessBrush"         Color="{DynamicResource Light.Success}" />
-  <SolidColorBrush x:Key="WarningBrush"         Color="{DynamicResource Light.Warning}" />
-  <SolidColorBrush x:Key="ErrorBrush"           Color="{DynamicResource Light.Error}" />
-  <SolidColorBrush x:Key="CardBgBrush"          Color="{DynamicResource Light.CardBg}" />
-  <SolidColorBrush x:Key="InputBgBrush"         Color="{DynamicResource Light.InputBg}" />
-  <SolidColorBrush x:Key="DividerBrush"         Color="{DynamicResource Light.Divider}" />
-
-  <!-- Light Neumorphism Shadows -->
-  <BoxShadows x:Key="Neu.Outset">8 8 16 #B8C0CC, -8 -8 16 #FFFFFF</BoxShadows>
-  <BoxShadows x:Key="Neu.OutsetSmall">4 4 8 #B8C0CC, -4 -4 8 #FFFFFF</BoxShadows>
-  <BoxShadows x:Key="Neu.Inset">inset 4 4 8 #B8C0CC, inset -4 -4 8 #FFFFFF</BoxShadows>
-  <BoxShadows x:Key="Neu.InsetDeep">inset 6 6 12 #B8C0CC, inset -6 -6 12 #FFFFFF</BoxShadows>
-  <BoxShadows x:Key="Neu.Flat">2 2 4 #B8C0CC, -2 -2 4 #FFFFFF</BoxShadows>
-
-  <!-- ═══════════════════════════════════════════
-       深色主题 (Dark Theme)
-       ═══════════════════════════════════════════ -->
   <Color x:Key="Dark.Bg">#2B2D42</Color>
   <Color x:Key="Dark.ShadowLight">#383A54</Color>
   <Color x:Key="Dark.ShadowDark">#1E2030</Color>
@@ -71,16 +44,48 @@
   <Color x:Key="Dark.Divider">#3D3F58</Color>
 
   <!-- ═══════════════════════════════════════════
+       主题 Brush（默认浅色，切换时通过 Colors.ApplyTheme 替换 .Color）
+       ═══════════════════════════════════════════ -->
+  <SolidColorBrush x:Key="BgBrush"             Color="#E0E5EC" />
+  <SolidColorBrush x:Key="ShadowLightBrush"    Color="#FFFFFF" />
+  <SolidColorBrush x:Key="ShadowDarkBrush"     Color="#B8C0CC" />
+  <SolidColorBrush x:Key="TextPrimaryBrush"    Color="#2D3436" />
+  <SolidColorBrush x:Key="TextSecondaryBrush"  Color="#636E72" />
+  <SolidColorBrush x:Key="TextDisabledBrush"   Color="#A0A8B0" />
+  <SolidColorBrush x:Key="AccentBrush"         Color="#6C5CE7" />
+  <SolidColorBrush x:Key="AccentHoverBrush"    Color="#5A4BD6" />
+  <SolidColorBrush x:Key="AccentPressedBrush"  Color="#4839B0" />
+  <SolidColorBrush x:Key="SuccessBrush"        Color="#00B894" />
+  <SolidColorBrush x:Key="WarningBrush"        Color="#FDCB6E" />
+  <SolidColorBrush x:Key="ErrorBrush"          Color="#E17055" />
+  <SolidColorBrush x:Key="CardBgBrush"         Color="#E0E5EC" />
+  <SolidColorBrush x:Key="InputBgBrush"        Color="#E0E5EC" />
+  <SolidColorBrush x:Key="DividerBrush"        Color="#C8CDD5" />
+
+  <!-- Light Neumorphism Shadows -->
+  <BoxShadows x:Key="Neu.Outset">8 8 16 #B8C0CC, -8 -8 16 #FFFFFF</BoxShadows>
+  <BoxShadows x:Key="Neu.OutsetSmall">4 4 8 #B8C0CC, -4 -4 8 #FFFFFF</BoxShadows>
+  <BoxShadows x:Key="Neu.Inset">inset 4 4 8 #B8C0CC, inset -4 -4 8 #FFFFFF</BoxShadows>
+  <BoxShadows x:Key="Neu.InsetDeep">inset 6 6 12 #B8C0CC, inset -6 -6 12 #FFFFFF</BoxShadows>
+  <BoxShadows x:Key="Neu.Flat">2 2 4 #B8C0CC, -2 -2 4 #FFFFFF</BoxShadows>
+
+  <!-- ═══════════════════════════════════════════
+       深色主题 Shadows（ApplyTheme 时替换）
+       ═══════════════════════════════════════════ -->
+  <BoxShadows x:Key="Dark.Neu.Outset">8 8 16 #1E2030, -8 -8 16 #383A54</BoxShadows>
+  <BoxShadows x:Key="Dark.Neu.OutsetSmall">4 4 8 #1E2030, -4 -4 8 #383A54</BoxShadows>
+  <BoxShadows x:Key="Dark.Neu.Inset">inset 4 4 8 #1E2030, inset -4 -4 8 #383A54</BoxShadows>
+  <BoxShadows x:Key="Dark.Neu.InsetDeep">inset 6 6 12 #1E2030, inset -6 -6 12 #383A54</BoxShadows>
+  <BoxShadows x:Key="Dark.Neu.Flat">2 2 4 #1E2030, -2 -2 4 #383A54</BoxShadows>
+
+  <!-- ═══════════════════════════════════════════
        全局共享 Token（主题无关）
        ═══════════════════════════════════════════ -->
-
-  <!-- 圆角 -->
   <CornerRadius x:Key="Radius.Small">8</CornerRadius>
   <CornerRadius x:Key="Radius.Medium">12</CornerRadius>
   <CornerRadius x:Key="Radius.Large">16</CornerRadius>
   <CornerRadius x:Key="Radius.Pill">999</CornerRadius>
 
-  <!-- 间距 -->
   <x:Double x:Key="Space.XS">4</x:Double>
   <x:Double x:Key="Space.S">8</x:Double>
   <x:Double x:Key="Space.M">12</x:Double>
@@ -88,7 +93,6 @@
   <x:Double x:Key="Space.XL">24</x:Double>
   <x:Double x:Key="Space.XXL">32</x:Double>
 
-  <!-- 字号 -->
   <x:Double x:Key="FontSize.Caption">10</x:Double>
   <x:Double x:Key="FontSize.Small">12</x:Double>
   <x:Double x:Key="FontSize.Body">14</x:Double>
@@ -96,7 +100,6 @@
   <x:Double x:Key="FontSize.Title">18</x:Double>
   <x:Double x:Key="FontSize.Heading">22</x:Double>
 
-  <!-- 动画时长 -->
   <system:TimeSpan x:Key="Animation.Fast">00:00:00.150</system:TimeSpan>
   <system:TimeSpan x:Key="Animation.Normal">00:00:00.200</system:TimeSpan>
   <system:TimeSpan x:Key="Animation.Slow">00:00:00.300</system:TimeSpan>

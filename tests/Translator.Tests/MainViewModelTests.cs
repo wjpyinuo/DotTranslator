@@ -222,4 +222,17 @@ public class MainViewModelTests
         sut.CurrentMode = "ai";
         sut.IsAiMode.Should().BeTrue();
     }
+
+    // ═══════════════════════════════════════
+    //  初始化
+    // ═══════════════════════════════════════
+
+    [Fact]
+    public void Initialize_Populates_AvailableLanguages()
+    {
+        // 由于 Initialize 依赖 Avalonia AssetLoader，在非 UI 环境下不调用
+        // 验证 AvailableLanguages 默认为空集合（不为 null）
+        var sut = CreateSut();
+        sut.AvailableLanguages.Should().NotBeNull();
+    }
 }

@@ -9,6 +9,8 @@
         <ResourceInclude Source="avares://DotTranslator/Assets/Themes/Colors.axaml" />
         <ResourceInclude Source="avares://DotTranslator/Assets/Themes/Neumorphism/Button.axaml" />
         <ResourceInclude Source="avares://DotTranslator/Assets/Themes/Neumorphism/TextBox.axaml" />
+        <ResourceInclude Source="avares://DotTranslator/Assets/Themes/Neumorphism/BorderCard.axaml" />
+        <ResourceInclude Source="avares://DotTranslator/Assets/Themes/Neumorphism/Badge.axaml" />
       </ResourceDictionary.MergedDictionaries>
       <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
     </ResourceDictionary>

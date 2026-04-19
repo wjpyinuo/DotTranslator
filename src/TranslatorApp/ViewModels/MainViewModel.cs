@@ -1,4 +1,7 @@
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Text.Json;
+using Avalonia.Platform;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -102,6 +105,35 @@ public partial class MainViewModel : ViewModelBase
     private string _announcementText = string.Empty;
 
     // ═══════════════════════════════════════════
+    //  初始化
+    // ═══════════════════════════════════════════
+
+    /// <summary>从嵌入资源加载语言列表</summary>
+    public void Initialize()
+    {
+        try
+        {
+            var asset = AssetLoader.Open(new Uri("avares://DotTranslator/Assets/languages.json"));
+            using var reader = new StreamReader(asset);
+            var json = reader.ReadToEnd();
+            var doc = JsonDocument.Parse(json);
+            var items = doc.RootElement.GetProperty("languages");
+            var list = new ObservableCollection<LanguageItem>();
+            foreach (var lang in items.EnumerateArray())
+            {
+                list.Add(new LanguageItem(
+                    lang.GetProperty("code").GetString()!,
+                    lang.GetProperty("name").GetString()!));
+            }
+            AvailableLanguages = list;
+        }
+        catch
+        {
+            // 降级：保留默认空列表
+        }
+    }
+
+    // ═══════════════════════════════════════════
     //  计算属性
     // ═══════════════════════════════════════════
 
@@ -198,7 +230,7 @@ public partial class MainViewModel : ViewModelBase
     private void ToggleTheme()
     {
         IsDarkTheme = !IsDarkTheme;
-        // TODO: 切换 Colors.axaml 中的 DynamicResource
+        Assets.Themes.Colors.ApplyTheme(IsDarkTheme);
     }
 
     [RelayCommand]
@@ -268,11 +300,11 @@ public partial class TranslationErrorViewModel : ObservableObject
         },
         Message = ex.Message,
         Suggestion = ex switch
-            {
-                TimeoutException => "请检查网络连接后重试",
-                HttpRequestException => "请检查网络连接",
-                _ => "请稍后重试"
-            }
+        {
+            TimeoutException => "请检查网络连接后重试",
+            HttpRequestException => "请检查网络连接",
+            _ => "请稍后重试"
+        }
     };
 }
 

@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+using System.Text.Json;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -22,15 +24,14 @@ public partial class App : Application
         {
             // DI 容器
             var services = new ServiceCollection();
-            services.AddCoreServices();   // Translator.Core 服务注册
-            services.AddAppServices();    // App 层服务注册
+            services.AddCoreServices();
+            services.AddAppServices();
             Services = services.BuildServiceProvider();
 
             // 主窗口
-            desktop.MainWindow = new MainWindow
-            {
-                DataContext = Services.GetRequiredService<MainViewModel>()
-            };
+            var vm = Services.GetRequiredService<MainViewModel>();
+            vm.Initialize();
+            desktop.MainWindow = new MainWindow { DataContext = vm };
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -42,7 +43,7 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddCoreServices(this IServiceCollection services)
     {
-        // TODO: 注册翻译引擎、TTS、存储、弹性策略等
+        // W2: 注册翻译引擎、TTS、存储、弹性策略等
         // services.AddSingleton<ITranslationProvider, HuoshanProvider>();
         // services.AddSingleton<TranslationManager>();
         // services.AddSingleton<TranslationRouter>();
@@ -53,8 +54,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddAppServices(this IServiceCollection services)
     {
         services.AddSingleton<MainViewModel>();
-        // services.AddSingleton<SettingsViewModel>();
-        // services.AddSingleton<HistoryViewModel>();
+        // W3: services.AddSingleton<SettingsViewModel>();
+        // W6: services.AddSingleton<HistoryViewModel>();
         return services;
     }
 }

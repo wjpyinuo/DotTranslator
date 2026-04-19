@@ -78,16 +78,14 @@
                 Command="{Binding TranslateCommand}" />
 
         <!-- 译文卡片（有结果时显示） -->
-        <Border IsVisible="{Binding HasResult}"
-                CornerRadius="{DynamicResource Radius.Large}"
-                BoxShadow="{DynamicResource Neu.Outset}"
-                Padding="{DynamicResource Space.L}">
+        <Border Theme="{StaticResource NeuCard}"
+                IsVisible="{Binding HasResult}">
           <StackPanel Spacing="8">
             <!-- 引擎 + 耗时 -->
             <StackPanel Orientation="Horizontal" Spacing="8">
               <TextBlock Text="{Binding EngineName}" FontWeight="SemiBold" />
-              <Border CornerRadius="{DynamicResource Radius.Small}" Padding="6,2"
-                      Background="{DynamicResource AccentBrush}">
+              <Border Theme="{StaticResource NeuBadge}" Classes="accent"
+                      Padding="8,2">
                 <TextBlock Text="{Binding LatencyDisplay}"
                            FontSize="{DynamicResource FontSize.Small}"
                            FontWeight="SemiBold" Foreground="White" />
@@ -129,8 +127,8 @@
     </Grid>
 
     <!-- ═══════════ 公告栏 ═══════════ -->
-    <Border Grid.Row="2" Background="{DynamicResource BgBrush}"
-            BoxShadow="{DynamicResource Neu.Inset}" Padding="12,0">
+    <Border Grid.Row="2" Theme="{StaticResource NeuCard}" Classes="inset"
+            Background="{DynamicResource BgBrush}" Padding="12,0">
       <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
         <TextBlock Text="📢" FontSize="12" />
         <TextBlock Text="{Binding AnnouncementText}"

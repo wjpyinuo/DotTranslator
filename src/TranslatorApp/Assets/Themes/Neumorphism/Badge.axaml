@@ -1,0 +1,48 @@
+<!--
+  DotTranslator — Neumorphism Badge ControlTheme
+  用法：<Border Theme="{StaticResource NeuBadge}" Classes="success">✓ 完成</Border>
+  变体：success / warning / error / accent（对应颜色）
+-->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <ControlTheme x:Key="NeuBadge" TargetType="Border">
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.Small}" />
+    <Setter Property="Padding" Value="8,3" />
+    <Setter Property="BoxShadow" Value="{DynamicResource Neu.OutsetSmall}" />
+    <Setter Property="Background" Value="{DynamicResource CardBgBrush}" />
+
+    <!-- 成功 Badge：绿色背景 -->
+    <Style Selector="^.success">
+      <Setter Property="Background" Value="{DynamicResource SuccessBrush}" />
+      <Style Selector="^ /template/ ContentPresenter">
+        <Setter Property="TextBlock.Foreground" Value="White" />
+      </Style>
+    </Style>
+
+    <!-- 警告 Badge：黄色背景 -->
+    <Style Selector="^.warning">
+      <Setter Property="Background" Value="{DynamicResource WarningBrush}" />
+      <Style Selector="^ /template/ ContentPresenter">
+        <Setter Property="TextBlock.Foreground" Value="#2D3436" />
+      </Style>
+    </Style>
+
+    <!-- 错误 Badge：红色背景 -->
+    <Style Selector="^.error">
+      <Setter Property="Background" Value="{DynamicResource ErrorBrush}" />
+      <Style Selector="^ /template/ ContentPresenter">
+        <Setter Property="TextBlock.Foreground" Value="White" />
+      </Style>
+    </Style>
+
+    <!-- 强调 Badge：紫色背景 -->
+    <Style Selector="^.accent">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+      <Style Selector="^ /template/ ContentPresenter">
+        <Setter Property="TextBlock.Foreground" Value="White" />
+      </Style>
+    </Style>
+  </ControlTheme>
+
+</ResourceDictionary>
