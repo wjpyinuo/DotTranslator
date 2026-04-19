@@ -36,6 +36,8 @@
 | W1-D3 | MVVM 骨架 + DI + 语言列表加载 | ✅ 完成 | 2026-04-20 | languages.json → Initialize() |
 | W1-D4 | Neumorphism Button + TextBox 完善 | ✅ 完成 | 2026-04-20 | 已有，阴影数值对齐 UI 预览 |
 | W1-D5 | Neumorphism Border 卡片 + Badge + 深色主题切换 | ✅ 完成 | 2026-04-20 | NeuCard/NeuBadge/ApplyTheme |
+| W1-D6 | 侧边栏导航 + 6 页面布局 + 页面切换 | ✅ 完成 | 2026-04-20 | LeftNav/RightNav/SelectPage/各页面内容 |
+| W1-D7 | UI 预览完全对齐：水平页签 + 翻译页重设计 + 按钮/结果卡/公告栏样式 | ✅ 完成 | 2026-04-20 | NeuTabButton/NeuTranslateButton/窗口圆角+阴影/设置页引擎列表 |
 | **Week 2** | | | | |
 | W2-D1 | ITranslationProvider 接口 + 数据模型 | ⬜ 待开始 | | |
 | W2-D2 | HuoshanProvider + 单元测试 | ⬜ 待开始 | | |
@@ -110,6 +112,10 @@
 | 2026-04-19 | 修复 avares:// 程序集名 | App.axaml 中 3 处 `avares://TranslatorApp/` 改为 `avares://DotTranslator/`，AssemblyName 是 DotTranslator |
 | 2026-04-19 | 修复 StringConverters 引用 | TextBox.axaml 中补全为 `Avalonia.Data.Converters.StringConverters.IsNullOrEmpty` |
 | 2026-04-19 | 确认 InverseBoolConverter 已注册 | App.axaml Resources 中已有注册，确认无误 |
+| 2026-04-20 | 侧边栏导航架构重构 | 按方案添加左/右侧边栏 + 6 个页面（翻译/收藏/历史/设置/关于/打赏），符合 §6.2 窗口体系 |
+| 2026-04-20 | Badge.axaml 添加 ControlTemplate | 原 Badge 缺少 Template，/template/ ContentPresenter 选择器不生效，添加 Template 修复 |
+| 2026-04-20 | 从侧边栏改为水平页签 | 按 UI Preview 实际设计：水平页签（左3右3+弹性间距），非垂直侧边栏 |
+| 2026-04-20 | 添加 NeuTabButton + NeuTranslateButton | Tab 页签：未选中内凹/选中外凸+强调色；翻译按钮：大号强调色+阴影光晕 |
 
 ---
 

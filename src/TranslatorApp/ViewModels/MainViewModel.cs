@@ -14,6 +14,38 @@ namespace TranslatorApp.ViewModels;
 public partial class MainViewModel : ViewModelBase
 {
     // ═══════════════════════════════════════════
+    //  侧边栏导航
+    // ═══════════════════════════════════════════
+
+    /// <summary>左侧工作流页签（翻译/收藏/历史）</summary>
+    public ObservableCollection<NavigationItem> LeftNavItems { get; } = new()
+    {
+        new("translate", "🌍", "翻译"),
+        new("favorites", "⭐", "收藏"),
+        new("history",   "📋", "历史"),
+    };
+
+    /// <summary>右侧配置页签（设置/关于/打赏）</summary>
+    public ObservableCollection<NavigationItem> RightNavItems { get; } = new()
+    {
+        new("settings", "⚙️", "设置"),
+        new("about",    "ℹ️", "关于"),
+        new("donate",   "☕", "打赏"),
+    };
+
+    /// <summary>当前选中的页面 Key</summary>
+    [ObservableProperty]
+    private string _selectedPage = "translate";
+
+    /// <summary>页面可见性计算属性</summary>
+    public bool IsTranslatePage => SelectedPage == "translate";
+    public bool IsFavoritesPage => SelectedPage == "favorites";
+    public bool IsHistoryPage   => SelectedPage == "history";
+    public bool IsSettingsPage  => SelectedPage == "settings";
+    public bool IsAboutPage     => SelectedPage == "about";
+    public bool IsDonatePage    => SelectedPage == "donate";
+
+    // ═══════════════════════════════════════════
     //  语言选择
     // ═══════════════════════════════════════════
 
@@ -29,6 +61,10 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     private LanguageItem _selectedTargetLang = new("en", "英语");
 
+    /// <summary>自动检测到的源语言显示文本</summary>
+    [ObservableProperty]
+    private string _detectedLangHint = string.Empty;
+
     // ═══════════════════════════════════════════
     //  输入
     // ═══════════════════════════════════════════
@@ -36,10 +72,6 @@ public partial class MainViewModel : ViewModelBase
     /// <summary>用户输入的源文本</summary>
     [ObservableProperty]
     private string _sourceText = string.Empty;
-
-    /// <summary>自动检测到的源语言（源语言为 auto 时填充）</summary>
-    [ObservableProperty]
-    private string _detectedSourceLang = string.Empty;
 
     // ═══════════════════════════════════════════
     //  翻译结果
@@ -102,7 +134,23 @@ public partial class MainViewModel : ViewModelBase
 
     /// <summary>公告栏文本</summary>
     [ObservableProperty]
-    private string _announcementText = string.Empty;
+    private string _announcementText = "DotTranslator v1.0.0 — 轻量、免费、多引擎聚合翻译工具";
+
+    // ═══════════════════════════════════════════
+    //  收藏列表（占位）
+    // ═══════════════════════════════════════════
+
+    /// <summary>收藏列表</summary>
+    [ObservableProperty]
+    private ObservableCollection<FavoriteItem> _favorites = new();
+
+    // ═══════════════════════════════════════════
+    //  历史列表（占位）
+    // ═══════════════════════════════════════════
+
+    /// <summary>翻译历史列表</summary>
+    [ObservableProperty]
+    private ObservableCollection<HistoryItem> _historyItems = new();
 
     // ═══════════════════════════════════════════
     //  初始化
@@ -131,6 +179,9 @@ public partial class MainViewModel : ViewModelBase
         {
             // 降级：保留默认空列表
         }
+
+        // 默认选中翻译页
+        SelectPage("translate");
     }
 
     // ═══════════════════════════════════════════
@@ -163,14 +214,8 @@ public partial class MainViewModel : ViewModelBase
         try
         {
             // TODO: 调用 TranslationManager.TranslateAsync()
-            // var result = await _translationManager.TranslateAsync(request);
-            // TranslatedText = result.TranslatedText;
-            // EngineName = result.Provider;
-            // LatencyMs = result.LatencyMs;
-
-            // 临时占位
             await Task.Delay(300);
-            TranslatedText = "（翻译功能待实现）";
+            TranslatedText = "（翻译功能待实现 — Week 2 将接入真实引擎）";
             EngineName = "Mock";
             LatencyMs = 300;
         }
@@ -195,10 +240,6 @@ public partial class MainViewModel : ViewModelBase
     private async Task CopyAsync()
     {
         if (string.IsNullOrEmpty(TranslatedText)) return;
-
-        // TODO: 拷贝到剪贴板
-        // var clipboard = TopLevel.GetTopLevel(...)?.Clipboard;
-        // await clipboard!.SetTextAsync(TranslatedText);
 
         CopySuccess = true;
         await Task.Delay(2000);
@@ -238,6 +279,33 @@ public partial class MainViewModel : ViewModelBase
     {
         IsPinned = !IsPinned;
         // TODO: 设置窗口 Topmost
+    }
+
+    /// <summary>导航到指定页面</summary>
+    public void SelectPage(string pageKey)
+    {
+        SelectedPage = pageKey;
+
+        // 更新所有导航项的选中状态
+        foreach (var item in LeftNavItems)
+            item.IsSelected = item.Key == pageKey;
+        foreach (var item in RightNavItems)
+            item.IsSelected = item.Key == pageKey;
+
+        // 通知页面可见性变更
+        OnPropertyChanged(nameof(IsTranslatePage));
+        OnPropertyChanged(nameof(IsFavoritesPage));
+        OnPropertyChanged(nameof(IsHistoryPage));
+        OnPropertyChanged(nameof(IsSettingsPage));
+        OnPropertyChanged(nameof(IsAboutPage));
+        OnPropertyChanged(nameof(IsDonatePage));
+    }
+
+    [RelayCommand]
+    private void Navigate(string? pageKey)
+    {
+        if (!string.IsNullOrEmpty(pageKey))
+            SelectPage(pageKey);
     }
 
     // ═══════════════════════════════════════════
@@ -306,6 +374,28 @@ public partial class TranslationErrorViewModel : ObservableObject
             _ => "请稍后重试"
         }
     };
+}
+
+/// <summary>收藏项（占位）</summary>
+public partial class FavoriteItem : ObservableObject
+{
+    [ObservableProperty] private string _sourceText = string.Empty;
+    [ObservableProperty] private string _translatedText = string.Empty;
+    [ObservableProperty] private string _engineName = string.Empty;
+    [ObservableProperty] private string _langPair = string.Empty;
+    [ObservableProperty] private DateTime _favoriteTime;
+}
+
+/// <summary>历史项（占位）</summary>
+public partial class HistoryItem : ObservableObject
+{
+    [ObservableProperty] private string _sourceText = string.Empty;
+    [ObservableProperty] private string _translatedText = string.Empty;
+    [ObservableProperty] private string _engineName = string.Empty;
+    [ObservableProperty] private string _langPair = string.Empty;
+    [ObservableProperty] private int _latencyMs;
+    [ObservableProperty] private DateTime _timestamp;
+    [ObservableProperty] private bool _isFavorite;
 }
 
 /// <summary>ViewModel 基类</summary>

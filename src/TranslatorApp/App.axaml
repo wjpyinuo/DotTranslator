@@ -12,7 +12,13 @@
         <ResourceInclude Source="avares://DotTranslator/Assets/Themes/Neumorphism/BorderCard.axaml" />
         <ResourceInclude Source="avares://DotTranslator/Assets/Themes/Neumorphism/Badge.axaml" />
       </ResourceDictionary.MergedDictionaries>
+
+      <!-- Converters -->
       <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+      <converters:ThemeIconConverter x:Key="ThemeIconConverter" />
+      <converters:PinIconConverter x:Key="PinIconConverter" />
+      <converters:FavoriteIconConverter x:Key="FavoriteIconConverter" />
+      <converters:BoolToThemeConverter x:Key="BoolToThemeConverter" />
     </ResourceDictionary>
   </Application.Resources>
 

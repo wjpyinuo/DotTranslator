@@ -1,54 +1,53 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Markup.Xaml;
+using TranslatorApp.ViewModels;
 
 namespace TranslatorApp.Views;
 
 public partial class MainWindow : Window
 {
+    private MainViewModel ViewModel => (MainViewModel)DataContext!;
+
     public MainWindow()
     {
         InitializeComponent();
+
+        // 拖拽区域
+        var titleBar = this.FindControl<Grid>("TitleBar");
+        if (titleBar != null)
+            titleBar.PointerPressed += TitleBar_PointerPressed;
+    }
+
+    private void InitializeComponent()
+    {
+        AvaloniaXamlLoader.Load(this);
+    }
+
+    private void TitleBar_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+            BeginMoveDrag(e);
     }
 
     private void MinimizeClick(object? sender, RoutedEventArgs e)
-    {
-        WindowState = WindowState.Minimized;
-    }
+        => WindowState = WindowState.Minimized;
 
     private void MaximizeClick(object? sender, RoutedEventArgs e)
-    {
-        WindowState = WindowState == WindowState.Maximized
+        => WindowState = WindowState == WindowState.Maximized
             ? WindowState.Normal
             : WindowState.Maximized;
-    }
 
     private void CloseClick(object? sender, RoutedEventArgs e)
-    {
-        Close();
-    }
+        => Close();
 
-    // Allow double-click on title bar to maximize/restore
-    protected override void OnPointerPressed(PointerPressedEventArgs e)
+    /// <summary>侧边栏导航点击</summary>
+    private void NavItemClick(object? sender, RoutedEventArgs e)
     {
-        base.OnPointerPressed(e);
-        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        if (sender is Button btn && btn.CommandParameter is string pageKey)
         {
-            // Check if click is in title bar area (top 40px)
-            var pos = e.GetPosition(this);
-            if (pos.Y < 40)
-            {
-                if (e.ClickCount == 2)
-                {
-                    WindowState = WindowState == WindowState.Maximized
-                        ? WindowState.Normal
-                        : WindowState.Maximized;
-                }
-                else
-                {
-                    BeginMoveDrag(e);
-                }
-            }
+            ViewModel.SelectPage(pageKey);
         }
     }
 }

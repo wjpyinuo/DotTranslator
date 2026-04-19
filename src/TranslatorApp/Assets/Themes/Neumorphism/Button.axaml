@@ -104,4 +104,72 @@
     </Style>
   </ControlTheme>
 
+  <!-- ═══════════════════════════════════════
+       Tab Button (匹配 UI Preview 水平页签)
+       ═══════════════════════════════════════ -->
+  <ControlTheme x:Key="NeuTabButton" TargetType="Button" BasedOn="{StaticResource NeuButton}">
+    <Setter Property="Padding" Value="22,10" />
+    <Setter Property="FontSize" Value="{DynamicResource FontSize.Body}" />
+    <Setter Property="FontWeight" Value="Medium" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.Medium}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+    <Setter Property="Background" Value="{DynamicResource BgBrush}" />
+    <Style Selector="^ /template/ Border#PART_Border">
+      <Setter Property="CornerRadius" Value="{DynamicResource Radius.Medium}" />
+      <Setter Property="BoxShadow" Value="{DynamicResource Neu.Inset}" />
+    </Style>
+    <Style Selector="^:pointerover">
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+      <Style Selector="^ /template/ Border#PART_Border">
+        <Setter Property="BoxShadow" Value="{DynamicResource Neu.Inset}" />
+        <Setter Property="RenderTransform" Value="none" />
+      </Style>
+    </Style>
+    <Style Selector="^:pressed">
+      <Style Selector="^ /template/ Border#PART_Border">
+        <Setter Property="BoxShadow" Value="{DynamicResource Neu.InsetDeep}" />
+      </Style>
+    </Style>
+    <!-- Selected state: outset, accent color -->
+    <Style Selector="^.isSelected">
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Style Selector="^ /template/ Border#PART_Border">
+        <Setter Property="BoxShadow" Value="{DynamicResource Neu.OutsetSmall}" />
+      </Style>
+    </Style>
+  </ControlTheme>
+
+  <!-- ═══════════════════════════════════════
+       Translate Main Button (翻译按钮 - 大号强调)
+       ═══════════════════════════════════════ -->
+  <ControlTheme x:Key="NeuTranslateButton" TargetType="Button" BasedOn="{StaticResource NeuButton}">
+    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="Foreground" Value="White" />
+    <Setter Property="FontSize" Value="16" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="Padding" Value="56,12" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.Large}" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="Margin" Value="0,8,0,16" />
+    <Style Selector="^ /template/ Border#PART_Border">
+      <Setter Property="BoxShadow" Value="{DynamicResource Neu.OutsetPrimary}" />
+    </Style>
+    <Style Selector="^:pointerover">
+      <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+      <Style Selector="^ /template/ Border#PART_Border">
+        <Setter Property="BoxShadow" Value="{DynamicResource Neu.Outset}" />
+        <Setter Property="RenderTransform">
+          <TranslateTransform Y="-2" />
+        </Setter>
+      </Style>
+    </Style>
+    <Style Selector="^:pressed">
+      <Setter Property="Background" Value="{DynamicResource AccentPressedBrush}" />
+      <Style Selector="^ /template/ Border#PART_Border">
+        <Setter Property="BoxShadow" Value="{DynamicResource Neu.Inset}" />
+      </Style>
+    </Style>
+  </ControlTheme>
+
 </ResourceDictionary>

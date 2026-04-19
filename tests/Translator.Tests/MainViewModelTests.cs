@@ -235,4 +235,68 @@ public class MainViewModelTests
         var sut = CreateSut();
         sut.AvailableLanguages.Should().NotBeNull();
     }
+
+    // ═══════════════════════════════════════
+    //  侧边栏导航
+    // ═══════════════════════════════════════
+
+    [Fact]
+    public void Default_SelectedPage_Is_Translate()
+    {
+        var sut = CreateSut();
+        sut.SelectedPage.Should().Be("translate");
+    }
+
+    [Fact]
+    public void LeftNavItems_Contains_Translate_Favorites_History()
+    {
+        var sut = CreateSut();
+        sut.LeftNavItems.Should().HaveCount(3);
+        sut.LeftNavItems.Select(i => i.Key).Should().ContainInOrder("translate", "favorites", "history");
+    }
+
+    [Fact]
+    public void RightNavItems_Contains_Settings_About_Donate()
+    {
+        var sut = CreateSut();
+        sut.RightNavItems.Should().HaveCount(3);
+        sut.RightNavItems.Select(i => i.Key).Should().ContainInOrder("settings", "about", "donate");
+    }
+
+    [Fact]
+    public void SelectPage_Updates_SelectedPage()
+    {
+        var sut = CreateSut();
+        sut.SelectPage("history");
+        sut.SelectedPage.Should().Be("history");
+    }
+
+    [Fact]
+    public void SelectPage_Updates_PageVisibility()
+    {
+        var sut = CreateSut();
+        sut.SelectPage("settings");
+        sut.IsSettingsPage.Should().BeTrue();
+        sut.IsTranslatePage.Should().BeFalse();
+        sut.IsFavoritesPage.Should().BeFalse();
+    }
+
+    [Fact]
+    public void SelectPage_Updates_NavItem_SelectedState()
+    {
+        var sut = CreateSut();
+        sut.SelectPage("favorites");
+        sut.LeftNavItems.First(i => i.Key == "favorites").IsSelected.Should().BeTrue();
+        sut.LeftNavItems.First(i => i.Key == "translate").IsSelected.Should().BeFalse();
+        sut.RightNavItems.All(i => !i.IsSelected).Should().BeTrue();
+    }
+
+    [Fact]
+    public void NavigateCommand_Changes_Page()
+    {
+        var sut = CreateSut();
+        sut.NavigateCommand.Execute("about");
+        sut.SelectedPage.Should().Be("about");
+        sut.IsAboutPage.Should().BeTrue();
+    }
 }
