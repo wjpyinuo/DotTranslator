@@ -1,0 +1,100 @@
+<!--
+  DotTranslator — Neumorphism Button ControlTheme
+  用法：<Button Content="翻译" Theme="{StaticResource NeuButton}" />
+  变体：<Button Classes="accent" ... /> （强调色按钮）
+        <Button Classes="secondary" ... /> （次按钮）
+-->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <ControlTheme x:Key="NeuButton" TargetType="Button">
+
+    <!-- ═══════════ 默认态 ═══════════ -->
+    <Setter Property="Background" Value="{DynamicResource CardBgBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="{DynamicResource Radius.Medium}" />
+    <Setter Property="Padding" Value="20,10" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="RenderTransform" Value="translateY(0)" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{TemplateBinding Background}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}"
+                BoxShadow="{DynamicResource Neu.Outset}"
+                RenderTransform="{TemplateBinding RenderTransform}">
+          <ContentPresenter Content="{TemplateBinding Content}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- ═══════════ Hover 态：浮起 +2px ═══════════ -->
+    <Style Selector="^:pointerover">
+      <Setter Property="RenderTransform" Value="translateY(-2px)" />
+      <Style Selector="^ /template/ Border">
+        <Setter Property="BoxShadow" Value="{DynamicResource Neu.Outset}" />
+      </Style>
+    </Style>
+
+    <!-- ═══════════ Pressed 态：内凹 ═══════════ -->
+    <Style Selector="^:pressed">
+      <Setter Property="RenderTransform" Value="translateY(0)" />
+      <Style Selector="^ /template/ Border">
+        <Setter Property="BoxShadow" Value="{DynamicResource Neu.Inset}" />
+      </Style>
+    </Style>
+
+    <!-- ═══════════ Disabled 态 ═══════════ -->
+    <Style Selector="^:disabled">
+      <Setter Property="Opacity" Value="0.5" />
+      <Style Selector="^ /template/ Border">
+        <Setter Property="BoxShadow" Value="{DynamicResource Neu.Flat}" />
+      </Style>
+    </Style>
+
+    <!-- ═══════════ Focus 态：焦点环 ═══════════ -->
+    <Style Selector="^:focus">
+      <Style Selector="^ /template/ Border">
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+        <Setter Property="BorderThickness" Value="2" />
+      </Style>
+    </Style>
+
+    <!-- ═══════════ 变体：强调色按钮 ═══════════ -->
+    <Style Selector="^.accent">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Foreground" Value="White" />
+      <Style Selector="^:pointerover">
+        <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+      </Style>
+      <Style Selector="^:pressed">
+        <Setter Property="Background" Value="{DynamicResource AccentPressedBrush}" />
+      </Style>
+    </Style>
+
+    <!-- ═══════════ 变体：次按钮 ═══════════ -->
+    <Style Selector="^.secondary">
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+    </Style>
+
+    <!-- ═══════════ 变体：小尺寸按钮 ═══════════ -->
+    <Style Selector="^.small">
+      <Setter Property="Padding" Value="12,6" />
+      <Setter Property="FontSize" Value="{DynamicResource FontSize.Small}" />
+    </Style>
+
+    <!-- ═══════════ 变体：圆形按钮（图标按钮）═══════════ -->
+    <Style Selector="^.icon">
+      <Setter Property="CornerRadius" Value="{DynamicResource Radius.Pill}" />
+      <Setter Property="Padding" Value="10" />
+      <Setter Property="MinWidth" Value="36" />
+      <Setter Property="MinHeight" Value="36" />
+    </Style>
+
+  </ControlTheme>
+
+</ResourceDictionary>
