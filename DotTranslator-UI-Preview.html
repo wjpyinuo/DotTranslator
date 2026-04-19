@@ -2698,16 +2698,100 @@
         </div>
       </div>
 
+      <!-- 讯飞 TTS 配置 -->
+      <div style="font-size: 12px; margin: 14px 0 8px; color: var(--text-secondary); font-weight: 600;">🔥 讯飞 TTS 配置</div>
+
+      <div class="engine-item">
+        <div class="key-input-row" style="width: 100%;">
+          <span class="key-label">AppId</span>
+          <input class="key-input" type="password" value="****a3f1" readonly>
+          <button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">📋</button>
+        </div>
+        <div class="key-input-row" style="margin-top: 6px; width: 100%;">
+          <span class="key-label">ApiKey</span>
+          <input class="key-input" type="password" value="****e8b2" readonly>
+          <button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">👁</button><button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">📋</button>
+        </div>
+        <div class="key-input-row" style="margin-top: 6px; width: 100%;">
+          <span class="key-label">ApiSecret</span>
+          <input class="key-input" type="password" value="****7c4d" readonly>
+          <button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">👁</button><button class="btn btn-sm" style="font-size: 10px; padding: 2px 6px;">📋</button>
+        </div>
+        <div style="display: flex; gap: 6px; margin-top: 6px; margin-left: 52px;">
+          <button class="btn btn-sm" style="font-size: 10px;">📖 申请指南</button>
+          <span style="font-size: 10px; color: var(--success); align-self: center;">✅ 已配置</span>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">讯飞音色选择</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <select class="lang-select" style="font-size: 12px; padding: 6px 28px 6px 10px;">
+            <optgroup label="通用">
+              <option selected>xiaogang（小刚·男·标准自然）</option>
+              <option>xiaoxin（小新·女·标准自然）</option>
+            </optgroup>
+            <optgroup label="生活">
+              <option>yeting（夜听·女·温柔甜美）</option>
+              <option>yunxi（云溪·女·活泼可爱）</option>
+            </optgroup>
+            <optgroup label="新闻/商务">
+              <option>mingge（明哥·男·温暖沉稳）</option>
+              <option>xiaomeng（小萌·男·稳重大气）</option>
+            </optgroup>
+            <optgroup label="儿童">
+              <option>tongnan（童男·男童·清脆活泼）</option>
+              <option>tongnv（童女·女童·天真甜美）</option>
+            </optgroup>
+          </select>
+          <button class="btn btn-sm" style="font-size: 10px;">🔊 试听</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">今日已用</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div class="quota-bar" style="width: 100px;"><div class="quota-fill green" style="width: 18%;"></div></div>
+          <span style="font-size: 11px; color: var(--text-secondary);">3,642 / 20,000 次</span>
+        </div>
+      </div>
+
+      <!-- Edge TTS 配置 -->
+      <div style="font-size: 12px; margin: 14px 0 8px; color: var(--text-secondary); font-weight: 600;">🌐 Edge TTS 配置</div>
+
       <div class="setting-row">
         <div>
           <div class="setting-label">Edge TTS 音色</div>
+          <div class="setting-desc">无需 API Key，开箱即用</div>
         </div>
-        <select class="lang-select" style="font-size: 12px; padding: 6px 28px 6px 10px;">
-          <option>zh-CN-XiaoxiaoNeural（晓晓·女声·温柔）</option>
-          <option>zh-CN-YunxiNeural（云希·男声·自然）</option>
-          <option>zh-CN-YunyangNeural（云扬·男声·新闻）</option>
-        </select>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <select class="lang-select" style="font-size: 12px; padding: 6px 28px 6px 10px;">
+            <option>zh-CN-XiaoxiaoNeural（晓晓·女声·温柔）</option>
+            <option>zh-CN-YunxiNeural（云希·男声·自然）</option>
+            <option>zh-CN-YunyangNeural（云扬·男声·新闻）</option>
+            <option>zh-CN-XiaoyiNeural（晓伊·女声·活泼）</option>
+            <option>zh-CN-YunjianNeural（云健·男声·沉稳）</option>
+            <option>en-US-AriaNeural（Aria·女声·英文）</option>
+            <option>en-US-GuyNeural（Guy·男声·英文）</option>
+            <option>ja-JP-NanamiNeural（七海·女声·日文）</option>
+          </select>
+          <button class="btn btn-sm" style="font-size: 10px;">🔊 试听</button>
+        </div>
       </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Edge TTS 状态</div>
+        </div>
+        <span style="font-size: 12px; color: var(--success); font-weight: 600;">✅ 可用</span>
+      </div>
+
+      <!-- 通用设置 -->
+      <div style="font-size: 12px; margin: 14px 0 8px; color: var(--text-secondary); font-weight: 600;">⚙️ 通用设置</div>
 
       <div class="setting-row">
         <div>
@@ -2736,12 +2820,13 @@
       <div class="setting-row">
         <div>
           <div class="setting-label">自动朗读</div>
-          <div class="setting-desc">翻译完成后自动朗读译文</div>
+          <div class="setting-desc">翻译完成后自动触发 TTS</div>
         </div>
-        <label class="toggle-switch">
-          <input type="checkbox">
-          <span class="toggle-slider"></span>
-        </label>
+        <div class="action-group">
+          <button class="btn btn-sm pressed">关闭</button>
+          <button class="btn btn-sm">朗读译文</button>
+          <button class="btn btn-sm">朗读原文</button>
+        </div>
       </div>
 
       <div class="setting-row">
@@ -2754,17 +2839,6 @@
           <option>静默失败（不朗读）</option>
           <option>弹窗提醒</option>
         </select>
-      </div>
-
-      <div class="setting-row">
-        <div>
-          <div class="setting-label">额度耗尽自动切换</div>
-          <div class="setting-desc">讯飞额度耗尽时自动切换到 Edge TTS</div>
-        </div>
-        <label class="toggle-switch">
-          <input type="checkbox" checked>
-          <span class="toggle-slider"></span>
-        </label>
       </div>
     </div>
 
@@ -2830,6 +2904,192 @@
           <input type="checkbox">
           <span class="toggle-slider"></span>
         </label>
+      </div>
+    </div>
+
+    <!-- Document Translation Settings -->
+    <div class="settings-section">
+      <div class="settings-section-title">📄 文档翻译</div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">默认模式</div>
+        </div>
+        <div class="action-group">
+          <button class="btn btn-sm pressed">AI 模式</button>
+          <button class="btn btn-sm">普通模式</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">默认引擎</div>
+          <div class="setting-desc">文档翻译默认使用的 AI 引擎</div>
+        </div>
+        <select class="lang-select" style="font-size: 12px; padding: 6px 28px 6px 10px;">
+          <option selected>DeepSeek-V3</option>
+          <option>通义千问-plus</option>
+          <option>Kimi-128k</option>
+          <option>普通模式（免费额度）</option>
+        </select>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">成本预警阈值</div>
+          <div class="setting-desc">预估费用超过此金额时标黄提醒</div>
+        </div>
+        <select class="lang-select" style="font-size: 12px; padding: 6px 28px 6px 10px;">
+          <option>¥1</option>
+          <option selected>¥5</option>
+          <option>¥10</option>
+        </select>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">成本确认阈值</div>
+          <div class="setting-desc">超过此金额需二次确认</div>
+        </div>
+        <select class="lang-select" style="font-size: 12px; padding: 6px 28px 6px 10px;">
+          <option>¥10</option>
+          <option selected>¥20</option>
+          <option>¥50</option>
+        </select>
+      </div>
+
+      <div style="font-size: 12px; margin: 14px 0 8px; color: var(--text-secondary); font-weight: 600;">段落处理</div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">合并短段落</div>
+          <div class="setting-desc">减少 API 调用次数，提升翻译一致性</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">最大合并字符数</div>
+          <div class="setting-desc">单次请求不超过此字符数</div>
+        </div>
+        <select class="lang-select" style="font-size: 12px; padding: 6px 28px 6px 10px;">
+          <option>1000</option>
+          <option selected>2000</option>
+          <option>4000</option>
+        </select>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">并发请求数</div>
+          <div class="setting-desc">同时翻译的段落数（过高可能触发限流）</div>
+        </div>
+        <select class="lang-select" style="font-size: 12px; padding: 6px 28px 6px 10px;">
+          <option>1</option>
+          <option>2</option>
+          <option selected>3</option>
+          <option>5</option>
+        </select>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">代码块保留原文</div>
+          <div class="setting-desc">Markdown/HTML 中的代码块不翻译</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div style="font-size: 12px; margin: 14px 0 8px; color: var(--text-secondary); font-weight: 600;">导出设置</div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">默认导出格式</div>
+        </div>
+        <div class="action-group">
+          <button class="btn btn-sm pressed">仅译文</button>
+          <button class="btn btn-sm">双语对照</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">译文文件命名规则</div>
+        </div>
+        <select class="lang-select" style="font-size: 12px; padding: 6px 28px 6px 10px;">
+          <option selected>{原名}_{lang}</option>
+          <option>{原名}_translated</option>
+          <option>{原名}_译文</option>
+        </select>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">PPT 备注翻译</div>
+          <div class="setting-desc">翻译 PPT 备注栏内容（默认不翻译）</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div style="font-size: 12px; margin: 14px 0 8px; color: var(--text-secondary); font-weight: 600;">字幕设置</div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">SRT 双语对照格式</div>
+        </div>
+        <div class="action-group">
+          <button class="btn btn-sm pressed">原文在上</button>
+          <button class="btn btn-sm">译文在上</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">ASS 标签保留</div>
+          <div class="setting-desc">保留 ASS 字幕中的样式标签（如 {\pos}、{\fn}）</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div style="font-size: 12px; margin: 14px 0 8px; color: var(--text-secondary); font-weight: 600;">系统集成</div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">右键菜单集成</div>
+          <div class="setting-desc">在资源管理器右键菜单中添加「用 DotTranslator 翻译」</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">支持格式</div>
+        </div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <span class="label-tag tag-accent">.txt</span>
+          <span class="label-tag tag-accent">.docx</span>
+          <span class="label-tag tag-accent">.pptx</span>
+          <span class="label-tag tag-accent">.md</span>
+          <span class="label-tag tag-accent">.html</span>
+          <span class="label-tag tag-accent">.srt</span>
+          <span class="label-tag tag-accent">.ass</span>
+        </div>
       </div>
     </div>
 
