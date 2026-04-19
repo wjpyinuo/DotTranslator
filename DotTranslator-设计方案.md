@@ -81,7 +81,7 @@
 - [十七、用户反馈通道](#十七用户反馈通道)
 - [十八、隐私政策](#十八隐私政策)
 - [十九、v1.0 验收标准](#十九v10-验收标准)
-- [二十、开发排期（10 周）](#二十开发排期10-周)
+- [二十、开发排期（11 周）](#二十开发排期11-周)
 - [二十一、成本总结](#二十一成本总结)
 
 ---
@@ -8091,122 +8091,133 @@ GitHub Actions Pipeline
 
 ---
 
-## 二十、开发排期（10 周）
+## 二十、开发排期（11 周）
 
-> 8 周开发 + 1 周测试 + 1 周缓冲。CI 从 Week 1 Day 1 开始搭建，贯穿全程。
+> 9 周开发 + 1 周测试回归 + 1 周发布缓冲。CI 从 Week 1 Day 1 开始搭建，贯穿全程。
 
 ### 20.1 总览
 
 | 阶段 | 周次 | 内容 | 交付物 |
 |---|---|---|---|
-| **基础搭建** | Week 1 | 项目骨架 + CI + 主窗口 UI | 可运行的空壳应用 |
-| **核心翻译** | Week 2 | 2 个 Provider + 引擎调度 + 缓存 | 单引擎翻译可用 |
-| **核心体验** | Week 3 | 剪贴板翻译 + 托盘 + 热键 | 日常翻译可用 |
-| **引擎补全** | Week 4 | 剩余 Provider + AI 模式 | 全引擎可用 |
-| **功能丰富** | Week 5 | TTS + 历史 + 收藏 | 基础功能完整 |
-| **进阶功能** | Week 6 | 多引擎对比 + 文档翻译 | 核心差异化完成 |
-| **打磨** | Week 7 | 术语表 + 弹性策略 + 设置页完善 | 工程质量达标 |
-| **集成测试** | Week 8 | 端到端测试 + 性能调优 + 修 Bug | 通过验收清单 |
-| **回归测试** | Week 9 | 全量回归 + 兼容性测试 + 修 Bug | 候选发布版 |
-| **发布** | Week 10 | 打包签名 + 文档 + 发布 | v1.0.0 正式发布 |
+| **基础搭建 + 主题核心** | Week 1 | 项目骨架 + CI + MVVM + Neumorphism 核心控件主题 | 可运行空壳 + Button/TextBox/卡片 neumorphism 样式 |
+| **核心翻译 + 主题补全** | Week 2 | 2 个 Provider + 引擎调度 + 缓存 + 剩余控件主题 | 单引擎翻译可用 + 主题基本完整 |
+| **核心体验** | Week 3 | 剪贴板翻译 + 浮窗 + 托盘 + 热键 | 日常翻译可用 |
+| **普通引擎补全** | Week 4 | 腾讯 + 彩云 + 小牛 + 额度切换 + 引擎健康状态 | 5 家普通引擎全部可用 |
+| **AI 引擎补全** | Week 5 | DeepSeek + 通义 + Kimi + AI Prompt + 8 引擎联调 | 全引擎可用 |
+| **TTS + 历史** | Week 6 | 讯飞TTS + EdgeTTS + SQLite + 历史/收藏 + 导出 | 基础功能完整 |
+| **多引擎对比** | Week 7 | 渐进渲染 + 相似度 + 差异对比 + 智能推荐 | 核心差异化完成 |
+| **文档翻译 + 术语表** | Week 8 | 6 个提取器 + 术语表 + 后处理 + AI 注入 | 进阶功能完成 |
+| **打磨** | Week 9 | 弹性策略 + 设置页 + 导出格式 + PPTX + 动画细节 | 工程质量达标 |
+| **集成测试 + 回归** | Week 10 | 端到端测试 + 兼容性 + 性能 + 修 Bug | 候选发布版 |
+| **发布** | Week 11 | 打包签名 + 文档 + 发布 + 缓冲 | v1.0.0 正式发布 |
 
 ### 20.2 每周详细排期
 
-**Week 1：基础搭建**
+**Week 1：基础搭建 + Neumorphism 核心控件**
 
 | 天 | 内容 |
 |---|---|
-| Day 1 | 创建解决方案（TranslatorApp + Translator.Core + Translator.Tests），配置 .NET 8 + Avalonia |
+| Day 1 | 创建解决方案（TranslatorApp + Translator.Core + Translator.Tests），配置 .NET 8 + Avalonia 11.2 |
 | Day 2 | 搭建 CI（GitHub Actions：restore + build + test），确保首次 commit 就有绿灯 |
 | Day 3 | MVVM 骨架：MainViewModel + 页面导航 + DI 容器注册 |
-| Day 4 | 主窗口 UI：Neumorphism 主题、浅色/深色色板、基本布局 |
-| Day 5 | 语言选择器、输入框、翻译按钮的 UI 绑定（mock 数据） |
+| Day 4 | Neumorphism 主题基础：色板定义（浅色/深色双套）、ControlTheme 基类、Button + TextBox 样式 |
+| Day 5 | Neumorphism 核心控件：卡片 Border、输入框内凹阴影、主按钮按压态、Badge 标签 |
 
-**Week 2：核心翻译**
+**Week 2：核心翻译 + 主题补全**
 
 | 天 | 内容 |
 |---|---|
 | Day 1 | `ITranslationProvider` 接口定义 + `TranslationRequest` / `TranslationResult` 模型 |
-| Day 2 | `HuoshanProvider` 实现（HTTP 签名认证 + 翻译调用） |
-| Day 3 | `BaiduProvider` 实现 + 单元测试（mock HTTP） |
-| Day 4 | `TranslationRouter`（引擎选择逻辑）+ `TranslationCache`（内存缓存） |
-| Day 5 | `TranslationManager` 编排：缓存 → 路由 → 调用 → 返回，集成测试 |
+| Day 2 | `HuoshanProvider` 实现（HTTP 签名认证 + 翻译调用）+ 单元测试 |
+| Day 3 | `BaiduProvider` 实现 + 单元测试（mock HTTP）+ `TranslationRouter` |
+| Day 4 | Neumorphism 补全：ComboBox、ToggleSwitch、TabItem、ProgressBar、RadioButton |
+| Day 5 | Neumorphism 补全：ScrollBar、公告栏样式、语言选择器下拉 + `TranslationCache` |
 
 **Week 3：核心体验**
 
 | 天 | 内容 |
 |---|---|
-| Day 1 | `ClipboardMonitor`（Win32 剪贴板监听）+ 过滤条件 |
-| Day 2 | 迷你翻译浮窗 + 浮窗出现/隐藏逻辑 |
+| Day 1 | `IClipboardMonitor` 接口 + `WindowsClipboardMonitor`（Win32 P/Invoke）+ 过滤条件 |
+| Day 2 | 迷你翻译浮窗 + 浮窗出现/隐藏逻辑 + `TranslationManager` 编排 |
 | Day 3 | 系统托盘（TrayIcon）+ 左键显示/隐藏 + 右键菜单 |
 | Day 4 | 全局热键注册（Ctrl+Shift+T）+ 首次使用引导流程 |
-| Day 5 | 联调：剪贴板 → 浮窗 → 翻译 → 结果展示完整链路 |
+| Day 5 | 联调：剪贴板 → 浮窗 → 翻译 → 结果展示完整链路 + 单元测试 |
 
-**Week 4：引擎补全**
-
-| 天 | 内容 |
-|---|---|
-| Day 1 | `TencentProvider` + `CaiyunProvider` + `NiutransProvider` |
-| Day 2 | 额度耗尽自动切换机制 + 引擎健康状态管理 |
-| Day 3 | `DeepSeekProvider`（OpenAI 兼容格式）+ AI 模式切换 |
-| Day 4 | `QwenProvider` + `KimiProvider` + AI Prompt 构建 |
-| Day 5 | 8 个引擎联调 + 引擎测试连接功能 |
-
-**Week 5：功能丰富**
+**Week 4：普通引擎补全**
 
 | 天 | 内容 |
 |---|---|
-| Day 1 | `XunfeiTtsProvider`（WebSocket + HMAC 签名） |
-| Day 2 | `EdgeTtsProvider` + TTS 额度耗尽切换 + 音色选择 |
-| Day 3 | SQLite 数据库初始化 + `HistoryRepository` |
-| Day 4 | 历史页签（搜索/分页/收藏/删除）+ 收藏页签 |
-| Day 5 | 翻译历史写入集成 + 导出（TXT + CSV） |
+| Day 1 | `TencentProvider`（腾讯云 SecretId + SecretKey HMAC 签名） |
+| Day 2 | `CaiyunProvider`（Token 认证，接口极简）+ `NiutransProvider`（AppId + API Key） |
+| Day 3 | 额度耗尽自动切换机制 + 引擎健康状态管理（CircuitBreaker） |
+| Day 4 | 5 家普通引擎联调 + 引擎测试连接功能 + 单元测试批量补全 |
+| Day 5 | 引擎管理 UI（设置页拖拽排序 + 用量进度条 + API Key 测试） |
 
-**Week 6：进阶功能**
-
-| 天 | 内容 |
-|---|---|
-| Day 1 | 多引擎对比：`ComparisonEngine` + 渐进式渲染 + 卡片组件 |
-| Day 2 | 相似度矩阵 + 差异对比视图 + 智能推荐评分 |
-| Day 3 | 文档翻译：`TxtExtractor` + `DocxExtractor` + 段落合并 |
-| Day 4 | 文档翻译：成本预估面板 + 翻译进度条 + 导出 |
-| Day 5 | `SubtitleExtractor`（SRT/ASS）+ `MarkdownExtractor` + `HtmlExtractor` |
-
-**Week 7：打磨**
+**Week 5：AI 引擎补全**
 
 | 天 | 内容 |
 |---|---|
-| Day 1 | 术语表 CRUD + `GlossaryPostProcessor`（后处理替换）+ AI Prompt 注入 |
-| Day 2 | 弹性策略：重试/熔断/超时 + 客户端限流器 |
-| Day 3 | 设置页完整搭建（引擎管理/TTS/快捷键/诊断/术语表） |
-| Day 4 | PPTX 提取器 + 导出格式补全（XLSX/Markdown/JSON/Anki） |
-| Day 5 | 前后处理管道 + 格式修复 + 质量检查 |
+| Day 1 | `DeepSeekProvider`（OpenAI 兼容格式，只需改 URL + model） |
+| Day 2 | `QwenProvider` + `KimiProvider`（同为 OpenAI 兼容，复用基类） |
+| Day 3 | AI Prompt 构建（System Prompt + 术语注入 + 翻译风格自适应） |
+| Day 4 | AI 模式切换 UI + 成本预估（token 计算 + 价格展示） |
+| Day 5 | 8 个引擎全量联调 + 模式切换 + 降级策略 + 集成测试 |
 
-**Week 8：集成测试**
+**Week 6：TTS + 历史**
+
+| 天 | 内容 |
+|---|---|
+| Day 1 | `XunfeiTtsProvider`（WebSocket + HMAC 签名 + 音色列表） |
+| Day 2 | `EdgeTtsProvider`（纯 WebSocket，无需 API Key）+ TTS 额度耗尽切换 |
+| Day 3 | SQLite 数据库初始化 + `HistoryRepository`（CRUD + 分页 + 搜索） |
+| Day 4 | 历史页签（搜索/分页/收藏/删除）+ 收藏页签（独立一级页签） |
+| Day 5 | 翻译历史自动写入集成 + 导出（TXT + CSV）+ 单元测试 |
+
+**Week 7：多引擎对比**
+
+| 天 | 内容 |
+|---|---|
+| Day 1 | `ComparisonEngine` + 渐进式渲染（`Task.WhenAny`）+ 卡片组件 |
+| Day 2 | 相似度矩阵（Levenshtein / Jaccard）+ 差异对比视图（diff） |
+| Day 3 | 智能推荐评分（4 维度：流畅度 + 共识 + 偏好 + 速度）+ 推荐标签 |
+| Day 4 | AI 对比模式 + 导出对比报告（TXT/MD/CSV）+ 卡片动画 |
+| Day 5 | 多引擎对比全链路联调 + 单元测试（渐进渲染、评分、相似度） |
+
+**Week 8：文档翻译 + 术语表**
+
+| 天 | 内容 |
+|---|---|
+| Day 1 | `TxtExtractor` + `DocxExtractor`（DocumentFormat.OpenXml）+ 段落合并 |
+| Day 2 | `SubtitleExtractor`（SRT 时间轴 + ASS 标签解析）+ `MarkdownExtractor` |
+| Day 3 | `HtmlExtractor`（HtmlAgilityPack DOM 遍历）+ `PptxExtractor`（OpenXml） |
+| Day 4 | 术语表 CRUD UI（增删改查/分类/正则/导入导出）+ `GlossaryPostProcessor` |
+| Day 5 | AI Prompt 术语注入 + 成本预估面板 + 翻译进度条 + 导出 + 提取器单元测试 |
+
+**Week 9：打磨**
+
+| 天 | 内容 |
+|---|---|
+| Day 1 | 弹性策略：重试/熔断/超时 + 客户端限流器 + 缓存层完善 |
+| Day 2 | 设置页完整搭建（引擎管理/TTS/快捷键/诊断/文档翻译设置/通用） |
+| Day 3 | 导出格式补全（XLSX/Markdown/JSON/Anki TSV）+ 双语对照导出 |
+| Day 4 | 公告栏远程拉取 + 自动更新（Velopack）+ 开机自启 + 右键菜单注册 |
+| Day 5 | 动画打磨（卡片滑入、骨架屏、收藏星星、复制反馈、⇄ 旋转）+ 前后处理管道 |
+
+**Week 10：集成测试 + 回归**
 
 | 天 | 内容 |
 |---|---|
 | Day 1 | 全流程集成测试：翻译 → 多引擎对比 → 历史 → 收藏 → 导出 |
 | Day 2 | 文档翻译全格式测试 + 性能基准（启动时间/内存/延迟） |
-| Day 3 | 修 Bug + 回归已修复 Bug |
-| Day 4 | 无障碍测试（键盘导航/屏幕阅读器/高对比度） |
-| Day 5 | 修 Bug + 验收清单逐项检查 |
+| Day 3 | Win 10 / Win 11 兼容性测试 + 无障碍测试（键盘导航/高对比度） |
+| Day 4 | 压力测试（大量历史/长文档/高频剪贴板）+ 修 Bug |
+| Day 5 | 全量回归 + 验收清单逐项检查 + 截图/录屏准备 |
 
-**Week 9：回归测试**
-
-| 天 | 内容 |
-|---|---|
-| Day 1 | Win 10 兼容性测试 |
-| Day 2 | Win 11 兼容性测试 |
-| Day 3 | 压力测试（大量历史/长文档/高频剪贴板） |
-| Day 4 | 修 Bug + 回归 |
-| Day 5 | 最终验收 + 截图/录屏准备 |
-
-**Week 10：发布**
+**Week 11：发布**
 
 | 天 | 内容 |
 |---|---|
-| Day 1 | Velopack 打包 + 代码签名 + 安装包测试 |
+| Day 1 | Velopack 打包 + 代码签名 + 安装包测试（安装版 + 便携版） |
 | Day 2 | README 完善 + 使用文档 + 截图 |
 | Day 3 | GitHub Release 发布 v1.0.0 |
 | Day 4 | 提交 winget/scoop 包 |
@@ -8220,34 +8231,36 @@ GitHub Actions Pipeline
 | **Week 2 起** | 新增 Provider 必须附带单元测试（mock HTTP），否则不准合入 |
 | **Week 5 起** | 集成测试覆盖完整翻译管道（缓存 → 路由 → 调用 → 后处理） |
 | **Week 7 起** | 代码覆盖率检查（≥ 60%），不达标不准合入 |
-| **Week 8** | CI 增加性能基准检查（启动时间/内存/延迟） |
-| **Week 10** | CI 增加打包 + 签名步骤，tag 触发自动发布 |
+| **Week 9** | CI 增加性能基准检查（启动时间/内存/延迟） |
+| **Week 11** | CI 增加打包 + 签名步骤，tag 触发自动发布 |
 
 #### 每周测试任务明细
 
 | 周次 | 测试任务 | 预估时间 |
 |---|---|---|
 | **Week 1** | CI 搭建 + xUnit 项目初始化 + 第一个 smoke test（项目能跑） | Day 2 全天 |
-| **Week 2** | `HuoshanProvider` / `BaiduProvider` 单元测试（mock HttpClient），`TranslationRouter` 测试 | Day 5 下午 |
-| **Week 3** | `ClipboardMonitor` 过滤逻辑测试，`TranslationManager` 集成测试（mock 全链路） | Day 5 下午 |
-| **Week 4** | 剩余 Provider 单元测试批量补全，额度切换逻辑测试 | Day 5 下午 |
-| **Week 5** | `HistoryRepository` SQLite 读写测试，TTS Provider mock 测试 | Day 5 下午 |
-| **Week 6** | `ComparisonEngine` 渐进式渲染测试，`DocumentExtractor` 各格式提取测试 | Day 5 下午 |
-| **Week 7** | `GlossaryPostProcessor` 边界测试（大小写/整词/多义词），弹性策略测试（重试/熔断） | Day 5 全天 |
-| **Week 8** | 端到端集成测试 + 性能基准 + 全量回归 | 全周穿插 |
-| **Week 9** | 兼容性测试 + 压力测试 + 回归 | 全周 |
-| **Week 10** | 最终回归 + 验收清单逐项检查 | Day 1-2 |
+| **Week 2** | `HuoshanProvider` / `BaiduProvider` 单元测试（mock HttpClient），`TranslationRouter` 测试 | Day 3 + Day 5 下午 |
+| **Week 3** | `ClipboardMonitor` 过滤逻辑测试，`TranslationManager` 集成测试（mock 全链路） | Day 5 |
+| **Week 4** | 腾讯/彩云/小牛 Provider 单元测试，额度切换逻辑测试 | Day 4 下午 |
+| **Week 5** | DeepSeek/通义/Kimi 单元测试，AI Prompt 注入测试 | Day 5 下午 |
+| **Week 6** | `HistoryRepository` SQLite 读写测试，TTS Provider mock 测试 | Day 5 下午 |
+| **Week 7** | `ComparisonEngine` 渐进式渲染测试，评分/相似度算法测试 | Day 5 |
+| **Week 8** | `DocumentExtractor` 各格式提取测试，`GlossaryPostProcessor` 边界测试 | Day 5 |
+| **Week 9** | 弹性策略测试（重试/熔断/超时），设置页 UI 测试 | Day 5 下午 |
+| **Week 10** | 端到端集成测试 + 性能基准 + 全量回归 | 全周 |
+| **Week 11** | 最终回归 + 验收清单逐项检查 | Day 1-2 |
 
-**原则：测试与开发同节奏，不是最后补。** 每个功能点开发完成的当天或次日写测试，避免 Week 8 集中补测试导致进度爆炸。
+**原则：测试与开发同节奏，不是最后补。** 每个功能点开发完成的当天或次日写测试，避免 Week 10 集中补测试导致进度爆炸。
 
 ### 20.4 风险缓冲
 
 | 风险 | 可能影响 | 缓冲方案 |
 |---|---|---|
-| 某个引擎 API 文档不清晰 | 对接耗时超预期 | Week 4 预留弹性时间，可砍掉 1-2 个非核心引擎 |
-| Neumorphism UI 实现复杂 | UI 进度延迟 | Week 1 先搭基础 UI，美化在 Week 7 打磨期完成 |
-| Avalonia 兼容性问题 | 某些控件行为异常 | Week 9 整周回归测试 |
+| 某个引擎 API 文档不清晰 | 对接耗时超预期 | Week 4-5 各预留 Day 5 弹性，可砍掉 1-2 个非核心引擎 |
+| Neumorphism UI 实现复杂 | UI 进度延迟 | Week 1-2 已分配 4 天专项，核心控件优先，次要控件 Week 9 补 |
+| Avalonia 兼容性问题 | 某些控件行为异常 | Week 10 整周回归测试 |
 | CI 环境问题 | 自动化受阻 | Week 1 Day 2 搭建时就解决，不拖到后期 |
+| 文档提取器边界情况多 | 某些格式解析不完整 | Week 8 Day 5 预留联调，SmartArt 不作为验收标准 |
 
 ---
 
