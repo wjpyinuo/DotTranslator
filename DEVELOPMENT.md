@@ -31,11 +31,11 @@
 | — | Implementation Ready 补齐 | ✅ 完成 | 2026-04-19 | 项目脚手架+色彩Token+Button/TextBox主题+ViewModel+languages.json |
 | — | 编译运行修复 | ✅ 完成 | 2026-04-19 | 修复 avares:// 程序集名 + StringConverters，仓库可 dotnet run |
 | **Week 1** | | | | |
-| W1-D1 | 创建解决方案 + CI 验证 | ⬜ 待开始 | | |
-| W1-D2 | CI 流水线验证 | ⬜ 待开始 | | |
-| W1-D3 | MVVM 骨架 + DI | ⬜ 待开始 | | |
-| W1-D4 | Neumorphism Button + TextBox 完善 | ⬜ 待开始 | | |
-| W1-D5 | Neumorphism Border 卡片 + Badge | ⬜ 待开始 | | |
+| W1-D1 | 创建解决方案 + CI 验证 + 测试桩（36 用例） | ✅ 完成 | 2026-04-20 | format/build/test 全过 |
+| W1-D2 | CI 流水线验证 | ✅ 完成 | 2026-04-20 | dotnet format 零错误 |
+| W1-D3 | MVVM 骨架 + DI + 语言列表加载 | ✅ 完成 | 2026-04-20 | languages.json → Initialize() |
+| W1-D4 | Neumorphism Button + TextBox 完善 | ✅ 完成 | 2026-04-20 | 已有，阴影数值对齐 UI 预览 |
+| W1-D5 | Neumorphism Border 卡片 + Badge + 深色主题切换 | ✅ 完成 | 2026-04-20 | NeuCard/NeuBadge/ApplyTheme |
 | **Week 2** | | | | |
 | W2-D1 | ITranslationProvider 接口 + 数据模型 | ⬜ 待开始 | | |
 | W2-D2 | HuoshanProvider + 单元测试 | ⬜ 待开始 | | |
