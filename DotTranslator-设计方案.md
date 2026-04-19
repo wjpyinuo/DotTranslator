@@ -4806,6 +4806,19 @@ if (reduceMotion || userPref)
 - 设置页提供「动画效果」开关，用户可手动覆盖系统设置
 - 关闭动画后，所有状态变化仍正常工作，只是没有过渡效果
 
+#### 动画关闭时各功能降级行为
+
+| 功能 | 动画开启时 | 动画关闭时 |
+|---|---|---|
+| **多引擎对比卡片出现** | 从底部滑入 + 淡入（200ms） | 直接显示，无过渡 |
+| **多引擎渐进式渲染** | 先到先显示，卡片依次出现 | **仍然逐个显示**（不等全部完成），只是无滑入动画。渐进式渲染是功能特性，不是动画效果 |
+| **骨架屏** | 脉冲呼吸动画 | 直接显示灰色占位块，不闪烁 |
+| **主题切换** | 300ms 渐变过渡 | 直接切换，无过渡 |
+| **复制成功** | 按钮变绿 + 2s 后恢复 | 按钮文字变为「已复制 ✅」，2s 后恢复，无颜色渐变 |
+| **收藏星星** | 放大 1.3x → 回弹 + 金色闪光 | 直接变为金色填充 |
+| **翻译结果逐字淡入** | 每个字 30ms 延迟 | 全部译文一次性显示 |
+| **错误卡片抖动** | 红色边框 + 抖动 200ms | 直接显示红色边框 |
+
 ### 14.6 语义化标签检查清单
 
 | 组件 | 是否使用语义化标签 | 需要的调整 |
@@ -6098,6 +6111,103 @@ public class SettingsMigration
 }
 ```
 
+#### 数据库 Schema 迁移
+
+SQLite 数据库表结构在版本间可能变更（如新增列），需自动迁移：
+
+```csharp
+public class DatabaseMigration
+{
+    /// <summary>
+    /// 启动时检查并执行数据库迁移
+    /// </summary>
+    public void MigrateIfNeeded(string dbPath)
+    {
+        using var connection = new SqliteConnection($"Data Source={dbPath}");
+        connection.Open();
+
+        var currentVersion = GetUserVersion(connection);
+        var targetVersion = 3; // 当前 schema 版本
+
+        if (currentVersion >= targetVersion) return;
+
+        Log.Info("Database migration: v{From} → v{To}", currentVersion, targetVersion);
+
+        using var transaction = connection.BeginTransaction();
+        try
+        {
+            for (int v = currentVersion + 1; v <= targetVersion; v++)
+            {
+                ApplyMigration(connection, v);
+            }
+
+            SetUserVersion(connection, targetVersion);
+            transaction.Commit();
+            Log.Info("Database migration completed successfully");
+        }
+        catch (Exception ex)
+        {
+            transaction.Rollback();
+            Log.Error(ex, "Database migration failed, rolling back");
+            throw;
+        }
+    }
+
+    private int GetUserVersion(SqliteConnection conn)
+    {
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = "PRAGMA user_version";
+        return Convert.ToInt32(cmd.ExecuteScalar());
+    }
+
+    private void SetUserVersion(SqliteConnection conn, int version)
+    {
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = $"PRAGMA user_version = {version}";
+        cmd.ExecuteNonQuery();
+    }
+
+    private void ApplyMigration(SqliteConnection conn, int version)
+    {
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = version switch
+        {
+            // v1: 初始 schema（基础表）
+            1 => """
+                CREATE TABLE IF NOT EXISTS TranslationHistory (...);
+                CREATE TABLE IF NOT EXISTS Glossary (...);
+                """,
+
+            // v2: 新增 TranslationHistory.Mode 列
+            2 => """
+                ALTER TABLE TranslationHistory ADD COLUMN Mode TEXT NOT NULL DEFAULT 'normal';
+                """,
+
+            // v3: 新增 Glossary.Category / Priority / IsRegex / CaseSensitive 列
+            3 => """
+                ALTER TABLE Glossary ADD COLUMN Category TEXT DEFAULT 'default';
+                ALTER TABLE Glossary ADD COLUMN Priority INTEGER DEFAULT 0;
+                ALTER TABLE Glossary ADD COLUMN IsRegex INTEGER NOT NULL DEFAULT 0;
+                ALTER TABLE Glossary ADD COLUMN CaseSensitive INTEGER NOT NULL DEFAULT 0;
+                """,
+
+            _ => throw new NotSupportedException($"Unknown migration version: {version}")
+        };
+        cmd.ExecuteNonQuery();
+    }
+}
+```
+
+**迁移策略：**
+
+| 策略 | 说明 |
+|---|---|
+| **PRAGMA user_version** | SQLite 原生 schema 版本标记，每次 migration 递增 |
+| **事务包裹** | 整个迁移在一个事务中执行，失败则回滚 |
+| **ALTER TABLE ADD COLUMN** | 新增列用 `ALTER TABLE`，保留旧数据 |
+| **破坏性变更** | 如需删除/重命名列，创建新表 → 复制数据 → 删除旧表 → 重命名（SQLite 不支持 DROP COLUMN） |
+| **迁移失败回退** | 迁移失败时备份旧数据库 + 创建新库（与 §15.12.1 崩溃恢复一致） |
+
 ---
 
 ### 15.11 健康检查与启动自检
@@ -6549,6 +6659,20 @@ GitHub Release Pipeline (CI/CD)
 ```
 
 卸载时提示：「是否保留翻译历史和设置？」→ 保留则不删除 `%AppData%\DotTranslator\` 目录。
+
+#### 卸载行为
+
+| 行为 | 说明 |
+|---|---|
+| **卸载触发** | Windows 设置 → 应用 → DotTranslator → 卸载 |
+| **数据保留弹窗** | 卸载过程中弹窗询问：「是否保留翻译历史和设置？」 |
+| **保留（默认）** | 不删除 `%AppData%\DotTranslator\`（含 SQLite 数据库、设置、术语表、日志） |
+| **不保留** | 删除 `%AppData%\DotTranslator\` 目录及全部内容 |
+| **重新安装** | 如果保留了数据目录，重新安装后自动恢复历史和设置（检测到已有 `settings.json` 跳过引导流程） |
+| **安装目录** | Velopack 默认安装到 `%LocalAppData%\DotTranslator\`，卸载时自动清除 |
+| **快捷方式** | 桌面/开始菜单快捷方式随卸载自动删除 |
+| **右键菜单** | 安装时注册的「用 DotTranslator 翻译」右键菜单项随卸载自动移除 |
+| **开机自启** | 如开启过，卸载时自动从注册表启动项中移除 |
 
 #### 代码签名
 
@@ -7583,6 +7707,23 @@ GitHub Actions Pipeline
 | **Week 7 起** | 代码覆盖率检查（≥ 60%），不达标不准合入 |
 | **Week 8** | CI 增加性能基准检查（启动时间/内存/延迟） |
 | **Week 10** | CI 增加打包 + 签名步骤，tag 触发自动发布 |
+
+#### 每周测试任务明细
+
+| 周次 | 测试任务 | 预估时间 |
+|---|---|---|
+| **Week 1** | CI 搭建 + xUnit 项目初始化 + 第一个 smoke test（项目能跑） | Day 2 全天 |
+| **Week 2** | `HuoshanProvider` / `BaiduProvider` 单元测试（mock HttpClient），`TranslationRouter` 测试 | Day 5 下午 |
+| **Week 3** | `ClipboardMonitor` 过滤逻辑测试，`TranslationManager` 集成测试（mock 全链路） | Day 5 下午 |
+| **Week 4** | 剩余 Provider 单元测试批量补全，额度切换逻辑测试 | Day 5 下午 |
+| **Week 5** | `HistoryRepository` SQLite 读写测试，TTS Provider mock 测试 | Day 5 下午 |
+| **Week 6** | `ComparisonEngine` 渐进式渲染测试，`DocumentExtractor` 各格式提取测试 | Day 5 下午 |
+| **Week 7** | `GlossaryPostProcessor` 边界测试（大小写/整词/多义词），弹性策略测试（重试/熔断） | Day 5 全天 |
+| **Week 8** | 端到端集成测试 + 性能基准 + 全量回归 | 全周穿插 |
+| **Week 9** | 兼容性测试 + 压力测试 + 回归 | 全周 |
+| **Week 10** | 最终回归 + 验收清单逐项检查 | Day 1-2 |
+
+**原则：测试与开发同节奏，不是最后补。** 每个功能点开发完成的当天或次日写测试，避免 Week 8 集中补测试导致进度爆炸。
 
 ### 20.4 风险缓冲
 
