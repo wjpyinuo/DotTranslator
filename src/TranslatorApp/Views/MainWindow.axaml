@@ -1,0 +1,143 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:TranslatorApp.ViewModels"
+        x:Class="TranslatorApp.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="DotTranslator v1.0.0"
+        Width="800" Height="600"
+        MinWidth="500" MinHeight="400"
+        Background="{DynamicResource BgBrush}"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="Default"
+        ExtendClientAreaTitleBarHeightHint="40">
+
+  <Design.DataContext>
+    <vm:MainViewModel />
+  </Design.DataContext>
+
+  <Grid RowDefinitions="40,*,32">
+    <!-- ═══════════ 自定义标题栏 ═══════════ -->
+    <Grid Grid.Row="0" ColumnDefinitions="Auto,*" Margin="12,0">
+      <!-- 左侧：应用名 + 版本 -->
+      <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+        <TextBlock Text="🔲 DotTranslator" FontWeight="SemiBold"
+                   FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" />
+        <TextBlock Text="v1.0.0" FontSize="11" Opacity="0.5"
+                   VerticalAlignment="Bottom" Foreground="{DynamicResource TextSecondaryBrush}" />
+      </StackPanel>
+
+      <!-- 右侧：主题切换 + 置顶 + 窗口控件 -->
+      <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4"
+                  HorizontalAlignment="Right" VerticalAlignment="Center">
+        <Button Content="🌙" Theme="{StaticResource NeuButton}" Classes="icon small"
+                ToolTip.Tip="切换主题" Command="{Binding ToggleThemeCommand}" />
+        <Button Content="📌" Theme="{StaticResource NeuButton}" Classes="icon small"
+                ToolTip.Tip="置顶" Command="{Binding TogglePinCommand}" />
+        <Border Width="1" Height="20" Background="{DynamicResource DividerBrush}"
+                Margin="4,0" VerticalAlignment="Center" />
+        <Button Content="─" Theme="{StaticResource NeuButton}" Classes="icon small"
+                Click="MinimizeClick" />
+        <Button Content="□" Theme="{StaticResource NeuButton}" Classes="icon small"
+                Click="MaximizeClick" />
+        <Button Content="✕" Theme="{StaticResource NeuButton}" Classes="icon small"
+                Click="CloseClick" />
+      </StackPanel>
+    </Grid>
+
+    <!-- ═══════════ 主内容区 ═══════════ -->
+    <Grid Grid.Row="1" Margin="16,0">
+      <StackPanel Spacing="16" VerticalAlignment="Top" MaxWidth="700" Margin="0,8">
+
+        <!-- 语言选择器 -->
+        <Grid ColumnDefinitions="*,Auto,*">
+          <ComboBox ItemsSource="{Binding AvailableLanguages}"
+                    SelectedItem="{Binding SelectedSourceLang}"
+                    DisplayMemberBinding="{Binding Name}" />
+          <Button Grid.Column="1" Content="⇄" Margin="8,0"
+                  Theme="{StaticResource NeuButton}" Classes="icon"
+                  Command="{Binding SwapLanguagesCommand}" />
+          <ComboBox Grid.Column="2" ItemsSource="{Binding AvailableLanguages}"
+                    SelectedItem="{Binding SelectedTargetLang}"
+                    DisplayMemberBinding="{Binding Name}" />
+        </Grid>
+
+        <!-- 输入区 -->
+        <TextBox Watermark="在此输入要翻译的文本..."
+                 Text="{Binding SourceText}"
+                 AcceptsReturn="True" TextWrapping="Wrap"
+                 MinHeight="120" MaxHeight="250"
+                 FontSize="{DynamicResource FontSize.BodyLarge}"
+                 Theme="{StaticResource NeuTextBox}" />
+        <!-- ^^^ NeuTextBox 会在 Week 2 创建，此处先引用 -->
+
+        <!-- 翻译按钮 -->
+        <Button Content="⚡ 翻 译"
+                Theme="{StaticResource NeuButton}" Classes="accent"
+                HorizontalAlignment="Stretch"
+                FontSize="{DynamicResource FontSize.BodyLarge}"
+                Command="{Binding TranslateCommand}" />
+
+        <!-- 译文卡片（有结果时显示） -->
+        <Border IsVisible="{Binding HasResult}"
+                CornerRadius="{DynamicResource Radius.Large}"
+                BoxShadow="{DynamicResource Neu.Outset}"
+                Padding="{DynamicResource Space.L}">
+          <StackPanel Spacing="8">
+            <!-- 引擎 + 耗时 -->
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="{Binding EngineName}" FontWeight="SemiBold" />
+              <Border CornerRadius="{DynamicResource Radius.Small}" Padding="6,2"
+                      Background="{DynamicResource AccentBrush}">
+                <TextBlock Text="{Binding LatencyDisplay}"
+                           FontSize="{DynamicResource FontSize.Small}"
+                           FontWeight="SemiBold" Foreground="White" />
+              </Border>
+            </StackPanel>
+            <!-- 译文 -->
+            <TextBlock Text="{Binding TranslatedText}"
+                       FontSize="{DynamicResource FontSize.BodyLarge}"
+                       LineHeight="28" TextWrapping="Wrap" />
+            <!-- 操作栏 -->
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+              <Button Content="🔊 朗读" Theme="{StaticResource NeuButton}" Classes="small"
+                      Command="{Binding SpeakCommand}" />
+              <Button Content="📋 复制" Theme="{StaticResource NeuButton}" Classes="small"
+                      Command="{Binding CopyCommand}" />
+              <Button Theme="{StaticResource NeuButton}" Classes="small"
+                      Command="{Binding ToggleFavoriteCommand}">
+                <Button.Content>
+                  <Binding Path="IsFavorite"
+                           StringFormat="⭐ {0}" />
+                </Button.Content>
+              </Button>
+              <Button Content="⚡ 多引擎对比" Theme="{StaticResource NeuButton}" Classes="small accent"
+                      Command="{Binding CompareCommand}" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- 空状态 -->
+        <Border IsVisible="{Binding HasResult, Converter={StaticResource InverseBoolConverter}}"
+                Padding="40" Opacity="0.4">
+          <TextBlock Text="译文将在此处显示..."
+                     HorizontalAlignment="Center"
+                     FontStyle="Italic"
+                     FontSize="{DynamicResource FontSize.Body}" />
+        </Border>
+
+      </StackPanel>
+    </Grid>
+
+    <!-- ═══════════ 公告栏 ═══════════ -->
+    <Border Grid.Row="2" Background="{DynamicResource BgBrush}"
+            BoxShadow="{DynamicResource Neu.Inset}" Padding="12,0">
+      <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+        <TextBlock Text="📢" FontSize="12" />
+        <TextBlock Text="{Binding AnnouncementText}"
+                   FontSize="{DynamicResource FontSize.Small}"
+                   Foreground="{DynamicResource AccentBrush}"
+                   VerticalAlignment="Center" />
+      </StackPanel>
+    </Border>
+  </Grid>
+</Window>
