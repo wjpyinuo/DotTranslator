@@ -15,6 +15,7 @@
     --text-secondary: #636E72;
     --accent: #6C5CE7;
     --accent-hover: #5A4BD1;
+    --text-on-accent: #FFFFFF;
     --success: #00B894;
     --warning: #FDCB6E;
     --error: #E17055;
@@ -35,6 +36,7 @@
     --text-secondary: #B2BEC3;
     --accent: #A29BFE;
     --accent-hover: #8B83F6;
+    --text-on-accent: #FFFFFF;
     --success: #55EFC4;
     --warning: #FFEAA7;
     --error: #FF7675;
@@ -1276,11 +1278,11 @@
     font-size: 11px;
     color: var(--text-secondary);
   }
-</style>
+
 </head>
 <body>
 
-<h1><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM3QzVDRkMiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNUEzRkQ2Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUxIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNGRkZGRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjRThFNEY1Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUyIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNFMERCRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjQzhCRkZGIi8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KCiAgPCEtLSBSb3VuZGVkIHNxdWFyZSBiYWNrZ3JvdW5kIC0tPgogIDxyZWN0IHg9IjMyIiB5PSIzMiIgd2lkdGg9IjQ0OCIgaGVpZ2h0PSI0NDgiIHJ4PSI5NiIgcnk9Ijk2IiBmaWxsPSJ1cmwoI2JnKSIvPgoKICA8IS0tIFNwZWVjaCBidWJibGUgdG9wLWxlZnQgKHNvdXJjZSBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoODgsIDEwMCkiPgogICAgPHBhdGggZD0iTTEwLDAgSDE1MCBRMTYwLDAgMTYwLDEwIFY5MCBRMTYwLDEwMCAxNTAsMTAwIEg2MCBMMzAsMTI1IEw0MCwxMDAgSDEwIFEwLDEwMCAwLDkwIFYxMCBRMCwwIDEwLDAgWiIgZmlsbD0idXJsKCNidWJibGUxKSIgb3BhY2l0eT0iMC45NSIvPgogICAgPCEtLSAiQSIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkludGVyLCBBcmlhbCBCbGFjaywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MiIgZmlsbD0iIzVBM0ZENiI+QTwvdGV4dD4KICA8L2c+CgogIDwhLS0gU3BlZWNoIGJ1YmJsZSBib3R0b20tcmlnaHQgKHRhcmdldCBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjU1LCAyNDApIj4KICAgIDxwYXRoIGQ9Ik0xMCwwIEgxNTAgUTE2MCwwIDE2MCwxMCBWOTAgUTE2MCwxMDAgMTUwLDEwMCBIMTQwIEwxNzAsMTI1IEwxMDAsMTAwIEgxMCBRMCwxMDAgMCw5MCBWMTAgUTAsMCAxMCwwIFoiIGZpbGw9InVybCgjYnViYmxlMikiIG9wYWNpdHk9IjAuOTUiLz4KICAgIDwhLS0gIuaWhyIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IlBpbmdGYW5nIFNDLCBNaWNyb3NvZnQgWWFIZWksIE5vdG8gU2FucyBTQywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MCIgZmlsbD0iIzVBM0ZENiI+5paHPC90ZXh0PgogIDwvZz4KCiAgPCEtLSBUcmFuc2xhdGlvbiBhcnJvd3MgYmV0d2VlbiBidWJibGVzIC0tPgogIDxnIHN0cm9rZT0iI0ZGRkZGRiIgc3Ryb2tlLXdpZHRoPSI2IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIG9wYWNpdHk9IjAuOSI+CiAgICA8IS0tIEFycm93OiB0b3AtbGVmdCB0byBib3R0b20tcmlnaHQgLS0+CiAgICA8cGF0aCBkPSJNMjIwLDE2MCBMMjkwLDI5MCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyOTAsMjkwIDI3NiwyNzIgMjk2LDI3OCIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgICA8IS0tIEFycm93OiBib3R0b20tcmlnaHQgdG8gdG9wLWxlZnQgLS0+CiAgICA8cGF0aCBkPSJNMjkwLDIwMCBMMjIwLDMzMCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyMjAsMzMwIDIzNCwzNDggMjE0LDM0MiIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgPC9nPgoKICA8IS0tIFNtYWxsIGRlY29yYXRpdmUgZG90cyAtLT4KICA8Y2lyY2xlIGN4PSIzOTUiIGN5PSIxMzAiIHI9IjYiIGZpbGw9IiNGRkZGRkYiIG9wYWNpdHk9IjAuNCIvPgogIDxjaXJjbGUgY3g9IjQxMCIgY3k9IjE1MCIgcj0iNCIgZmlsbD0iI0ZGRkZGRiIgb3BhY2l0eT0iMC4zIi8+CiAgPGNpcmNsZSBjeD0iMTEwIiBjeT0iMzcwIiByPSI1IiBmaWxsPSIjRkZGRkZGIiBvcGFjaXR5PSIwLjMiLz4KPC9zdmc+Cg==" alt="" style="width:36px; height:36px; border-radius:8px; vertical-align:middle; margin-right:8px;">DotTranslator UI Preview</h1>
+<h1><img alt="DotTranslator" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM3QzVDRkMiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNUEzRkQ2Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUxIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNGRkZGRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjRThFNEY1Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUyIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNFMERCRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjQzhCRkZGIi8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KCiAgPCEtLSBSb3VuZGVkIHNxdWFyZSBiYWNrZ3JvdW5kIC0tPgogIDxyZWN0IHg9IjMyIiB5PSIzMiIgd2lkdGg9IjQ0OCIgaGVpZ2h0PSI0NDgiIHJ4PSI5NiIgcnk9Ijk2IiBmaWxsPSJ1cmwoI2JnKSIvPgoKICA8IS0tIFNwZWVjaCBidWJibGUgdG9wLWxlZnQgKHNvdXJjZSBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoODgsIDEwMCkiPgogICAgPHBhdGggZD0iTTEwLDAgSDE1MCBRMTYwLDAgMTYwLDEwIFY5MCBRMTYwLDEwMCAxNTAsMTAwIEg2MCBMMzAsMTI1IEw0MCwxMDAgSDEwIFEwLDEwMCAwLDkwIFYxMCBRMCwwIDEwLDAgWiIgZmlsbD0idXJsKCNidWJibGUxKSIgb3BhY2l0eT0iMC45NSIvPgogICAgPCEtLSAiQSIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkludGVyLCBBcmlhbCBCbGFjaywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MiIgZmlsbD0iIzVBM0ZENiI+QTwvdGV4dD4KICA8L2c+CgogIDwhLS0gU3BlZWNoIGJ1YmJsZSBib3R0b20tcmlnaHQgKHRhcmdldCBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjU1LCAyNDApIj4KICAgIDxwYXRoIGQ9Ik0xMCwwIEgxNTAgUTE2MCwwIDE2MCwxMCBWOTAgUTE2MCwxMDAgMTUwLDEwMCBIMTQwIEwxNzAsMTI1IEwxMDAsMTAwIEgxMCBRMCwxMDAgMCw5MCBWMTAgUTAsMCAxMCwwIFoiIGZpbGw9InVybCgjYnViYmxlMikiIG9wYWNpdHk9IjAuOTUiLz4KICAgIDwhLS0gIuaWhyIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IlBpbmdGYW5nIFNDLCBNaWNyb3NvZnQgWWFIZWksIE5vdG8gU2FucyBTQywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MCIgZmlsbD0iIzVBM0ZENiI+5paHPC90ZXh0PgogIDwvZz4KCiAgPCEtLSBUcmFuc2xhdGlvbiBhcnJvd3MgYmV0d2VlbiBidWJibGVzIC0tPgogIDxnIHN0cm9rZT0iI0ZGRkZGRiIgc3Ryb2tlLXdpZHRoPSI2IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIG9wYWNpdHk9IjAuOSI+CiAgICA8IS0tIEFycm93OiB0b3AtbGVmdCB0byBib3R0b20tcmlnaHQgLS0+CiAgICA8cGF0aCBkPSJNMjIwLDE2MCBMMjkwLDI5MCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyOTAsMjkwIDI3NiwyNzIgMjk2LDI3OCIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgICA8IS0tIEFycm93OiBib3R0b20tcmlnaHQgdG8gdG9wLWxlZnQgLS0+CiAgICA8cGF0aCBkPSJNMjkwLDIwMCBMMjIwLDMzMCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyMjAsMzMwIDIzNCwzNDggMjE0LDM0MiIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgPC9nPgoKICA8IS0tIFNtYWxsIGRlY29yYXRpdmUgZG90cyAtLT4KICA8Y2lyY2xlIGN4PSIzOTUiIGN5PSIxMzAiIHI9IjYiIGZpbGw9IiNGRkZGRkYiIG9wYWNpdHk9IjAuNCIvPgogIDxjaXJjbGUgY3g9IjQxMCIgY3k9IjE1MCIgcj0iNCIgZmlsbD0iI0ZGRkZGRiIgb3BhY2l0eT0iMC4zIi8+CiAgPGNpcmNsZSBjeD0iMTEwIiBjeT0iMzcwIiByPSI1IiBmaWxsPSIjRkZGRkZGIiBvcGFjaXR5PSIwLjMiLz4KPC9zdmc+Cg==" style="width:36px; height:36px; border-radius: 8px; vertical-align:middle; margin-right:8px;">DotTranslator UI Preview</h1>
 
 <!-- ==================== 1. Main Window - Translation ==================== -->
 <style>
@@ -1325,9 +1327,9 @@
     background: var(--input-bg);
     box-shadow: var(--inset-shadow-deep);
     border-radius: 16px;
-    padding: 18px 20px;
+    padding: 16px 20px;
     min-height: 150px;
-    font-size: 15px;
+    font-size: 14px;
     line-height: 1.8;
     color: var(--text-primary);
     position: relative;
@@ -1338,7 +1340,7 @@
     font-size: 14px;
   }
   .input-text {
-    font-size: 15px;
+    font-size: 14px;
     line-height: 1.8;
   }
   .input-hint {
@@ -1356,10 +1358,10 @@
   }
   .translate-btn {
     background: var(--accent);
-    color: #fff;
+    color: var(--text-on-accent);
     border: none;
     border-radius: 14px;
-    padding: 14px 56px;
+    padding: 12px 56px;
     font-size: 16px;
     font-weight: 700;
     cursor: pointer;
@@ -1420,8 +1422,8 @@
   .result-engine-icon { width: 16px; height: 16px; border-radius: 4px; vertical-align: middle; }
   .result-badge {
     font-size: 10px;
-    padding: 3px 8px;
-    border-radius: 6px;
+    padding: 4px 8px;
+    border-radius: 8px;
     font-weight: 600;
   }
   .badge-success {
@@ -1448,7 +1450,7 @@
   .result-actions {
     display: flex;
     gap: 8px;
-    padding: 10px 18px 14px;
+    padding: 8px 18px 14px;
     border-top: 1px solid rgba(0,0,0,0.04);
     flex-wrap: wrap;
   }
@@ -1550,7 +1552,7 @@
               <span>多引擎对比</span>
               <label class="toggle-switch" style="width: 34px; height: 18px;">
                 <input type="checkbox">
-                <span class="toggle-slider" style="border-radius: 18px;"></span>
+                <span class="toggle-slider" style="border-radius: 16px;"></span>
               </label>
             </div>
           </div>
@@ -1624,7 +1626,7 @@
     <!-- Source -->
     <div style="margin-bottom: 16px;">
       <div class="panel-label">原文</div>
-      <div style="font-size: 14px; padding: 10px 0; line-height: 1.6;">The quick brown fox jumps over the lazy dog.</div>
+      <div style="font-size: 14px; padding: 8px 0; line-height: 1.6;">The quick brown fox jumps over the lazy dog.</div>
     </div>
 
     <!-- Comparison Header -->
@@ -1853,7 +1855,7 @@
     <!-- Source -->
     <div style="margin-bottom: 16px;">
       <div class="panel-label">原文</div>
-      <div style="font-size: 14px; padding: 10px 0; line-height: 1.6;">The quick brown fox jumps over the lazy dog.</div>
+      <div style="font-size: 14px; padding: 8px 0; line-height: 1.6;">The quick brown fox jumps over the lazy dog.</div>
     </div>
 
     <!-- AI Mode Header -->
@@ -1874,7 +1876,7 @@
         <div class="card-header">
           <div class="card-engine">
             <img class="card-engine-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABmJLR0QA/wD/AP+gvaeTAAACYElEQVQ4jd2TX2jNYRjHP897No44KH8mhCJarqbmglr+TBnOIflzR01NbTtLabecGy2lJDsjF0JyYZuyY7mwOyuUWfLnyg0ZzQ6irHH83q+L82Nnv7Zyy/fu+T7f5/M+71sv/JdK1SuRychN1iuLGnVpLY151oTlqOG3g20y7GpP1i4DKO5PDOTdQ6B7SuDORlU600W8aiZGDAAXcHjcsjVIzckmrcpl7XSqWYu9Z7OZr3UAySatdaYHQAQ2riCm3j1prSwC9QqIg9qSTb5P0pCZriOGLJORGxjRQ6B6KliJhsG2YowiPQHmlvQ+mFmVe5yn5i9hABWY7llAAtnB0BuRdC7A1ve027syh9+E7H4g2z1NlBccNaCjZtRGYE+Bj4gtcnokeFJ8Xd2+0xE79jtUhpgvY15vh30OvS6gK9WovTJdARKh/wXsLPjnYC0GG4q2e1Z6qgM+A6vq0ppd2ujpsFve22bgW2htBL81vsC1GrwtifZPBMoNAtPKAw5FH6z3gg2A1YdlDKxlbET9gorQe5nLMjgBWIjRB3yV6fj+Bs2JQnNZuwm6UXKjaqAcwMzawFSaN4BUc5CR7KRB17oFdjCTMZ9Kq0piXXyYK4UlJIKCBoEVJbOduaw7EF3AASz64U4B/YJ9A3ndTTZofqzAENLFsYXq+znGTLBdQD6cC8CuRWF/NoTih9cMdQPbgFHgNVAZtj+Z6TzeBTIdAZYDIJ3JdcRaJwUWJUs20oCpFVgZOfo9WFuunfa6NIlZ37HOS/Zlyg2j2tGk1eWOZd4TN8+b6XledHZaMFX+39Evjy/uVFjgHugAAAAASUVORK5CYII=" alt="DeepSeek-V3"> <span>DeepSeek-V3</span>
-            <span class="label-tag" style="margin-left: 4px; font-size: 9px; opacity: 0.7;">默认</span>
+            <span class="label-tag" style="margin-left: 4px; font-size: 10px; opacity: 0.7;">默认</span>
           </div>
           <div class="card-latency">1.2s</div>
         </div>
@@ -1923,7 +1925,7 @@
         <div class="card-header">
           <div class="card-engine">
             <img class="card-engine-icon" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABmJLR0QA/wD/AP+gvaeTAAACYElEQVQ4jd2TX2jNYRjHP897No44KH8mhCJarqbmglr+TBnOIflzR01NbTtLabecGy2lJDsjF0JyYZuyY7mwOyuUWfLnyg0ZzQ6irHH83q+L82Nnv7Zyy/fu+T7f5/M+71sv/JdK1SuRychN1iuLGnVpLY151oTlqOG3g20y7GpP1i4DKO5PDOTdQ6B7SuDORlU600W8aiZGDAAXcHjcsjVIzckmrcpl7XSqWYu9Z7OZr3UAySatdaYHQAQ2riCm3j1prSwC9QqIg9qSTb5P0pCZriOGLJORGxjRQ6B6KliJhsG2YowiPQHmlvQ+mFmVe5yn5i9hABWY7llAAtnB0BuRdC7A1ve027syh9+E7H4g2z1NlBccNaCjZtRGYE+Bj4gtcnokeFJ8Xd2+0xE79jtUhpgvY15vh30OvS6gK9WovTJdARKh/wXsLPjnYC0GG4q2e1Z6qgM+A6vq0ppd2ujpsFve22bgW2htBL81vsC1GrwtifZPBMoNAtPKAw5FH6z3gg2A1YdlDKxlbET9gorQe5nLMjgBWIjRB3yV6fj+Bs2JQnNZuwm6UXKjaqAcwMzawFSaN4BUc5CR7KRB17oFdjCTMZ9Kq0piXXyYK4UlJIKCBoEVJbOduaw7EF3AASz64U4B/YJ9A3ndTTZofqzAENLFsYXq+znGTLBdQD6cC8CuRWF/NoTih9cMdQPbgFHgNVAZtj+Z6TzeBTIdAZYDIJ3JdcRaJwUWJUs20oCpFVgZOfo9WFuunfa6NIlZ37HOS/Zlyg2j2tGk1eWOZd4TN8+b6XledHZaMFX+39Evjy/uVFjgHugAAAAASUVORK5CYII=" alt="DeepSeek-R1"> <span>DeepSeek-R1</span>
-            <span class="label-tag" style="margin-left: 4px; font-size: 9px; opacity: 0.7;">推理</span>
+            <span class="label-tag" style="margin-left: 4px; font-size: 10px; opacity: 0.7;">推理</span>
           </div>
           <div class="card-latency">1.8s</div>
         </div>
@@ -1937,7 +1939,7 @@
       </div>
     </div>
 
-    <div style="font-size: 12px; color: var(--text-secondary); padding: 10px 14px; background: var(--bg); box-shadow: var(--inset-shadow); border-radius: 10px; margin-top: 4px;">
+    <div style="font-size: 12px; color: var(--text-secondary); padding: 8px 14px; background: var(--bg); box-shadow: var(--inset-shadow); border-radius: 10px; margin-top: 4px;">
       🏆 推荐：DeepSeek-V3 — 翻译最完整自然，保留了原文的动态感<br>
       🔬 最严谨：DeepSeek-R1 — 逻辑推理最强，适合法律/学术文本<br>
       ⚡ 最快：通义千问 — 0.8s 响应，适合需要快速反馈的场景
@@ -2401,12 +2403,12 @@
       </div>
 
       <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-        <select class="btn" style="appearance: auto; padding: 5px 8px; font-size: 11px; flex: 1;">
+        <select class="btn" style="appearance: auto; padding: 6px 8px; font-size: 11px; flex: 1;">
           <option>全部语言对</option>
           <option>EN → ZH</option>
           <option>JA → ZH</option>
         </select>
-        <select class="btn" style="appearance: auto; padding: 5px 8px; font-size: 11px; flex: 1;">
+        <select class="btn" style="appearance: auto; padding: 6px 8px; font-size: 11px; flex: 1;">
           <option>全部分类</option>
           <option>💻 技术/编程</option>
           <option>🏷️ 品牌/商标</option>
@@ -2419,19 +2421,19 @@
         <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 0.8fr 0.6fr 0.5fr; gap: 0; padding: 8px 12px; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid rgba(128,128,128,0.1);">
           <span>原文术语</span><span>译文</span><span>语言对</span><span>分类</span><span>操作</span>
         </div>
-        <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 0.8fr 0.6fr 0.5fr; padding: 7px 12px; border-bottom: 1px solid rgba(128,128,128,0.05); align-items: center;">
+        <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 0.8fr 0.6fr 0.5fr; padding: 8px 12px; border-bottom: 1px solid rgba(128,128,128,0.05); align-items: center;">
           <span style="font-weight: 500;">Kubernetes</span><span style="color: var(--accent);">Kubernetes</span><span>en-zh</span><span>💻</span><span><span style="cursor:pointer; margin-right:4px;">✏️</span><span style="cursor:pointer;">🗑</span></span>
         </div>
-        <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 0.8fr 0.6fr 0.5fr; padding: 7px 12px; border-bottom: 1px solid rgba(128,128,128,0.05); align-items: center;">
+        <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 0.8fr 0.6fr 0.5fr; padding: 8px 12px; border-bottom: 1px solid rgba(128,128,128,0.05); align-items: center;">
           <span style="font-weight: 500;">mutex</span><span style="color: var(--accent);">互斥锁</span><span>en-zh</span><span>💻</span><span><span style="cursor:pointer; margin-right:4px;">✏️</span><span style="cursor:pointer;">🗑</span></span>
         </div>
-        <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 0.8fr 0.6fr 0.5fr; padding: 7px 12px; border-bottom: 1px solid rgba(128,128,128,0.05); align-items: center;">
+        <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 0.8fr 0.6fr 0.5fr; padding: 8px 12px; border-bottom: 1px solid rgba(128,128,128,0.05); align-items: center;">
           <span style="font-weight: 500;">hash</span><span style="color: var(--accent);">哈希</span><span>en-zh</span><span>💻</span><span><span style="cursor:pointer; margin-right:4px;">✏️</span><span style="cursor:pointer;">🗑</span></span>
         </div>
-        <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 0.8fr 0.6fr 0.5fr; padding: 7px 12px; border-bottom: 1px solid rgba(128,128,128,0.05); align-items: center;">
+        <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 0.8fr 0.6fr 0.5fr; padding: 8px 12px; border-bottom: 1px solid rgba(128,128,128,0.05); align-items: center;">
           <span style="font-weight: 500;">CI/CD</span><span style="color: var(--accent);">CI/CD</span><span>en-zh</span><span>💻</span><span><span style="cursor:pointer; margin-right:4px;">✏️</span><span style="cursor:pointer;">🗑</span></span>
         </div>
-        <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 0.8fr 0.6fr 0.5fr; padding: 7px 12px; align-items: center;">
+        <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 0.8fr 0.6fr 0.5fr; padding: 8px 12px; align-items: center;">
           <span style="font-weight: 500;">NVIDIA</span><span style="color: var(--accent);">NVIDIA</span><span>all</span><span>🏷️</span><span><span style="cursor:pointer; margin-right:4px;">✏️</span><span style="cursor:pointer;">🗑</span></span>
         </div>
       </div>
@@ -2499,7 +2501,7 @@
       <!-- 熔断器状态 -->
       <div style="font-size: 12px; margin: 14px 0 8px; color: var(--text-secondary);">熔断器状态</div>
       <div style="border-radius: 10px; box-shadow: var(--inset-shadow); overflow: hidden; font-size: 11px; margin-bottom: 10px;">
-        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; padding: 7px 12px; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid rgba(128,128,128,0.1);">
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; padding: 8px 12px; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid rgba(128,128,128,0.1);">
           <span>引擎</span><span>状态</span><span>连续失败</span><span>冷却剩余</span>
         </div>
         <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; padding: 6px 12px; border-bottom: 1px solid rgba(128,128,128,0.05);">
@@ -3212,8 +3214,8 @@
   </div>
   <div class="content">
     <div class="about-center">
-      <div class="about-logo"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM3QzVDRkMiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNUEzRkQ2Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUxIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNGRkZGRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjRThFNEY1Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUyIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNFMERCRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjQzhCRkZGIi8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KCiAgPCEtLSBSb3VuZGVkIHNxdWFyZSBiYWNrZ3JvdW5kIC0tPgogIDxyZWN0IHg9IjMyIiB5PSIzMiIgd2lkdGg9IjQ0OCIgaGVpZ2h0PSI0NDgiIHJ4PSI5NiIgcnk9Ijk2IiBmaWxsPSJ1cmwoI2JnKSIvPgoKICA8IS0tIFNwZWVjaCBidWJibGUgdG9wLWxlZnQgKHNvdXJjZSBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoODgsIDEwMCkiPgogICAgPHBhdGggZD0iTTEwLDAgSDE1MCBRMTYwLDAgMTYwLDEwIFY5MCBRMTYwLDEwMCAxNTAsMTAwIEg2MCBMMzAsMTI1IEw0MCwxMDAgSDEwIFEwLDEwMCAwLDkwIFYxMCBRMCwwIDEwLDAgWiIgZmlsbD0idXJsKCNidWJibGUxKSIgb3BhY2l0eT0iMC45NSIvPgogICAgPCEtLSAiQSIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkludGVyLCBBcmlhbCBCbGFjaywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MiIgZmlsbD0iIzVBM0ZENiI+QTwvdGV4dD4KICA8L2c+CgogIDwhLS0gU3BlZWNoIGJ1YmJsZSBib3R0b20tcmlnaHQgKHRhcmdldCBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjU1LCAyNDApIj4KICAgIDxwYXRoIGQ9Ik0xMCwwIEgxNTAgUTE2MCwwIDE2MCwxMCBWOTAgUTE2MCwxMDAgMTUwLDEwMCBIMTQwIEwxNzAsMTI1IEwxMDAsMTAwIEgxMCBRMCwxMDAgMCw5MCBWMTAgUTAsMCAxMCwwIFoiIGZpbGw9InVybCgjYnViYmxlMikiIG9wYWNpdHk9IjAuOTUiLz4KICAgIDwhLS0gIuaWhyIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IlBpbmdGYW5nIFNDLCBNaWNyb3NvZnQgWWFIZWksIE5vdG8gU2FucyBTQywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MCIgZmlsbD0iIzVBM0ZENiI+5paHPC90ZXh0PgogIDwvZz4KCiAgPCEtLSBUcmFuc2xhdGlvbiBhcnJvd3MgYmV0d2VlbiBidWJibGVzIC0tPgogIDxnIHN0cm9rZT0iI0ZGRkZGRiIgc3Ryb2tlLXdpZHRoPSI2IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIG9wYWNpdHk9IjAuOSI+CiAgICA8IS0tIEFycm93OiB0b3AtbGVmdCB0byBib3R0b20tcmlnaHQgLS0+CiAgICA8cGF0aCBkPSJNMjIwLDE2MCBMMjkwLDI5MCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyOTAsMjkwIDI3NiwyNzIgMjk2LDI3OCIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgICA8IS0tIEFycm93OiBib3R0b20tcmlnaHQgdG8gdG9wLWxlZnQgLS0+CiAgICA8cGF0aCBkPSJNMjkwLDIwMCBMMjIwLDMzMCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyMjAsMzMwIDIzNCwzNDggMjE0LDM0MiIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgPC9nPgoKICA8IS0tIFNtYWxsIGRlY29yYXRpdmUgZG90cyAtLT4KICA8Y2lyY2xlIGN4PSIzOTUiIGN5PSIxMzAiIHI9IjYiIGZpbGw9IiNGRkZGRkYiIG9wYWNpdHk9IjAuNCIvPgogIDxjaXJjbGUgY3g9IjQxMCIgY3k9IjE1MCIgcj0iNCIgZmlsbD0iI0ZGRkZGRiIgb3BhY2l0eT0iMC4zIi8+CiAgPGNpcmNsZSBjeD0iMTEwIiBjeT0iMzcwIiByPSI1IiBmaWxsPSIjRkZGRkZGIiBvcGFjaXR5PSIwLjMiLz4KPC9zdmc+Cg==" alt="DotTranslator" style="width:80px; height:80px; border-radius:18px; box-shadow: var(--outset-shadow);"></div>
-      <div class="about-name">DotTranslator <span style="font-size:14px; color:var(--text-secondary); font-weight:400;">v1.0.0</span></div>
+      <div class="about-logo"><img alt="DotTranslator" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM3QzVDRkMiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNUEzRkQ2Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUxIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNGRkZGRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjRThFNEY1Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJidWJibGUyIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNFMERCRkYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjQzhCRkZGIi8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KCiAgPCEtLSBSb3VuZGVkIHNxdWFyZSBiYWNrZ3JvdW5kIC0tPgogIDxyZWN0IHg9IjMyIiB5PSIzMiIgd2lkdGg9IjQ0OCIgaGVpZ2h0PSI0NDgiIHJ4PSI5NiIgcnk9Ijk2IiBmaWxsPSJ1cmwoI2JnKSIvPgoKICA8IS0tIFNwZWVjaCBidWJibGUgdG9wLWxlZnQgKHNvdXJjZSBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoODgsIDEwMCkiPgogICAgPHBhdGggZD0iTTEwLDAgSDE1MCBRMTYwLDAgMTYwLDEwIFY5MCBRMTYwLDEwMCAxNTAsMTAwIEg2MCBMMzAsMTI1IEw0MCwxMDAgSDEwIFEwLDEwMCAwLDkwIFYxMCBRMCwwIDEwLDAgWiIgZmlsbD0idXJsKCNidWJibGUxKSIgb3BhY2l0eT0iMC45NSIvPgogICAgPCEtLSAiQSIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkludGVyLCBBcmlhbCBCbGFjaywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MiIgZmlsbD0iIzVBM0ZENiI+QTwvdGV4dD4KICA8L2c+CgogIDwhLS0gU3BlZWNoIGJ1YmJsZSBib3R0b20tcmlnaHQgKHRhcmdldCBsYW5ndWFnZSkgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjU1LCAyNDApIj4KICAgIDxwYXRoIGQ9Ik0xMCwwIEgxNTAgUTE2MCwwIDE2MCwxMCBWOTAgUTE2MCwxMDAgMTUwLDEwMCBIMTQwIEwxNzAsMTI1IEwxMDAsMTAwIEgxMCBRMCwxMDAgMCw5MCBWMTAgUTAsMCAxMCwwIFoiIGZpbGw9InVybCgjYnViYmxlMikiIG9wYWNpdHk9IjAuOTUiLz4KICAgIDwhLS0gIuaWhyIgdGV4dCAtLT4KICAgIDx0ZXh0IHg9IjgwIiB5PSI3MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IlBpbmdGYW5nIFNDLCBNaWNyb3NvZnQgWWFIZWksIE5vdG8gU2FucyBTQywgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI1MCIgZmlsbD0iIzVBM0ZENiI+5paHPC90ZXh0PgogIDwvZz4KCiAgPCEtLSBUcmFuc2xhdGlvbiBhcnJvd3MgYmV0d2VlbiBidWJibGVzIC0tPgogIDxnIHN0cm9rZT0iI0ZGRkZGRiIgc3Ryb2tlLXdpZHRoPSI2IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIG9wYWNpdHk9IjAuOSI+CiAgICA8IS0tIEFycm93OiB0b3AtbGVmdCB0byBib3R0b20tcmlnaHQgLS0+CiAgICA8cGF0aCBkPSJNMjIwLDE2MCBMMjkwLDI5MCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyOTAsMjkwIDI3NiwyNzIgMjk2LDI3OCIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgICA8IS0tIEFycm93OiBib3R0b20tcmlnaHQgdG8gdG9wLWxlZnQgLS0+CiAgICA8cGF0aCBkPSJNMjkwLDIwMCBMMjIwLDMzMCIvPgogICAgPHBvbHlnb24gcG9pbnRzPSIyMjAsMzMwIDIzNCwzNDggMjE0LDM0MiIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSJub25lIi8+CiAgPC9nPgoKICA8IS0tIFNtYWxsIGRlY29yYXRpdmUgZG90cyAtLT4KICA8Y2lyY2xlIGN4PSIzOTUiIGN5PSIxMzAiIHI9IjYiIGZpbGw9IiNGRkZGRkYiIG9wYWNpdHk9IjAuNCIvPgogIDxjaXJjbGUgY3g9IjQxMCIgY3k9IjE1MCIgcj0iNCIgZmlsbD0iI0ZGRkZGRiIgb3BhY2l0eT0iMC4zIi8+CiAgPGNpcmNsZSBjeD0iMTEwIiBjeT0iMzcwIiByPSI1IiBmaWxsPSIjRkZGRkZGIiBvcGFjaXR5PSIwLjMiLz4KPC9zdmc+Cg==" alt="DotTranslator" style="width:80px; height:80px; border-radius: 16px; box-shadow: var(--outset-shadow);"></div>
+      <div class="about-name">DotTranslator <span style="font-size: 14px; color:var(--text-secondary); font-weight:400;">v1.0.0</span></div>
       <div class="about-version">.NET 8 + Avalonia UI · 多引擎翻译工具</div>
       <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.7;">
         轻量免费的多引擎翻译工具<br>
@@ -3222,7 +3224,7 @@
       <div class="about-actions">
         <button class="btn">检查更新</button>
         <button class="btn">开源协议</button>
-        <button class="btn" style="background: var(--accent); color: #fff;">☕ 请我喝杯咖啡</button>
+        <button class="btn" style="background: var(--accent); color: var(--text-on-accent);">☕ 请我喝杯咖啡</button>
         <button class="btn">📝 提交反馈</button>
         <button class="btn">💬 社区讨论</button>
         <button class="btn">🔑 隐私政策</button>
@@ -3387,22 +3389,22 @@
     <div class="engine-check-item">
       <input type="checkbox" checked> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAACzklEQVR42q2TT2tcZRTGf+d9772TyYxtnZBJIgb/NEpJSgkk0bR1UYoLQQQlTJYFP0MXupFpoFs/ST6EuBRc1o0gqCktZijSZpI7c/+cx8UkrdU2rcWzfd/zO+d5Hg68ZM3dVKv7tb550b/wQlJfkz9TdBE35m6qNXmQvRpwhUljxXJosqSEdyeDeEXgT5NGFx9YE8lYP603nCI1o6fICgIwY5MaM7j63zzsKwHo5nw5+x4fs231bE9tGas+BokP6SuwQ/0sH8Mpoz7TiPXP9cNM69rwU5yuCjB4f75iEeyZPv4beDLZ2KiPOH/Ama10lts+xsFra5DVzhogdiZ2PB/YVwDTwlcsWqQbGqwdDZpb2ez0EiBAlkI95OJ13Vle++XuFkBPis/bMCCFKrBOgNjyC9VBuJ62BwopEQVDoIpLo0Hrk5iwBbDPE+nhH3IdMw/GVTlknSrEJkl6trLYcuQElRAarBZ/pl9Y9IsA30P9NFCTtDbu/Nq98uDu5brkkipodMdmwYnTTjZTohqjFiHyTvkw+8iCv736871ZzHTCCAC93d0AkMzZcjGwb6lZwmFqoQjIsMRpzBWTPQxUE0b3Uk9ea7Uj5SpA75gVAPZ7PQOw6CvuM5cRb1qERrc0HYuZmh8/MSjA6H7mljZIsrj5dx8DQJfH8V8Z7zfcC5SeKZWcLaUaqTJlM4XilEuVySIqHmRUQ5cS3wS4Bn6Squ2a1Ws/KlURNvPfCIi0Me+WtDBCNCxa2pGlM5gcCylWHyRJMTAL0TeWv/ujvWPmSBY4XjVd3HurGsXO6H41IuEo7eSHdaWRFxrXI41ElWev54decijz3EvyfK8+CGmStd8ozp9kkWDmAI8Gj35vtrsXSMqEduKo0nAvRo2nzVwK546Ueu5GS1kzBCVYnmdlJxv7sFx4CLC7vV3zf9fTx93vB7j18t23jsM0e3zTfwFG6D3JFkY88QAAAABJRU5ErkJggg==" alt="火山翻译"><span>火山翻译</span>
       <span class="engine-free">200 万/月</span>
-      <button class="btn btn-sm" style="font-size:10px; padding: 3px 8px;">📖 申请指南</button>
+      <button class="btn btn-sm" style="font-size: 10px; padding: 4px 8px;">📖 申请指南</button>
     </div>
     <div class="engine-check-item">
       <input type="checkbox" checked> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAACzklEQVR42q2TT2tcZRTGf+d9772TyYxtnZBJIgb/NEpJSgkk0bR1UYoLQQQlTJYFP0MXupFpoFs/ST6EuBRc1o0gqCktZijSZpI7c/+cx8UkrdU2rcWzfd/zO+d5Hg68ZM3dVKv7tb550b/wQlJfkz9TdBE35m6qNXmQvRpwhUljxXJosqSEdyeDeEXgT5NGFx9YE8lYP603nCI1o6fICgIwY5MaM7j63zzsKwHo5nw5+x4fs231bE9tGas+BokP6SuwQ/0sH8Mpoz7TiPXP9cNM69rwU5yuCjB4f75iEeyZPv4beDLZ2KiPOH/Ama10lts+xsFra5DVzhogdiZ2PB/YVwDTwlcsWqQbGqwdDZpb2ez0EiBAlkI95OJ13Vle++XuFkBPis/bMCCFKrBOgNjyC9VBuJ62BwopEQVDoIpLo0Hrk5iwBbDPE+nhH3IdMw/GVTlknSrEJkl6trLYcuQElRAarBZ/pl9Y9IsA30P9NFCTtDbu/Nq98uDu5brkkipodMdmwYnTTjZTohqjFiHyTvkw+8iCv736871ZzHTCCAC93d0AkMzZcjGwb6lZwmFqoQjIsMRpzBWTPQxUE0b3Uk9ea7Uj5SpA75gVAPZ7PQOw6CvuM5cRb1qERrc0HYuZmh8/MSjA6H7mljZIsrj5dx8DQJfH8V8Z7zfcC5SeKZWcLaUaqTJlM4XilEuVySIqHmRUQ5cS3wS4Bn6Squ2a1Ws/KlURNvPfCIi0Me+WtDBCNCxa2pGlM5gcCylWHyRJMTAL0TeWv/ujvWPmSBY4XjVd3HurGsXO6H41IuEo7eSHdaWRFxrXI41ElWev54decijz3EvyfK8+CGmStd8ozp9kkWDmAI8Gj35vtrsXSMqEduKo0nAvRo2nzVwK546Ueu5GS1kzBCVYnmdlJxv7sFx4CLC7vV3zf9fTx93vB7j18t23jsM0e3zTfwFG6D3JFkY88QAAAABJRU5ErkJggg==" alt="腾讯翻译君"><span>腾讯翻译君</span>
       <span class="engine-free">500 万/月</span>
-      <button class="btn btn-sm" style="font-size:10px; padding: 3px 8px;">📖 申请指南</button>
+      <button class="btn btn-sm" style="font-size: 10px; padding: 4px 8px;">📖 申请指南</button>
     </div>
     <div class="engine-check-item">
       <input type="checkbox"> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAADCUlEQVR42qWUb2jUdRzHX5/f73a70/1Rm2WFRhRCYM9WCynCStqj6EEeRvRH1BRbJkaIEVxHlvXERiskGM0UW1wQiD2UyvBi0xuBEcd5ii2jMfRWzW132/2+v3cPdlsd3gzxDd8n3/f7+4b3m8/3Y1wXMpL4jGAA3I5I4cDEjUFGUt6CdFIeyOpRdl3f3WrD8TjiboRhXCTCCQ7YlYWeWJ2Is3dFuvDZS4wVxKp0GSgziuMDeujmbYwU+m8Fdk2UlIV0qZvFvEYJB/QC31cV6xBbWITHBB/yie2ejV6v07R8hLErSLBHYqd+ZYc6rtG9qofYqUu8JbFLLyN5pOXP0ZF5swQheGK7/wYeAdO8xKc2SFKRGsOUDfCKnucq71KiFbMQZGyQz1fmDMnDLEQyvh59mlzrRxAO0158is5VY6TTPomEm624qv1RcS7wCMZSYIQCp0hZiOTNdngq104s/jHmdeB7UJmGkN9w7k3Wrj76bwpz9Ok5IuxnESuJApOAY5CALl60rHH6/BrwvqVlyXL+Kp4AvgPupyG6kWgjTEztR5F3WLuqxCHtYTHvEwABRxFnMZ6gmfVMchnHYzBQ6Cc/JgbO7avpKpN7kqHhK5y56Phl6C4OaS/HJPp1mcPqrNEe1j6OSRxRvzF4YQrnxpmeuZd1aybIZhs4ftyRSoX8kO8g6ozcfZ20kWSCEcpsYJNlSMrjDny2WYW0mihxHo8W+Ol3kTlXqJbuz8/j3Cj06T2+kfhCw/SqHYCsGlD1683pPleBLyVjoJAnGltJMPMoD95zpmYuyxxkGVsZp8Akz7DVztb9b5/pAeKcJOBShDDsobm5h2Kxj0zudVpdBpbDEN20sJlx8kyzkS38TKuamCSYN5rBo5GH8TlAE3GK9BjZbAOV5oO0rdhMuQRTV8f449YKYcttBEAZh/E3RowQUbuDIjTSSBz4k15K7DDASMpYX3iWmJdgdOmdFJfdglFB+BgeIoIR1gnrgDwhR3iB/v/ZXTcDyUinfZJJD8lu+KTlL7Rwbxr/AA56atRWg/vwAAAAAElFTkSuQmCC" alt="百度翻译"><span>百度翻译</span>
       <span class="engine-free">5-100 万/月</span>
-      <button class="btn btn-sm" style="font-size:10px; padding: 3px 8px;">📖 申请指南</button>
+      <button class="btn btn-sm" style="font-size: 10px; padding: 4px 8px;">📖 申请指南</button>
     </div>
     <div class="engine-check-item">
       <input type="checkbox"> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAACHUlEQVR42q2Uv06UQRTFf3e+3W/5HzCwYAI2uoTCSGEklFroQxgTY2JrZ8sz8AS+gIkvsBYmVkZjAjEGwVggRBAEQfyW3Z2Zey0UBfZbIuhpJpPMnDlnzr1XzMz4NyjgDjbuLAzHFLi2m7+FAEa+sVMRmhnRlCw2ESTXvmtvy1AzginBFAVEhEQcT/feUd1eJJq22C/kPmOGE0EE3CElW7VvvN7+yLOdJVYae1xIB5joKf8+D5BL6ESohTofsi/Mf13l5eYycxurLHz+hEeZHq8QC0IWGy13C8eTq8cmD94/obqxxHqW4Wv7UA8QHHhjqLsP54TAUfUtoZgZAiw3tni0/oKVkOFRKBQpdPaSFkuIE9Ik4VxnN8E0N2mXV2Np2oXDmOof5dZQhVDfpXr9PjNXbrIb9ukqlQimrRXZ7g9NQGOdO+cnqaSDVJfnmF16zurODvUQebuxhnQkaE6TyUHrHSS1UFvj8vws6h0FD0kTgjfi933wBh7IGqSlIm9uzzDeN9ImZTnaColzBFGCefBNIAKOgbSDSneZu5VpKj1llD9kuZZFBJwQQ0aRDi72DDE5OMxU7yhX+8eY6BthuLs/V0cuobeIapOHYze4V77Gpa4yaVJsCU5NScTl9qeamenPxRZr6/Z485UdRlA1r9GCRlNVOwEqZubzlEZTBEGkzRjIR5TjA9Z+Ffnhjz7VaPsPE/vEToln4Dhy5wfHKjjqPeBdQQAAAABJRU5ErkJggg==" alt="彩云小译"><span>彩云小译</span>
       <span class="engine-free">100 万/月</span>
-      <button class="btn btn-sm" style="font-size:10px; padding: 3px 8px;">📖 申请指南</button>
+      <button class="btn btn-sm" style="font-size: 10px; padding: 4px 8px;">📖 申请指南</button>
     </div>
     <div style="font-size: 11px; color: var(--accent); margin: 12px 0 16px;">💡 至少选择 2 个引擎才能启用多引擎对比功能</div>
     <div style="display: flex; gap: 12px; justify-content: flex-end;">
@@ -3429,16 +3431,16 @@
       <div class="key-input-row">
         <span class="key-label">API Key</span>
         <input class="key-input" type="password" value="sk-xxxxxxxxxxxxabcd">
-        <button class="btn btn-sm" style="font-size:10px; padding:3px 8px;">👁</button>
-        <button class="btn btn-sm" style="font-size:10px; padding:3px 8px;">📋 粘贴</button>
+        <button class="btn btn-sm" style="font-size: 10px; padding: 4px 8px;">👁</button>
+        <button class="btn btn-sm" style="font-size: 10px; padding: 4px 8px;">📋 粘贴</button>
       </div>
       <div class="key-input-row">
         <span class="key-label">Secret</span>
         <input class="key-input" type="password" value="xxxxxxxxxxxxefgh">
-        <button class="btn btn-sm" style="font-size:10px; padding:3px 8px;">👁</button>
+        <button class="btn btn-sm" style="font-size: 10px; padding: 4px 8px;">👁</button>
       </div>
       <div style="text-align: right; margin-top: 4px;">
-        <button class="btn btn-sm" style="font-size:10px; padding:3px 10px;">🔑 测试连接</button>
+        <button class="btn btn-sm" style="font-size: 10px; padding: 4px 10px;">🔑 测试连接</button>
       </div>
     </div>
     <div class="engine-key-setting">
@@ -3449,15 +3451,15 @@
       <div class="key-input-row">
         <span class="key-label">SecretId</span>
         <input class="key-input" placeholder="粘贴 SecretId...">
-        <button class="btn btn-sm" style="font-size:10px; padding:3px 8px;">📋 粘贴</button>
+        <button class="btn btn-sm" style="font-size: 10px; padding: 4px 8px;">📋 粘贴</button>
       </div>
       <div class="key-input-row">
         <span class="key-label">SecretKey</span>
         <input class="key-input" type="password" placeholder="粘贴 SecretKey...">
-        <button class="btn btn-sm" style="font-size:10px; padding:3px 8px;">👁</button>
+        <button class="btn btn-sm" style="font-size: 10px; padding: 4px 8px;">👁</button>
       </div>
       <div style="text-align: right; margin-top: 4px;">
-        <button class="btn btn-sm" style="font-size:10px; padding:3px 10px;">🔑 测试连接</button>
+        <button class="btn btn-sm" style="font-size: 10px; padding: 4px 10px;">🔑 测试连接</button>
       </div>
     </div>
     <div style="font-size: 11px; color: var(--text-secondary); margin: 8px 0 16px; text-align: center;">🔒 API Key 仅存储在本地，加密保存，不会上传到任何服务器</div>
@@ -3479,11 +3481,11 @@
     <div style="font-size: 14px; font-weight: 600; margin-bottom: 16px;">步骤 3/3：选择常用语言</div>
     <div class="setting-row">
       <div class="setting-label">默认源语言</div>
-      <select class="lang-select" style="font-size:12px; padding:6px 28px 6px 10px;"><option>自动检测</option></select>
+      <select class="lang-select" style="font-size: 12px; padding: 6px 28px 6px 10px;"><option>自动检测</option></select>
     </div>
     <div class="setting-row">
       <div class="setting-label">默认目标语言</div>
-      <select class="lang-select" style="font-size:12px; padding:6px 28px 6px 10px;"><option>英语</option></select>
+      <select class="lang-select" style="font-size: 12px; padding: 6px 28px 6px 10px;"><option>英语</option></select>
     </div>
     <div style="font-size: 12px; color: var(--text-secondary); margin: 12px 0 8px;">常用语言（翻译时优先显示）：</div>
     <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;">
@@ -3598,29 +3600,29 @@
           <span class="engine-key-name"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAACzklEQVR42q2TT2tcZRTGf+d9772TyYxtnZBJIgb/NEpJSgkk0bR1UYoLQQQlTJYFP0MXupFpoFs/ST6EuBRc1o0gqCktZijSZpI7c/+cx8UkrdU2rcWzfd/zO+d5Hg68ZM3dVKv7tb550b/wQlJfkz9TdBE35m6qNXmQvRpwhUljxXJosqSEdyeDeEXgT5NGFx9YE8lYP603nCI1o6fICgIwY5MaM7j63zzsKwHo5nw5+x4fs231bE9tGas+BokP6SuwQ/0sH8Mpoz7TiPXP9cNM69rwU5yuCjB4f75iEeyZPv4beDLZ2KiPOH/Ama10lts+xsFra5DVzhogdiZ2PB/YVwDTwlcsWqQbGqwdDZpb2ez0EiBAlkI95OJ13Vle++XuFkBPis/bMCCFKrBOgNjyC9VBuJ62BwopEQVDoIpLo0Hrk5iwBbDPE+nhH3IdMw/GVTlknSrEJkl6trLYcuQElRAarBZ/pl9Y9IsA30P9NFCTtDbu/Nq98uDu5brkkipodMdmwYnTTjZTohqjFiHyTvkw+8iCv736871ZzHTCCAC93d0AkMzZcjGwb6lZwmFqoQjIsMRpzBWTPQxUE0b3Uk9ea7Uj5SpA75gVAPZ7PQOw6CvuM5cRb1qERrc0HYuZmh8/MSjA6H7mljZIsrj5dx8DQJfH8V8Z7zfcC5SeKZWcLaUaqTJlM4XilEuVySIqHmRUQ5cS3wS4Bn6Squ2a1Ws/KlURNvPfCIi0Me+WtDBCNCxa2pGlM5gcCylWHyRJMTAL0TeWv/ujvWPmSBY4XjVd3HurGsXO6H41IuEo7eSHdaWRFxrXI41ElWev54decijz3EvyfK8+CGmStd8ozp9kkWDmAI8Gj35vtrsXSMqEduKo0nAvRo2nzVwK546Ueu5GS1kzBCVYnmdlJxv7sFx4CLC7vV3zf9fTx93vB7j18t23jsM0e3zTfwFG6D3JFkY88QAAAABJRU5ErkJggg==" alt="火山翻译"> 火山翻译</span>
           <span class="engine-key-quota"> · 免费 200 万/月</span>
         </div>
-        <label class="toggle-switch" style="width:34px; height:18px;"><input type="checkbox" checked><span class="toggle-slider" style="border-radius:18px;"></span></label>
+        <label class="toggle-switch" style="width:34px; height:18px;"><input type="checkbox" checked><span class="toggle-slider" style="border-radius: 16px;"></span></label>
       </div>
       <div class="key-input-row">
         <span class="key-label">API Key</span>
         <input class="key-input" type="password" value="sk-xxxxxxxxxxxxabcd">
-        <button class="btn btn-sm" style="font-size:10px; padding:3px 6px;">👁</button>
+        <button class="btn btn-sm" style="font-size: 10px; padding: 4px 6px;">👁</button>
       </div>
       <div class="key-input-row">
         <span class="key-label">Secret</span>
         <input class="key-input" type="password" value="xxxxxxxxxxxxefgh">
-        <button class="btn btn-sm" style="font-size:10px; padding:3px 6px;">👁</button>
+        <button class="btn btn-sm" style="font-size: 10px; padding: 4px 6px;">👁</button>
       </div>
       <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
         <span class="key-status key-status-ok">✅ 已连接（上次验证: 2026-04-18）</span>
-        <button class="btn btn-sm" style="font-size:10px; padding:3px 10px;">🔑 测试连接</button>
+        <button class="btn btn-sm" style="font-size: 10px; padding: 4px 10px;">🔑 测试连接</button>
       </div>
       <div style="margin-top:8px;">
-        <div style="font-size:11px; color:var(--text-secondary); margin-bottom:4px;">
+        <div style="font-size: 11px; color:var(--text-secondary); margin-bottom:4px;">
           <span>本月已用: 1,234,567 / 2,000,000</span>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
           <div class="quota-bar" style="flex:1;"><div class="quota-fill green" style="width:62%;"></div></div>
-          <span style="font-size:11px; color:var(--text-secondary); font-weight:600; min-width:32px; text-align:right;">62%</span>
+          <span style="font-size: 11px; color:var(--text-secondary); font-weight:600; min-width:32px; text-align:right;">62%</span>
         </div>
       </div>
     </div>
@@ -3632,7 +3634,7 @@
           <span class="engine-key-name"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAADrUlEQVR42o2VTWgdVRTHf2fuzLx5Ly9N0pjPai1GLbRqWqgogojQSlUoIlRpdSEoWlwp6EIEQanUhSCSUt1URFz0QwXrQooVlNbSNmBDSRQt1SRGG5Mmzfd783HvcTEvoTUtehb3Lob533N+53/PFVWNnjiYvNY3xouTC1mzoIAI/ytUFWFlyZ/Y0M6+Q9vDPbL9QOXN70ejN7JKFU+cCogn4ABVEKgtS9u/JNFMPQmKEQ+0V9+S299fmByvSKOPBURSB5VUKfhCaMBq/qNTcK62A17thMiAEdVUDS0lnfInKtpk8jLJFDrrhXWtht8vO4anlYYwF10RCsVAqAshscrT3T4j07CvN0VExBfHRIUmf7EMIzATw0NdHu89XOCD3ozXjyXs3hpyR5vHr5ccgjCbOO5s89jUaVjI4MSwpW/UUfRBtJY5tTYUAxgYVw72ZxwfsjjglaMJJ4ctxUB47kjM3tMZq+o9ZmJlx6EqP405IpOjAJCWd+bVKszEigikGZBAWILGSEgsGA8+fbxAwYeVRaGzXthxOObbC5amOsG7whd+YqG9Xuh5JERr8K3CJ30ZvX9aFJiO4fiQ5e3NIQAD446bG4XNtxoGpxxzCaQud4GvNTsEHsQWWkrC1tsMPwxZTv4B29YaXtgUsGqF8PHZjMtV5ZmNPvsfKwAwNK28/HXM0fOWckHwCwbG5pWnPo9JU7irU9jcVWIhg/tXGzZ0GD7szfisP+OLnRFrmoQHP6qyocNjS5fhu0HLNxccdQXBaS1DT+CGklBJc26+BwUPTo3kJa9uFHbd43P3Ko8bVwgv3RfgHIzOKl/+bCkYoNYUf7HLtsZusVsIzMXQXBS23GI4P+GW+J4ZcYxMK/OpUrU5rsXwr3dLnUK5IJy9aDk35phPlG1rfW5qEP6aUWKrrGv1WN/qcaA/Q/U6ggpYB6mFjjLsfbRA6MN8Amuack47uw2zMdQFMFWFtjphZEYJzDUEjeS+qwtgcErZ9VVC6pTROTjxbMTGDuHVoykjM4pvFFEohzl31SsElVzo0gLs/zHjlwkl8oXZRBEg8qEcQmigIcq9WfTzjJe4X+lD1RzuxTnl+SMx5VCIgtoIk/zbub8dx36zjM8pRiBzy3FdNb4UEallapUl0IuR2vxGFP2rR7CgmmFoKeqU190mPUEUiVWzmCiZWy4GebnlcNk8V6tGgiiS7jbpMQOHd586PVhlNpH1lUyL//UE6DWegOaSN3lve/buoSejPf8A5SuvOXrBtzMAAAAASUVORK5CYII=" alt="百度翻译"> 百度翻译</span>
           <span class="engine-key-quota"> · 免费 5-100 万/月</span>
         </div>
-        <label class="toggle-switch" style="width:34px; height:18px;"><input type="checkbox"><span class="toggle-slider" style="border-radius:18px;"></span></label>
+        <label class="toggle-switch" style="width:34px; height:18px;"><input type="checkbox"><span class="toggle-slider" style="border-radius: 16px;"></span></label>
       </div>
       <div class="key-input-row">
         <span class="key-label">AppId</span>
@@ -3641,11 +3643,11 @@
       <div class="key-input-row">
         <span class="key-label">Secret</span>
         <input class="key-input" type="password" value="wrong_key_here" style="border: 1px solid rgba(225,112,85,0.4);">
-        <button class="btn btn-sm" style="font-size:10px; padding:3px 6px;">👁</button>
+        <button class="btn btn-sm" style="font-size: 10px; padding: 4px 6px;">👁</button>
       </div>
       <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
         <span class="key-status key-status-err">🔴 API Key 无效（HTTP 401）</span>
-        <button class="btn btn-sm" style="font-size:10px; padding:3px 10px;">🔑 测试连接</button>
+        <button class="btn btn-sm" style="font-size: 10px; padding: 4px 10px;">🔑 测试连接</button>
       </div>
     </div>
 
@@ -3656,24 +3658,24 @@
           <span class="engine-key-name"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAACHUlEQVR42q2Uv06UQRTFf3e+3W/5HzCwYAI2uoTCSGEklFroQxgTY2JrZ8sz8AS+gIkvsBYmVkZjAjEGwVggRBAEQfyW3Z2Zey0UBfZbIuhpJpPMnDlnzr1XzMz4NyjgDjbuLAzHFLi2m7+FAEa+sVMRmhnRlCw2ESTXvmtvy1AzginBFAVEhEQcT/feUd1eJJq22C/kPmOGE0EE3CElW7VvvN7+yLOdJVYae1xIB5joKf8+D5BL6ESohTofsi/Mf13l5eYycxurLHz+hEeZHq8QC0IWGy13C8eTq8cmD94/obqxxHqW4Wv7UA8QHHhjqLsP54TAUfUtoZgZAiw3tni0/oKVkOFRKBQpdPaSFkuIE9Ik4VxnN8E0N2mXV2Np2oXDmOof5dZQhVDfpXr9PjNXbrIb9ukqlQimrRXZ7g9NQGOdO+cnqaSDVJfnmF16zurODvUQebuxhnQkaE6TyUHrHSS1UFvj8vws6h0FD0kTgjfi933wBh7IGqSlIm9uzzDeN9ImZTnaColzBFGCefBNIAKOgbSDSneZu5VpKj1llD9kuZZFBJwQQ0aRDi72DDE5OMxU7yhX+8eY6BthuLs/V0cuobeIapOHYze4V77Gpa4yaVJsCU5NScTl9qeamenPxRZr6/Z485UdRlA1r9GCRlNVOwEqZubzlEZTBEGkzRjIR5TjA9Z+Ffnhjz7VaPsPE/vEToln4Dhy5wfHKjjqPeBdQQAAAABJRU5ErkJggg==" alt="彩云小译"> 彩云小译</span>
           <span class="engine-key-quota"> · 免费 100 万/月</span>
         </div>
-        <label class="toggle-switch" style="width:34px; height:18px;"><input type="checkbox" checked><span class="toggle-slider" style="border-radius:18px;"></span></label>
+        <label class="toggle-switch" style="width:34px; height:18px;"><input type="checkbox" checked><span class="toggle-slider" style="border-radius: 16px;"></span></label>
       </div>
       <div class="key-input-row">
         <span class="key-label">Token</span>
         <input class="key-input" type="password" value="xxxxxxxxxxxxxxxx">
-        <button class="btn btn-sm" style="font-size:10px; padding:3px 6px;">👁</button>
+        <button class="btn btn-sm" style="font-size: 10px; padding: 4px 6px;">👁</button>
       </div>
       <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
         <span class="key-status key-status-pending">⏳ 正在验证...</span>
-        <button class="btn btn-sm" style="font-size:10px; padding:3px 10px; opacity:0.5;">⏳ 测试中...</button>
+        <button class="btn btn-sm" style="font-size: 10px; padding: 4px 10px; opacity:0.5;">⏳ 测试中...</button>
       </div>
       <div style="margin-top:8px;">
-        <div style="font-size:11px; color:var(--warning); margin-bottom:4px;">
+        <div style="font-size: 11px; color:var(--warning); margin-bottom:4px;">
           <span>本月已用: 890,000 / 1,000,000</span>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
           <div class="quota-bar" style="flex:1;"><div class="quota-fill yellow" style="width:89%;"></div></div>
-          <span style="font-size:11px; color:var(--warning); font-weight:600; min-width:32px; text-align:right;">89% ⚠️</span>
+          <span style="font-size: 11px; color:var(--warning); font-weight:600; min-width:32px; text-align:right;">89% ⚠️</span>
         </div>
       </div>
     </div>
@@ -3684,7 +3686,7 @@
 <div class="section-label" style="margin-top: 40px;">⑪ 应用内反馈表单</div>
 
 <div class="window popup" style="max-width: 420px; padding: 0;">
-  <div style="position: relative; background: var(--bg); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); padding: 28px;">
+  <div style="position: relative; background: var(--bg); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); padding: 24px;">
     <button class="donate-close">✕</button>
     <div style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">📝 提交反馈</div>
     <div class="feedback-form">
@@ -3764,7 +3766,7 @@
         <div style="display: flex; align-items: start; gap: 10px;">
           <span style="font-size: 18px; line-height: 1;">⭐</span>
           <div style="flex: 1;">
-            <div style="font-size: 15px; font-weight: 600; color: var(--accent); margin-bottom: 4px;">那只敏捷的棕色狐狸跳过了那只懒惰的狗</div>
+            <div style="font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 4px;">那只敏捷的棕色狐狸跳过了那只懒惰的狗</div>
             <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">原文: The quick brown fox jumps over the lazy dog.</div>
             <div style="display: flex; align-items: center; gap: 12px; font-size: 11px; color: var(--text-secondary);">
               <span>[EN→ZH]</span><span>🔥 火山翻译</span><span>⭐ 收藏于 04-19 01:15</span>
@@ -3782,7 +3784,7 @@
         <div style="display: flex; align-items: start; gap: 10px;">
           <span style="font-size: 18px; line-height: 1;">⭐</span>
           <div style="flex: 1;">
-            <div style="font-size: 15px; font-weight: 600; color: var(--accent); margin-bottom: 4px;">互斥锁</div>
+            <div style="font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 4px;">互斥锁</div>
             <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">原文: mutex</div>
             <div style="display: flex; align-items: center; gap: 12px; font-size: 11px; color: var(--text-secondary);">
               <span>[EN→ZH]</span><span>🧠 DeepSeek-V3</span><span>⭐ 收藏于 04-18 22:30</span>
@@ -3800,7 +3802,7 @@
         <div style="display: flex; align-items: start; gap: 10px;">
           <span style="font-size: 18px; line-height: 1;">⭐</span>
           <div style="flex: 1;">
-            <div style="font-size: 15px; font-weight: 600; color: var(--accent); margin-bottom: 4px;">智者千虑必有一失</div>
+            <div style="font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 4px;">智者千虑必有一失</div>
             <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">原文: 猿も木から落ちる</div>
             <div style="display: flex; align-items: center; gap: 12px; font-size: 11px; color: var(--text-secondary);">
               <span>[JA→ZH]</span><span>🐧 腾讯翻译君</span><span>⭐ 收藏于 04-17 15:00</span>
@@ -3827,42 +3829,42 @@
   <div>
     <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;">正常状态</div>
     <div style="width: 360px; background: var(--bg); border-radius: 14px; box-shadow: var(--outset-shadow), 0 4px 20px rgba(0,0,0,0.15); overflow: hidden;">
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid rgba(128,128,128,0.08);">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 14px; border-bottom: 1px solid rgba(128,128,128,0.08);">
         <div style="display: flex; align-items: center; gap: 8px;">
           <span style="font-size: 16px;">🌍</span>
           <span style="font-size: 13px; font-weight: 600; color: var(--text-primary);">DotTranslator</span>
         </div>
         <button class="win-btn" style="width: 24px; height: 24px; font-size: 11px;" title="关闭">✕</button>
       </div>
-      <div style="padding: 10px 14px 6px;">
+      <div style="padding: 8px 14px 6px;">
         <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">原文 (44 字符)</div>
         <div style="font-size: 13px; color: var(--text-primary); line-height: 1.5;">The quick brown fox jumps over the lazy dog.</div>
       </div>
       <div style="padding: 6px 14px 10px;">
         <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
           <span style="font-size: 11px; color: var(--text-secondary);">🔥 火山翻译</span>
-          <span style="font-size: 10px; padding: 1px 6px; border-radius: 8px; background: var(--accent); color: white;">⚡287ms</span>
+          <span style="font-size: 10px; padding: 2px 6px; border-radius: 8px; background: var(--accent); color: white;">⚡287ms</span>
         </div>
         <div style="font-size: 14px; color: var(--accent); font-weight: 500; line-height: 1.6;">敏捷的棕色狐狸跳过了懒惰的狗。</div>
       </div>
       <div style="display: flex; gap: 6px; padding: 8px 14px 12px;">
         <button class="btn btn-sm">📋 复制</button>
         <button class="btn btn-sm">🔊 朗读</button>
-        <button class="btn btn-primary" style="font-size: 12px; padding: 5px 14px;">📌 展开</button>
+        <button class="btn btn-primary" style="font-size: 12px; padding: 6px 14px;">📌 展开</button>
       </div>
     </div>
   </div>
   <div>
     <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;">3 秒后半透明（鼠标移上去恢复）</div>
     <div style="width: 360px; background: var(--bg); border-radius: 14px; box-shadow: var(--outset-shadow), 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; opacity: 0.35;">
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid rgba(128,128,128,0.08);">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 14px; border-bottom: 1px solid rgba(128,128,128,0.08);">
         <div style="display: flex; align-items: center; gap: 8px;">
           <span style="font-size: 16px;">🌍</span>
           <span style="font-size: 13px; font-weight: 600; color: var(--text-primary);">DotTranslator</span>
         </div>
         <button class="win-btn" style="width: 24px; height: 24px; font-size: 11px;">✕</button>
       </div>
-      <div style="padding: 10px 14px 6px;">
+      <div style="padding: 8px 14px 6px;">
         <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">原文</div>
         <div style="font-size: 13px; color: var(--text-primary);">The quick brown fox...</div>
       </div>
@@ -3883,16 +3885,16 @@
 <div style="display: flex; gap: 40px; align-items: start; flex-wrap: wrap;">
   <div>
     <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;">托盘区图标</div>
-    <div style="background: #3a3a4a; border-radius: 8px; padding: 8px 16px; display: inline-flex; align-items: center; gap: 12px;">
+    <div style="background: var(--shadow-dark); border-radius: 8px; padding: 8px 16px; display: inline-flex; align-items: center; gap: 12px;">
       <div style="display: flex; align-items: center; gap: 4px;">
         <span style="font-size: 14px;">🔊</span>
         <span style="font-size: 14px;">📶</span>
         <span style="font-size: 14px;">🔋</span>
       </div>
-      <div style="width: 24px; height: 24px; border-radius: 6px; background: linear-gradient(135deg, #7C5CFC, #5A3FD6); display: flex; align-items: center; justify-content: center;">
+      <div style="width: 24px; height: 24px; border-radius: 8px; background: linear-gradient(135deg, #7C5CFC, #5A3FD6); display: flex; align-items: center; justify-content: center;">
         <span style="font-size: 11px; color: white; font-weight: 700;">A</span>
       </div>
-      <span style="font-size: 12px; color: #ccc;">16:19</span>
+      <span style="font-size: 12px; color: var(--text-secondary);">16:19</span>
     </div>
     <div style="font-size: 11px; color: var(--text-secondary); margin-top: 6px;">悬浮提示: "DotTranslator v1.0.0"</div>
   </div>
@@ -3901,10 +3903,10 @@
     <div style="width: 220px; background: var(--bg); border-radius: 10px; box-shadow: var(--outset-shadow), 0 8px 24px rgba(0,0,0,0.2); overflow: hidden; padding: 6px 0;">
       <div style="padding: 8px 16px; font-size: 13px; display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--text-primary);"><span>🌍</span> 打开翻译窗口</div>
       <div style="padding: 8px 16px; font-size: 13px; display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--text-primary);"><span>📋</span> 翻译剪贴板内容</div>
-      <div style="height: 1px; background: rgba(128,128,128,0.12); margin: 4px 12px;"></div>
+      <div style="height: 1px; background: var(--shadow-dark); opacity: 0.3; margin: 4px 12px;"></div>
       <div style="padding: 8px 16px; font-size: 13px; display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--text-primary);"><span>⚙️</span> 设置</div>
       <div style="padding: 8px 16px; font-size: 13px; display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--text-primary);"><span>☕</span> 打赏支持</div>
-      <div style="height: 1px; background: rgba(128,128,128,0.12); margin: 4px 12px;"></div>
+      <div style="height: 1px; background: var(--shadow-dark); opacity: 0.3; margin: 4px 12px;"></div>
       <div style="padding: 8px 16px; font-size: 13px; display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--error);"><span>✕</span> 退出</div>
     </div>
   </div>
@@ -3924,9 +3926,9 @@
     </div>
   </div>
   <div class="content" style="padding: 20px;">
-    <div class="panel" style="padding: 14px; margin-bottom: 16px;">
+    <div class="panel" style="padding: 12px; margin-bottom: 16px;">
       <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-        <span style="font-size: 24px;">📄</span>
+        <span style="font-size: 22px;">📄</span>
         <div>
           <div style="font-size: 14px; font-weight: 600;">report.docx</div>
           <div style="font-size: 12px; color: var(--text-secondary);">23.5 KB · Word 文档</div>
@@ -3949,7 +3951,7 @@
     </div>
     <div style="font-size: 13px; font-weight: 600; margin-bottom: 10px;">选择翻译引擎：</div>
     <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
-      <div class="panel" style="padding: 12px; border: 2px solid var(--accent); border-radius: 12px; position: relative;">
+      <div class="panel" style="padding: 12px; border: 2px solid var(--accent); border-radius: 10px; position: relative;">
         <div style="position: absolute; top: -8px; right: 12px; background: var(--accent); color: white; font-size: 10px; padding: 2px 8px; border-radius: 8px; font-weight: 600;">推荐</div>
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
           <input type="radio" name="doc-engine" checked style="accent-color: var(--accent);">
