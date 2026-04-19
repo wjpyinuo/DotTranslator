@@ -17,7 +17,8 @@
 每一块完成后必须满足：
 - `dotnet build` 编译通过（零警告零错误）
 - 相关测试全部通过
-- 代码与设计方案一致
+- 代码与设计方案（`DotTranslator-设计方案.md`）一致
+- UI 与原型预览（`DotTranslator-UI-Preview.html`）一致（阴影、色板、圆角、状态变体）
 
 ---
 
