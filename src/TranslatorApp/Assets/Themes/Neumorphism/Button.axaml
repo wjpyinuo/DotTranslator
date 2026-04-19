@@ -5,6 +5,7 @@
     <Setter Property="Background" Value="{DynamicResource CardBgBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="BorderBrush" Value="Transparent" />
     <Setter Property="CornerRadius" Value="{DynamicResource Radius.Medium}" />
     <Setter Property="Padding" Value="20,10" />
     <Setter Property="HorizontalAlignment" Value="Center" />
@@ -13,6 +14,8 @@
       <ControlTemplate>
         <Border Name="PART_Border"
                 Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
                 CornerRadius="{TemplateBinding CornerRadius}"
                 Padding="{TemplateBinding Padding}"
                 BoxShadow="{DynamicResource Neu.Outset}">
@@ -48,10 +51,10 @@
       </Style>
     </Style>
 
+    <!-- Focus: no visible border, just slight shadow change -->
     <Style Selector="^:focus">
       <Style Selector="^ /template/ Border#PART_Border">
-        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-        <Setter Property="BorderThickness" Value="2,2" />
+        <Setter Property="BoxShadow" Value="{DynamicResource Neu.OutsetHover}" />
       </Style>
     </Style>
 
@@ -85,11 +88,19 @@
       <Setter Property="FontSize" Value="{DynamicResource FontSize.Small}" />
     </Style>
 
+    <!-- icon: fully round, no border at all -->
     <Style Selector="^.icon">
-      <Setter Property="CornerRadius" Value="{DynamicResource Radius.Pill}" />
+      <Setter Property="CornerRadius" Value="999" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="BorderBrush" Value="Transparent" />
       <Setter Property="Padding" Value="10" />
       <Setter Property="MinWidth" Value="36" />
       <Setter Property="MinHeight" Value="36" />
+      <Style Selector="^ /template/ Border#PART_Border">
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="CornerRadius" Value="999" />
+      </Style>
     </Style>
   </ControlTheme>
 

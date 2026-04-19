@@ -1,6 +1,3 @@
-<!--
-  DotTranslator — Neumorphism TextBox ControlTheme
--->
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
@@ -10,12 +7,16 @@
     <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}" />
     <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}" />
     <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="BorderBrush" Value="Transparent" />
     <Setter Property="CornerRadius" Value="{DynamicResource Radius.Medium}" />
     <Setter Property="Padding" Value="14,10" />
     <Setter Property="FontSize" Value="{DynamicResource FontSize.BodyLarge}" />
     <Setter Property="Template">
       <ControlTemplate>
-        <Border Background="{TemplateBinding Background}"
+        <Border Name="PART_Border"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
                 CornerRadius="{TemplateBinding CornerRadius}"
                 Padding="{TemplateBinding Padding}"
                 BoxShadow="{DynamicResource Neu.Inset}">
@@ -35,8 +36,6 @@
                              CaretIndex="{TemplateBinding CaretIndex}"
                              TextAlignment="{TemplateBinding TextAlignment}"
                              TextWrapping="{TemplateBinding TextWrapping}"
-                             PasswordChar="{TemplateBinding PasswordChar}"
-                             RevealPassword="{TemplateBinding RevealPassword}"
                              SelectionBrush="{TemplateBinding SelectionBrush}"
                              SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
                              CaretBrush="{TemplateBinding CaretBrush}" />
@@ -46,8 +45,8 @@
       </ControlTemplate>
     </Setter>
 
-    <!-- Focus 态 -->
-    <Style Selector="^:focus /template/ Border">
+    <!-- Focus: subtle accent border -->
+    <Style Selector="^:focus">
       <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
       <Setter Property="BorderThickness" Value="2,2" />
     </Style>

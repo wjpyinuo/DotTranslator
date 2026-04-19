@@ -25,8 +25,30 @@ public partial class MainWindow : Window
 
     private void CloseClick(object? sender, RoutedEventArgs e)
     {
-        // 最小化到托盘而非退出（托盘功能 Week 3 实现）
-        // TODO: Week 3 改为 Hide() + TrayIcon
         Close();
+    }
+
+    // Allow double-click on title bar to maximize/restore
+    protected override void OnPointerPressed(PointerPressedEventArgs e)
+    {
+        base.OnPointerPressed(e);
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            // Check if click is in title bar area (top 40px)
+            var pos = e.GetPosition(this);
+            if (pos.Y < 40)
+            {
+                if (e.ClickCount == 2)
+                {
+                    WindowState = WindowState == WindowState.Maximized
+                        ? WindowState.Normal
+                        : WindowState.Maximized;
+                }
+                else
+                {
+                    BeginMoveDrag(e);
+                }
+            }
+        }
     }
 }
